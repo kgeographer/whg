@@ -2,20 +2,20 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import auth
 
-def signup(request):
+def register(request):
     if request.method == 'POST':
         if request.POST['password1'] == request.POST['password2']:
             try:
                 User.objects.get(username=request.POST['username'])
-                return render(request, 'accounts/signup.html', {'error': 'User name is already taken'})
+                return render(request, 'accounts/register.html', {'error': 'User name is already taken'})
             except User.DoesNotExist:
                 user = User.objects.create_user(request.POST['username'], password=request.POST['password1'])
                 auth.login(request, user)
                 return redirect('home')
         else:
-            return render(request, 'accounts/signup.html', {'error': 'Sorry, password mismatch!'})
+            return render(request, 'accounts/register.html', {'error': 'Sorry, password mismatch!'})
     else:
-        return render(request, 'accounts/signup.html')
+        return render(request, 'accounts/register.html')
 
 def login(request):
     if request.method == 'POST':

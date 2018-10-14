@@ -29,25 +29,24 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav ml-auto">
+            <a class="nav-item nav-link" href="{% url 'search_home' %}">
+              <span class="oi oi-plus">Search</span></a>
+            <a class="nav-item nav-link" href="{% url 'maps_home' %}">
+              <span class="oi oi-plus">Maps</span></a>
+            <a class="nav-item nav-link" href="{% url 'usingapi' %}">
+              <span class="oi oi-plus">Using the API</span></a>
+            <a class="nav-item nav-link" href="{% url 'contribute_home' %}">
+              <span class="oi oi-plus">Contribute</span></a>
+            <a class="nav-item nav-link" href="{% url 'community' %}">
+              <span class="oi oi-plus">Community</span></a>
+            <a class="nav-item nav-link" href="{% url 'about' %}">
+              <span class="oi oi-plus">About</span></a>
             {% if user.is_authenticated %}
-              <a class="nav-item nav-link" href="{% url 'search_home' %}">
-                <span class="oi oi-plus">Search</span></a>
-              <a class="nav-item nav-link" href="{% url 'maps_home' %}">
-                <span class="oi oi-plus">Maps</span></a>
-              <a class="nav-item nav-link" href="{% url 'usingapi' %}">
-                <span class="oi oi-plus">Using the API</span></a>
-              <a class="nav-item nav-link" href="{% url 'contribute_home' %}">
-                <span class="oi oi-plus">Contribute</span></a>
-              <a class="nav-item nav-link" href="{% url 'community' %}">
-                <span class="oi oi-plus">Community</span></a>
-              <a class="nav-item nav-link" href="{% url 'about' %}">
-                <span class="oi oi-plus">About</span></a>
-              <a class="nav-item nav-link" href="javascript:{document.getElementById('logout').submit()}">Logout</a>
+              <a class="nav-item nav-link ml-4" href="javascript:{document.getElementById('logout').submit()}">Logout</a>
               <form id="logout" method="post" action="{% url 'logout' %}">
                 {% csrf_token %}</form>
-              <!-- <input type="hidden" -->
             {% else %}
-              <a class="nav-item nav-link" href="{% url 'signup' %}">Sign Up</a>
+              <a class="nav-item nav-link ml-4" href="{% url 'register' %}">Register</a>
               <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
             {% endif %}
           </div>

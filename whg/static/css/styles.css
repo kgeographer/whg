@@ -1,3 +1,8 @@
-#img_home {
-  margin-top: 50px;
+/* h3 {
+  font-family: Georgia, serif;
+} */
+.dataset-box {
+  border: 1px solid gray;
+  min-height: 100px;
+  background-color: #eeeeee;
 }
