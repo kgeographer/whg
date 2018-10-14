@@ -1,9 +1,12 @@
 {% extends "main/base.html" %}
-{% block title %}<title>WHG</title>{% endblock %}
+{% block title %}<title>WHG::Home</title>{% endblock %}
 
 {% block content %}
 {% load static %}
 
-<h3>World-Historical Gazetteer</h3>
-
+<div class="container">
+  <div class="d-flex justify-content-center">
+    <img id="img_home" src="{% static 'images/whg_logo_notext_400w.png'%}" />
+  </div>
+</div>
 {% endblock %}

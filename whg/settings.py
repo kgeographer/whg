@@ -22,9 +22,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,10 +30,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'main.apps.MainConfig',
-    'accounts.apps.AccountsConfig',
     'leaflet',
     'fontawesome',
+
+    'main.apps.MainConfig',
+    'accounts.apps.AccountsConfig',
+    'maps.apps.MapsConfig',
+    'search.apps.SearchConfig',
+    'contribute.apps.ContributeConfig',
 ]
 
 MIDDLEWARE = [

@@ -11,10 +11,16 @@ from django.urls import include, path
 
 urlpatterns = [
     url(r'^$', views.home, name="home"),
-    url(r'^about/$', views.about, name="about"),
-    url(r'^community/$', views.community, name="community"),
+
+    # apps
+    path('search/', include('search.urls')),
+    path('maps/', include('maps.urls')),
+    path('contribute/', include('contribute.urls')),
+
+    # static content
     url(r'^usingapi/$', views.usingapi, name="usingapi"),
-    # url(r'^search/$', views.search, name="search"),
+    url(r'^community/$', views.community, name="community"),
+    url(r'^about/$', views.about, name="about"),
 
     path('accounts/', include('accounts.urls')),
     path('admin/', admin.site.urls),

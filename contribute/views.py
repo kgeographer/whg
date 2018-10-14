@@ -2,4 +2,4 @@ from django.shortcuts import render
 
 # Create your views here.
 def home(request):
-    return render(request, 'maps/home.html')
+    return render(request, 'contribute/home.html')
