@@ -10,5 +10,8 @@ def about(request):
 def community(request):
     return render(request, 'main/community.html')
 
+def credits(request):
+    return render(request, 'main/credits.html')
+
 def usingapi(request):
     return render(request, 'main/usingapi.html')

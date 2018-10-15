@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^usingapi/$', views.usingapi, name="usingapi"),
     url(r'^community/$', views.community, name="community"),
     url(r'^about/$', views.about, name="about"),
+    url(r'^credits/$', views.credits, name="credits"),
 
     path('accounts/', include('accounts.urls')),
     path('admin/', admin.site.urls),
