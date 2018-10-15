@@ -77,6 +77,7 @@ WSGI_APPLICATION = 'whg.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
+    # authentication, etc.
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'whg',
@@ -85,9 +86,10 @@ DATABASES = {
         'HOST':'localhost',
         'PORT':'5432',
     },
-    'review': {
+    # data
+    'whgdata': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'whgreview',
+        'NAME': 'whgdata',
         'USER':'',
         'PASSWORD':'',
         'HOST':'localhost',
@@ -96,7 +98,7 @@ DATABASES = {
 }
 
 # not implemented yet
-# DATABASE_ROUTERS = ('.dbrouters.MyDBRouter',)
+# DATABASE_ROUTERS = ('whg.dbrouters.MyDBRouter',)
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
