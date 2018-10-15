@@ -58,12 +58,14 @@
             </li>
 
             <li class="nav-item dropdown mr-5">
-              <a class="nav-link dropdown-toggle bg-info text-white" href="#" id="aboutDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a class="nav-link dropdown-toggle bg-secondary text-white" href="#" id="aboutDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {{ user.username }}
               </a>
               <div class="dropdown-menu" aria-labelledby="aboutDropdown">
-                <a class="dropdown-item" href="{# url 'dashboard' #}">Dashboard</a>
-                <a class="dropdown-item" href="{# url 'profile' #}">Profile</a>
+                <a class="dropdown-item" href="/contribute/dashboard">Dashboard</a>
+                <a class="dropdown-item" href="/accounts/profile">Profile</a>
+                <!-- <a class="dropdown-item" href="{# url 'dashboard' #}">Dashboard</a>
+                <a class="dropdown-item" href="{# url 'profile' #}">Profile</a> -->
               </div>
             </li>
 
