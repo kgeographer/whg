@@ -4,9 +4,16 @@
 .dataset-box {
   border: 1px solid gray;
   min-height: 100px;
-  background-color: #eeeeee;
+  background-color: #eeeee0;
+  padding:12px;
+  border-radius: 16px;
 }
 
 .h2em {
   height: 2em;
+}
+
+.red-bold {
+  color: #dc3545 !important;
+  font-weight: bold;
 }
