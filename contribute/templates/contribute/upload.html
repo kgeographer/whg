@@ -1,0 +1,15 @@
+<!-- contribute/upload.html -->
+{% extends "main/base.html" %}
+{% block title %}<title>WHG::Upload</title>{% endblock %}
+
+{% block content %}
+{% load static %}
+
+  <div class="container">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <h3>Upload file</h3>
+    {{ upload_form }}
+  </div>
+
+{% endblock %}

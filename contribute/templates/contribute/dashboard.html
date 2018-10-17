@@ -4,6 +4,7 @@
 
 {% block content %}
 {% load static %}
+{% load fontawesome %}
 
   <div class="container">
     <div class="d-flex justify-content-center mt-3">
@@ -11,11 +12,15 @@
     <div class="d-flex justify-content-center">
       <h4 class="text-danger">{{ user.username }}</h4></div>
     <div class="px-5">
-      <h4>Datasets</h4>
+      <h4>Datasets
+        <span onclick="upload.html" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</span></h4>
       {% for d in datasets %}
         <div class="dataset-box mb-2">
           <h4>{{ d.name }} </h4>
           <p><b>Slug</b>: {{ d.slug }} <br/>
+              {% if d.upload %}
+                <b>File</b>: <span class="text-danger">{{ d.upload }}</span><br/>
+              {% endif %}
              <b>Created</b>: {{ d.created }}; <b>Modified</b>: {{ d.modified }}</p>
         </div>
       {% endfor %}
