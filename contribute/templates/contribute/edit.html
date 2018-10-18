@@ -6,23 +6,26 @@
 {% load static %}
 
   <div class="container">
-    <h3>Upload data file</h3>
-    <div class="d-flex">
+    <h3>Edit upload</h3>
     <div class="form-box mt-3">
-      <!-- action="{# url 'contrib_upload' #}"  -->
       <form id="form_upload" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="user" value='{{ user.id }}'></input>
-        <p>Name: {{ upload_form.name }}</p>
-        <p>Slug: {{ upload_form.slug }}</p>
-        <p>
-          <input class="text-danger" type="file" name="file" value='{{ upload_form.file }}'></input>
+        <i>not working</i>
+        <p>Name:
+          <input type="text" name="name" value='{{ dataset.name }}'></input>
         </p>
+        <p>Slug:
+          <input type="text" name="slug" value='{{ dataset.slug }}'></input>
+        </p>
+        <p>
+          <input type="file" name="file" value='{{ dataset.file }}'></input>
+        </p>
+        <span class="text-danger">{{ dataset.file }}</span>
         <br/>
-        <input class="btn btn-primary" type="submit" value="Upload"/>
+        <input class="btn btn-primary" type="submit" value="Save"/>
       </form>
     </div>
-  </div>
   </div>
 
 {% endblock %}

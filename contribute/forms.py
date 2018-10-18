@@ -6,8 +6,7 @@ class DatasetModelForm(forms.ModelForm):
 
     class Meta:
         model = Dataset
-        fields = ['id','name', 'slug', 'user','upload',
-            'created','modified' ]
-        widgets = {
-            'upload': forms.FileInput()
-        }
+        fields = ('name', 'slug', 'user', 'file')
+        # widgets = {
+        #     # 'file': forms.FileInput()
+        # }

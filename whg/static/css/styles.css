@@ -8,6 +8,12 @@
   padding:12px;
   border-radius: 16px;
 }
+.form-box {
+  border: 1px solid gray;
+  background-color: #eeeee0;
+  padding:12px;
+  border-radius: 16px;
+}
 
 .h2em {
   height: 2em;

@@ -13,15 +13,22 @@
       <h4 class="text-danger">{{ user.username }}</h4></div>
     <div class="px-5">
       <h4>Datasets
-        <span onclick="upload.html" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</span></h4>
+        <a href="{% url 'contrib_upload' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
       {% for d in datasets %}
         <div class="dataset-box mb-2">
-          <h4>{{ d.name }} </h4>
+          <h4>{{ d.name }}
+            <!-- TODO: confirm popup dialog -->
+            <a href="{% url 'contrib_delete' d.id %}"
+            class="float-right">{% fontawesome_icon 'trash' color='#336699' %}</a>
+            <!-- TODO: edit (same as create)-->
+            <a href="{% url 'contrib_edit' d.id %}"
+            class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a>
+          </h4>
           <p><b>Slug</b>: {{ d.slug }} <br/>
-              {% if d.upload %}
-                <b>File</b>: <span class="text-danger">{{ d.upload }}</span><br/>
+              {% if d.file %}
+                <b>File</b>: <span class="text-danger">{{ d.file }}</span><br/>
               {% endif %}
-             <b>Created</b>: {{ d.created }}; <b>Modified</b>: {{ d.modified }}</p>
+             <b>Uploaded</b>: {{ d.uploaded }}</p>
         </div>
       {% endfor %}
     </div>
