@@ -29,6 +29,16 @@
         <a href="{% url 'contrib_dashboard' %}">Cancel</a>
       </form>
     </div>
+    {% if errors %}
+    <div class="form-box mt-3 ml-3" id="ds_errors">
+      <h5 class="text-danger">Errors</h5>
+      <ol>
+        {% for e in errors %}
+          <li>{{ e }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
   </div>
   </div>
 

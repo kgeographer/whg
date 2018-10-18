@@ -8,6 +8,6 @@ class DatasetModelForm(forms.ModelForm):
         model = Dataset
         fields = ('name', 'slug', 'user', 'file', 'description')
         widgets = {
-            'description': forms.Textarea(attrs={'rows':3,'cols': 80,'class':'textarea',
+            'description': forms.Textarea(attrs={'rows':3,'cols': 60,'class':'textarea',
         'placeholder':'brief description'})
         }

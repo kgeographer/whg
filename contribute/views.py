@@ -3,7 +3,10 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from main.models import Dataset
 from .forms import DatasetModelForm
+from .tasks import validate
 from pprint import pprint
+import django.core.files.uploadedfile as upfile
+import codecs, tempfile, os
 
 def home(request):
     return render(request, 'contribute/home.html')
@@ -15,12 +18,45 @@ def dashboard(request):
 
 def ds_new(request, template_name='contribute/ds_form.html'):
     form = DatasetModelForm(request.POST, request.FILES)
+    context = {
+        'form':form, 'action': 'new'
+    }
     if form.is_valid():
         print('form is valid')
-        form.save()
-        # TODO: validate the file
-        return redirect('/contribute/dashboard')
-    return render(request, template_name, {'form':form, 'action': 'new'})
+        # validate the file
+        filey = request.FILES['file'].file
+
+        # write it to a temporary location before save
+        tempf, tempfn = tempfile.mkstemp()
+        try:
+            for chunk in request.FILES['file'].chunks():
+                os.write(tempf, chunk)
+        except:
+            raise Exception("Problem with the input file %s" % request.FILES['file'])
+        finally:
+            os.close(tempf)
+
+        # {'errors':errors}
+        # open and analyze it, gathering errors
+        errors = []
+        fin = codecs.open(tempfn, 'r', 'utf8')
+        rows = fin.readlines()[:10]
+        fin.close()
+        # TODO: account for various delimiters
+        header = rows[0][:-1].split(',')
+        for x in range(len(rows[1:])):
+            row_list = rows[x].split(',')
+            # check list length
+
+            # test error output
+            errors.append({'id':x, 'boogered': row_list[3]})
+        pprint(errors)
+
+        context['errors'] = errors
+        # if all is good, save to user folder and return
+        # form.save()
+        # return redirect('/contribute/dashboard')
+    return render(request, template_name, context=context)
 
 def ds_update(request, pk, template_name='contribute/ds_form.html'):
     dataset = get_object_or_404(Dataset, pk=pk)
