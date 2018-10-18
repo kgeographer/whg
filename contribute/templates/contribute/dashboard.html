@@ -35,11 +35,31 @@
     </div>
   </div>
   <script>
-    $(document).on('click', '.confirm-delete', function(){
-      var r = confirm('Are you sure ?');
-      if (r == true) {
+    // $(document).on('click', '.confirm-delete', function(){
+    //   var r = confirm('Are you sure ?');
+    //
+    // })
 
-      }
-    })
+    // TODO: prettier
+    // function testConfirm() {
+    //   var $dialog = $('<div></div>')
+    //     .html("Are you sure you want to delete?")
+    //     .dialog({
+    //       resizable: false,
+    //       title: "Confirm Deletion",
+    //       modal: true,
+    //       buttons: {
+    //         Cancel: function() {
+    //           $(this).dialog("close");
+    //         },
+    //         "Delete": function() {
+    //           //some stuff
+    //           $(this).dialog("close");
+    //         }
+    //       }
+    //     });
+    //
+    //   $dialog.dialog('open');
+    // }
   </script>
 {% endblock %}

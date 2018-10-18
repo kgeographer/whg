@@ -14,22 +14,18 @@
         {% csrf_token %}
         <input type="hidden" name="user" value='{{ user.id }}'></input>
         <p>Name: {{ form.name }}</p>
-        <p>Slug: {{ form.slug }}</p>
+        <p>Label: {{ form.slug }} <span class=text-danger><i>12 char max, no spaces</i></span></p>
         <p>Description: {{ form.description }}</p>
-        {% if form.file %}
+        {% if action == 'update' %}
           <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
-          <p>
-            <input class="text-danger" type="file" name="file"
-              value='{{ form.file }}'></input>
-          </p>
-        {% else %}
+        {% elif action == 'new' %}
           <p>
             <input class="text-danger" type="file" name="file"
               value='{{ form.file }}'></input>
           </p>
         {% endif %}
         <br/>
-        <input class="btn btn-primary" type="submit" value="Upload"/>
+        <input class="btn btn-primary" type="submit" value="Save"/>
         <a href="{% url 'contrib_dashboard' %}">Cancel</a>
       </form>
     </div>

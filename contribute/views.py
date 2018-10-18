@@ -20,7 +20,7 @@ def ds_new(request, template_name='contribute/ds_form.html'):
         form.save()
         # TODO: validate the file
         return redirect('/contribute/dashboard')
-    return render(request, template_name, {'form':form})
+    return render(request, template_name, {'form':form, 'action': 'new'})
 
 def ds_update(request, pk, template_name='contribute/ds_form.html'):
     dataset = get_object_or_404(Dataset, pk=pk)
@@ -28,38 +28,10 @@ def ds_update(request, pk, template_name='contribute/ds_form.html'):
     if form.is_valid():
         form.save()
         return redirect('/contribute/dashboard')
-    return render(request, template_name, {'form':form})
+    return render(request, template_name, {'form':form, 'action': 'update'})
 
 def ds_delete(request, pk):
     dataset= get_object_or_404(Dataset, pk=pk)
     # it's a GET not POST
     dataset.delete()
     return redirect('contrib_dashboard')
-
-# def delete(request, dataset_id):
-#     dataset = get_object_or_404(Dataset, id=dataset_id)
-#     dataset.delete()
-#
-#     return HttpResponseRedirect('/contribute/dashboard')
-#
-# def upload(request):
-#     print('got to views.upload()')
-#     if request.method == 'POST':
-#         form = DatasetModelForm(request.POST, request.FILES)
-#         pprint(locals())
-#         # print(form)
-#         if form.is_valid():
-#             print('form is valid')
-#             # file is saved
-#             form.save()
-#             return HttpResponseRedirect('/contribute/dashboard')
-#         else:
-#             print('submitted form is NOT valid')
-#             pprint(form.errors)
-#     else:
-#         form = DatasetModelForm()
-#     return render(request, 'contribute/upload.html', {'upload_form': form})
-#
-# def edit(request, dataset_id):
-#     dataset = get_object_or_404(Dataset, id=dataset_id)
-#     return render(request, 'contribute/edit.html', {'dataset':dataset})
