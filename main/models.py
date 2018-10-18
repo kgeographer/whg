@@ -15,6 +15,7 @@ class Dataset(models.Model):
     slug = models.CharField(max_length=12, null=False, unique="True")
     user = models.ForeignKey(User, on_delete="models.CASCADE")
     file = models.FileField(upload_to=user_directory_path)
+    description = models.CharField(max_length=2044, null=False)
     # TODO:
     uploaded = models.DateTimeField(null=True, auto_now_add=True)
 
@@ -24,6 +25,9 @@ class Dataset(models.Model):
     class Meta:
         managed = True
         db_table = 'datasets'
+
+    def get_absolute_url(self):
+        return reverse('ds_edit', kwargs={'pk': self.pk})
 
 @receiver(pre_delete, sender=Dataset)
 def remove_file(**kwargs):

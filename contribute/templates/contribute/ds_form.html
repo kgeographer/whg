@@ -1,0 +1,40 @@
+<!-- contribute/ds_form.html -->
+{% extends "main/base.html" %}
+{% block title %}<title>WHG::Create/Update</title>{% endblock %}
+
+{% block content %}
+{% load static %}
+
+  <div class="container">
+    <h3>Create/Update dataset</h3>
+    <div class="d-flex">
+    <div class="form-box mt-3">
+      <!-- action="{# url 'contrib_upload' #}"  -->
+      <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="user" value='{{ user.id }}'></input>
+        <p>Name: {{ form.name }}</p>
+        <p>Slug: {{ form.slug }}</p>
+        <p>Description: {{ form.description }}</p>
+        {% if form.file %}
+          <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
+          <p>
+            <input class="text-danger" type="file" name="file"
+              value='{{ form.file }}'></input>
+          </p>
+        {% else %}
+          <p>
+            <input class="text-danger" type="file" name="file"
+              value='{{ form.file }}'></input>
+          </p>
+        {% endif %}
+        <br/>
+        <input class="btn btn-primary" type="submit" value="Upload"/>
+        <a href="{% url 'contrib_dashboard' %}">Cancel</a>
+      </form>
+    </div>
+  </div>
+  </div>
+
+{% endblock %}
+<!-- <p>{{ form.non_field_errors }}</p> -->
