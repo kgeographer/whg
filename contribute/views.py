@@ -42,20 +42,20 @@ def ds_new(request, template_name='contribute/ds_form.html'):
         fin = codecs.open(tempfn, 'r', 'utf8')
         rows = fin.readlines()[:10]
         fin.close()
-        # TODO: account for various delimiters
-        header = rows[0][:-1].split(',')
-        for x in range(len(rows[1:])):
-            row_list = rows[x].split(',')
-            # check list length
-
-            # test error output
-            errors.append({'id':x, 'boogered': row_list[3]})
+        # TODO: validate logic here
+        # header = rows[0][:-1].split(',')
+        # for x in range(len(rows[1:])):
+        #     row_list = rows[x].split(',')
+        #     # check list length
+        #
+        #     # test error output
+        #     errors.append({'id':x, 'boogered': row_list[3]})
         pprint(errors)
 
         context['errors'] = errors
         # if all is good, save to user folder and return
-        # form.save()
-        # return redirect('/contribute/dashboard')
+        form.save()
+        return redirect('/contribute/dashboard')
     return render(request, template_name, context=context)
 
 def ds_update(request, pk, template_name='contribute/ds_form.html'):

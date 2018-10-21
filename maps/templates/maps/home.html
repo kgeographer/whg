@@ -6,8 +6,35 @@
 {% load static %}
 
   <div class="container">
-    <div class="d-flex justify-content-center mt-3">
-      <h3>Maps</h3>
+    <div class="justify-content-center mt-3">
+      <h3>Dataset Maps
+        <span class="float-right">
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Select dataset
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" href="#">selections</a>
+              <a class="dropdown-item" href="#">coming</a>
+              <a class="dropdown-item" href="#">soon</a>
+            </div>
+          </div>
+        </span>
+      </h3>
+      <div id='map' width="70%" style='height:400px'></div>
+      <script>
+       mapboxgl.accessToken = 'pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiUmVralBPcyJ9.mJegAI1R6KR21x_CVVTlqw';
+       // mapboxgl.accessToken = {{ mapbox_access_token }};
+       var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/kgeographer/cjni3c0lj5l3r2spa4niiuef5'
+        // style: 'mapbox://styles/mapbox/streets-v10'
+       });
+      </script>
     </div>
   </div>
+  <!-- Mapbox -->
+  <script src='https://api.mapbox.com/mapbox-gl-js/v0.44.2/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v0.44.2/mapbox-gl.css' rel='stylesheet' />
+
 {% endblock %}
