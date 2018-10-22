@@ -18,6 +18,7 @@
         <p>Description: {{ form.description }}</p>
         <p>Data type {{ form.datatype }}</p>
         <p>Format {{ form.format }}</p>
+        <p>Map ID {{ form.map_uri }}</p>
         {% if action == 'update' %}
           <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
         {% elif action == 'new' %}

@@ -3,19 +3,21 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from main.models import Dataset
 from .forms import DatasetModelForm
-from .tasks import validate
 from pprint import pprint
 import django.core.files.uploadedfile as upfile
 import codecs, tempfile, os
+from .tasks import validate
 
 def home(request):
     return render(request, 'contribute/home.html')
 
+# list datasets per user
 def dashboard(request):
     dataset_list = Dataset.objects.filter(user=request.user.id).order_by('-uploaded')
     print('dataset_list',dataset_list)
     return render(request, 'contribute/dashboard.html', {'datasets':dataset_list})
 
+# new dataset: upload file, store if valid
 def ds_new(request, template_name='contribute/ds_form.html'):
     form = DatasetModelForm(request.POST, request.FILES)
     context = {
@@ -26,7 +28,8 @@ def ds_new(request, template_name='contribute/ds_form.html'):
         # validate the file
         filey = request.FILES['file'].file
 
-        # write it to a temporary location before save
+        # open & write tempf to a temp location;
+        # call it tempfn for reference
         tempf, tempfn = tempfile.mkstemp()
         try:
             for chunk in request.FILES['file'].chunks():
@@ -36,7 +39,6 @@ def ds_new(request, template_name='contribute/ds_form.html'):
         finally:
             os.close(tempf)
 
-        # {'errors':errors}
         # open and analyze it, gathering errors
         errors = []
         fin = codecs.open(tempfn, 'r', 'utf8')
@@ -53,7 +55,8 @@ def ds_new(request, template_name='contribute/ds_form.html'):
         pprint(errors)
 
         context['errors'] = errors
-        # if all is good, save to user folder and return
+        
+        # if validated, save to user folder and return
         form.save()
         return redirect('/contribute/dashboard')
     return render(request, template_name, context=context)

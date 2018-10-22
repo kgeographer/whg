@@ -7,7 +7,7 @@ class DatasetModelForm(forms.ModelForm):
     class Meta:
         model = Dataset
         fields = ('name', 'slug', 'user', 'file',
-            'format', 'datatype','description')
+            'format', 'datatype','description','map_uri')
         widgets = {
             'description': forms.Textarea(attrs={'rows':3,'cols': 60,'class':'textarea','placeholder':'brief description'}),
             'format': forms.Select(),

@@ -29,7 +29,11 @@
               {% if d.file %}
                 <b>File</b>: <span class="text-danger">{{ d.file }}</span><br/>
               {% endif %}
-             <b>Uploaded</b>: {{ d.uploaded }}</p>
+             <b>Uploaded</b>: {{ d.uploaded }}
+             {% if d.map_uri %}
+               <span class="ml-3"><a href="{% url 'maps_home' %}">Map</a></span>
+             {% endif %}
+           </p>
         </div>
       {% endfor %}
     </div>
