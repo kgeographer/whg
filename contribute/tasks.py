@@ -4,7 +4,6 @@ from pprint import pprint
 
 def read_csv(infile):
     import csv
-    #result = {'format':'csv','errors':{'rowlength':[]}}
     result = {'format':'csv','errors':{}}
     required = ['id', 'title', 'ccode', 'lon', 'lat']
 
@@ -52,6 +51,7 @@ def read_csv(infile):
     if len(result['errors'].keys()) == 0:
         # add geometries
         result['geom'] = {"type":"FeatureCollection", "features":geometries}
+        # TODO: insert into db
         print('looks ok')
     else:
         print('got errors')

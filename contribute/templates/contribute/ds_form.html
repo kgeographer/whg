@@ -13,16 +13,21 @@
       <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="owner" value='{{ user.id }}'></input>
+        {% if status == 'format_ok' %}
+          <input type="hidden" name="status" value='format_ok'></input>
+        {% endif %}
         <p>Name: {{ form.name }}</p>
-        <p>Label: {{ form.label }} <span class=text-danger>
-          <i>12 char max, no spaces</i></span></p>
+        <p>Unique label: {{ form.label }}
+          <span class="text-danger"><i>12 char max, no spaces</i></span>
+        </p>
+        {% if errors %}<p>{{ errors }}</p>{% endif %}
         <p>Description: {{ form.description }}</p>
         <p>Data type {{ form.datatype }}</p>
         <p>Format {{ form.format }}</p>
         {% if form.mapbox_id != null %}
           <p>MapBox ID {{ form.mapbox_id }}</p>
         {% endif %}
-        {% if action == 'update' or action == 'upload' %}
+        {% if action == 'update' %}
           <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
         {% elif action == 'new' %}
           <p>
@@ -33,7 +38,7 @@
         <br/>
         <!-- upload button only if it's not yet ok -->
         {% if status != 'format_ok' %}
-        <input class="btn btn-primary" type="submit" value="Upload"/>
+        <input class="btn btn-primary" type="submit" value="Save" />
         <a href="{% url 'contrib_dashboard' %}">Cancel</a>
         {% endif %}
 
@@ -49,9 +54,8 @@
           <li>{{ k }}: {{ v }}</li>
         {% endfor %}
       </ul>
-      {% if status == 'format_ok' %}
-        <input class="btn btn-primary" type="submit" value="Save"/>
-      {% endif %}
+      <a href="{% url 'contrib_dashboard' %}">
+        <input class="btn btn-primary" type="text" value="OK"/>
     </div>
     {% endif %}
     </form>
@@ -59,4 +63,6 @@
   </div>
 
 {% endblock %}
+<!-- action="{# url 'ds_insert' form.label #}" -->
+
 <!-- <p>{{ form.non_field_errors }}</p> -->

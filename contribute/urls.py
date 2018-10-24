@@ -11,6 +11,7 @@ urlpatterns = [
 
     path('new', views.ds_new, name="ds_new"),
     path('edit/<int:pk>', views.ds_update, name="ds_update"),
+    path('insert/<str:label>', views.ds_insert, name="ds_insert"),
     path('delete/<int:pk>', views.ds_delete, name="ds_delete"),
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
