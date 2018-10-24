@@ -15,7 +15,9 @@ class DatasetModelForm(forms.ModelForm):
             'format': forms.Select(),
             'datatype': forms.Select()
         }
+        initial = {'format': 'csv', 'datatype': 'places'}
 
     def __init__(self, *args, **kwargs):
+        self.format = 'csv'
+        self.datatype = 'place'
         super(DatasetModelForm, self).__init__(*args, **kwargs)
-        # self.fields['mapbox_id'].required = False

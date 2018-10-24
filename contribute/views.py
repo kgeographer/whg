@@ -50,28 +50,26 @@ def ds_new(request, template_name='contribute/ds_form.html'):
             fin = codecs.open(tempfn, 'r', 'utf8')
             # send for format validation
             if form.cleaned_data['format'] == 'csv':
-                result = read_csv(fin)
+                result = read_csv(fin,request.user.username)
             elif form.cleaned_data['format'] == 'lpf':
-                result = read_lpf(fin)
+                result = read_lpf(fin,request.user.username)
             # print('cleaned_data',form.cleaned_data)
             fin.close()
 
             # add status
             if len(result['errors']) == 0:
                 context['status'] = 'format_ok'
-                form.status = 'format_ok'
                 form.save()
-                print('result:', removekey(result, 'geom'))
             else:
                 context['status'] = 'format_error'
                 print('result:', result)
 
-            context['result'] = removekey(result, 'geom')
+            context['result'] = result
             # return redirect('/contribute/dashboard')
         else:
             print('not valid', form.errors)
             context['errors'] = form.errors
-        print(context)
+        print('context',context)
     return render(request, template_name, context=context)
 
 def ds_insert(request, pk ):

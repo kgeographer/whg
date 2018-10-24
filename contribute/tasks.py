@@ -2,7 +2,7 @@
 import sys, os, re, json, codecs, datetime, time
 from pprint import pprint
 
-def read_csv(infile):
+def read_csv(infile, username):
     import csv
     result = {'format':'csv','errors':{}}
     required = ['id', 'title', 'ccode', 'lon', 'lat']
@@ -49,9 +49,12 @@ def read_csv(infile):
         geometries.append(feature)
 
     if len(result['errors'].keys()) == 0:
-        # add geometries
-        result['geom'] = {"type":"FeatureCollection", "features":geometries}
-        # TODO: insert into db
+        # don't add geometries to result
+        # TODO: write them to a user GeoJSON file?
+        print('got username?', username)
+        print('2 geoms:', geometries[:2])
+        # result['geom'] = {"type":"FeatureCollection", "features":geometries}
+        # TODO: create insert into db
         print('looks ok')
     else:
         print('got errors')

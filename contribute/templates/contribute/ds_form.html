@@ -13,9 +13,7 @@
       <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="owner" value='{{ user.id }}'></input>
-        {% if status == 'format_ok' %}
-          <input type="hidden" name="status" value='format_ok'></input>
-        {% endif %}
+        <input type="hidden" name="status" value='format_ok'></input>
         <p>Name: {{ form.name }}</p>
         <p>Unique label: {{ form.label }}
           <span class="text-danger"><i>12 char max, no spaces</i></span>
@@ -44,7 +42,7 @@
 
     </div>
     {% if result %}
-    <input type="hidden" name="status" value='{{ status }}'></input>
+    <!-- <input type="hidden" name="status" value='{{ status }}'></input> -->
     <input type="hidden" name="file" value='{{ form.file }}'></input>
     <div class="form-box mt-3 ml-3" id="ds_errors">
       <h5 class="text-danger">Validation Results</h5>

@@ -18,8 +18,10 @@ class Dataset(models.Model):
     name = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=2044, null=False)
     file = models.FileField(upload_to=user_directory_path)
-    format = models.CharField(max_length=12, null=False,choices=FORMATS)
-    datatype = models.CharField(max_length=12, null=False,choices=DATATYPES)
+    format = models.CharField(max_length=12, null=False,choices=FORMATS,
+        default='csv')
+    datatype = models.CharField(max_length=12, null=False,choices=DATATYPES,
+        default='place')
     status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS)
     owner = models.ForeignKey(User, on_delete="models.CASCADE")
     upload_date = models.DateTimeField(null=True, auto_now_add=True)

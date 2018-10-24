@@ -6,7 +6,7 @@ FORMATS = [
 ]
 
 DATATYPES = [
-    ('place', 'Place data'),
+    ('place', 'Places'),
     ('anno', 'Annotations')
 ]
 
