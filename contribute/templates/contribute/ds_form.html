@@ -12,13 +12,16 @@
       <!-- action="{# url 'contrib_upload' #}"  -->
       <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="hidden" name="user" value='{{ user.id }}'></input>
+        <input type="hidden" name="owner" value='{{ user.id }}'></input>
         <p>Name: {{ form.name }}</p>
-        <p>Label: {{ form.slug }} <span class=text-danger><i>12 char max, no spaces</i></span></p>
+        <p>Label: {{ form.label }} <span class=text-danger>
+          <i>12 char max, no spaces</i></span></p>
         <p>Description: {{ form.description }}</p>
         <p>Data type {{ form.datatype }}</p>
         <p>Format {{ form.format }}</p>
-        <p>Map ID {{ form.map_uri }}</p>
+        {% if form.mapbox_id != null %}
+          <p>MapBox ID {{ form.mapbox_id }}</p>
+        {% endif %}
         {% if action == 'update' %}
           <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
         {% elif action == 'new' %}
@@ -28,20 +31,30 @@
           </p>
         {% endif %}
         <br/>
-        <input class="btn btn-primary" type="submit" value="Save"/>
+        <!-- upload button only if it's not yet ok -->
+        {% if status != 'format_ok' %}
+        <input class="btn btn-primary" type="submit" value="Upload"/>
         <a href="{% url 'contrib_dashboard' %}">Cancel</a>
-      </form>
+        {% endif %}
+
     </div>
-    {% if errors %}
+    {% if result %}
+    <input type="hidden" name="status" value='{{ status }}'></input>
+    <input type="hidden" name="file" value='{{ form.file }}'></input>
     <div class="form-box mt-3 ml-3" id="ds_errors">
-      <h5 class="text-danger">Errors</h5>
-      <ol>
-        {% for e in errors %}
-          <li>{{ e }}</li>
+      <h5 class="text-danger">Validation Results</h5>
+        <p>{{ status }}</p>
+      <ul>
+        {% for k, v in result.items %}
+          <li>{{ k }}: {{ v }}</li>
         {% endfor %}
-      </ol>
+      </ul>
+      {% if status == 'format_ok' %}
+        <input class="btn btn-primary" type="submit" value="Save"/>
+      {% endif %}
     </div>
     {% endif %}
+    </form>
   </div>
   </div>
 

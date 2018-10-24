@@ -24,13 +24,14 @@
             <a href="{% url 'ds_update' d.id %}"
             class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a>
           </h4>
-          <p><b>Slug</b>: {{ d.slug }} <br/>
+          <p>
+            <b>Label</b>: {{ d.label }} <br/>
             <b>Description</b>: {{ d.description }} <br/>
               {% if d.file %}
                 <b>File</b>: <span class="text-danger">{{ d.file }}</span><br/>
               {% endif %}
-             <b>Uploaded</b>: {{ d.uploaded }}
-             {% if d.map_uri %}
+             <b>Uploaded</b>: {{ d.upload_date }}
+             {% if d.mapbox_id %}
                <span class="ml-3"><a href="{% url 'maps_home' %}">Map</a></span>
              {% endif %}
            </p>

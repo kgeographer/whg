@@ -1,19 +1,20 @@
 # contribute.views
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-from main.models import Dataset
-from .forms import DatasetModelForm
 from pprint import pprint
 import django.core.files.uploadedfile as upfile
 import codecs, tempfile, os
-from .tasks import validate
+
+from .tasks import read_csv, read_lpf
+from .forms import DatasetModelForm
+from .models import Dataset
 
 def home(request):
     return render(request, 'contribute/home.html')
 
 # list datasets per user
 def dashboard(request):
-    dataset_list = Dataset.objects.filter(user=request.user.id).order_by('-uploaded')
+    dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
     print('dataset_list',dataset_list)
     return render(request, 'contribute/dashboard.html', {'datasets':dataset_list})
 
@@ -23,10 +24,21 @@ def ds_new(request, template_name='contribute/ds_form.html'):
     context = {
         'form':form, 'action': 'new'
     }
+    def removekey(d, key):
+        r = dict(d)
+        del r[key]
+        return r
     if form.is_valid():
         print('form is valid')
-        # validate the file
-        filey = request.FILES['file'].file
+
+        # data file already validated?
+        if form.cleaned_data['status'] == 'format_ok':
+            form.save()
+            # TODO: save to database
+            return redirect('/contribute/dashboard')
+
+        # get the file object
+        # filey = request.FILES['file'].file
 
         # open & write tempf to a temp location;
         # call it tempfn for reference
@@ -39,26 +51,28 @@ def ds_new(request, template_name='contribute/ds_form.html'):
         finally:
             os.close(tempf)
 
-        # open and analyze it, gathering errors
-        errors = []
+        # open temp file
         fin = codecs.open(tempfn, 'r', 'utf8')
-        rows = fin.readlines()[:10]
+        # send for format validation
+        if form.cleaned_data['format'] == 'csv':
+            result = read_csv(fin)
+        elif form.cleaned_data['format'] == 'lpf':
+            result = read_lpf(fin)
+        print('cleaned_data',form.cleaned_data)
         fin.close()
-        # TODO: validate logic here
-        # header = rows[0][:-1].split(',')
-        # for x in range(len(rows[1:])):
-        #     row_list = rows[x].split(',')
-        #     # check list length
-        #
-        #     # test error output
-        #     errors.append({'id':x, 'boogered': row_list[3]})
-        pprint(errors)
 
-        context['errors'] = errors
-        
-        # if validated, save to user folder and return
-        form.save()
-        return redirect('/contribute/dashboard')
+        # add status
+        if len(result['errors']) == 0:
+            context['status'] = 'format_ok'
+            print('result:', removekey(result, 'geom'))
+        else:
+            context['status'] = 'format_error'
+            print('result:', result)
+
+        context['result'] = removekey(result, 'geom')
+        # return redirect('/contribute/dashboard')
+    else:
+        pprint(form.errors)
     return render(request, template_name, context=context)
 
 def ds_update(request, pk, template_name='contribute/ds_form.html'):

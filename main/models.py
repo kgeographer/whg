@@ -1,55 +1,20 @@
+# main.models
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.contrib.postgres.fields import JSONField
 
-def user_directory_path(instance, filename):
-    # upload to MEDIA_ROOT/user_<username>/<filename>
-    return 'user_{0}/{1}'.format(instance.user.username, filename)
-
-FORMATS = [
-    ('csv', 'Simple CSV'),
-    ('lpf', 'Linked Places format')
-]
-DATATYPES = [
-    ('place', 'Place data'),
-    ('anno', 'Annotations')
-]
-# TODO: multiple files per dataset w/File model and formset
-class Dataset(models.Model):
-    name = models.CharField(max_length=255, null=False)
-    slug = models.CharField(max_length=12, null=False, unique="True")
-    user = models.ForeignKey(User, on_delete="models.CASCADE")
-    file = models.FileField(upload_to=user_directory_path)
-    format = models.CharField(max_length=12, null=False,choices=FORMATS)
-    datatype = models.CharField(max_length=12, null=False,choices=DATATYPES)
-    map_uri = models.CharField(max_length=200, null=True)
-    description = models.CharField(max_length=2044, null=False)
-    # TODO:
-    uploaded = models.DateTimeField(null=True, auto_now_add=True)
-
-    def __str__(self):
-        return self.slug
-
-    class Meta:
-        managed = True
-        db_table = 'datasets'
-
-    def get_absolute_url(self):
-        return reverse('ds_edit', kwargs={'pk': self.pk})
-
-@receiver(pre_delete, sender=Dataset)
-def remove_file(**kwargs):
-    instance = kwargs.get('instance')
-    instance.file.delete(save=False)
+from contribute.models import Dataset
 
 class Place(models.Model):
     placeid = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
-    src_id = models.CharField(max_length=24, blank=True, null=True)
-    dataset = models.ForeignKey(Dataset, db_column='dataset',
-        to_field='slug', on_delete="models.CASCADE")
+    src_id = models.CharField(max_length=24)
+    # dataset = models.CharField(max_length=24)
+    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+        to_field='label', on_delete="models.CASCADE")
 
     def __str__(self):
         return self.placeid + '_' + place.title
@@ -57,3 +22,82 @@ class Place(models.Model):
     class Meta:
         managed = True
         db_table = 'places'
+
+class PlaceName(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# toponym, lang, citation{}, when{}
+
+	class Meta:
+		managed = True
+		db_table = 'place_name'
+
+
+class PlaceType(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# identifier, label, source_label, when{}
+
+	class Meta:
+		managed = True
+		db_table = 'place_type'
+
+
+class PlaceGeom(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# type, geometries[{type,coordinates,geowkt,when{},source}], when{}
+
+	class Meta:
+		managed = True
+		db_table = 'place_geom'
+
+
+class PlaceWhen(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# timespans[{start{}, end{}}], periods[{name,id}], label, duration
+
+	class Meta:
+		managed = True
+		db_table = 'place_when'
+
+
+class PlaceLink(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# type, identifier
+
+	class Meta:
+		managed = True
+		db_table = 'place_link'
+
+
+class PlaceRelated(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# relation_type, relation_to, label, when{}, citation{label,id}, certainty
+
+	class Meta:
+		managed = True
+		db_table = 'place_related'
+
+
+class PlaceDescription(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# id, value, lang
+
+	class Meta:
+		managed = True
+		db_table = 'place_description'
+
+
+class PlaceDepiction(models.Model):
+	placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+	json = JSONField(blank=True, null=True)
+	# id, title, license
+
+	class Meta:
+		managed = True
+		db_table = 'place_depiction'

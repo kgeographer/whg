@@ -10,7 +10,7 @@
     <div class="form-box mt-3">
       <form id="form_upload" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="hidden" name="user" value='{{ user.id }}'></input>
+        <input type="hidden" name="owner" value='{{ user.id }}'></input>
         <i>not working</i>
         <p>Name:
           <input type="text" name="name" value='{{ dataset.name }}'></input>

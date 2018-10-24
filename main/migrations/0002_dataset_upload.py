@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import main.models
+import contribute.models
 
 
 class Migration(migrations.Migration):
@@ -14,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dataset',
             name='upload',
-            field=models.FileField(default='', upload_to=main.models.user_directory_path),
+            field=models.FileField(default='', upload_to=contribute.models.user_directory_path),
             preserve_default=False,
         ),
     ]
