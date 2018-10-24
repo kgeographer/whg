@@ -22,7 +22,7 @@
         {% if form.mapbox_id != null %}
           <p>MapBox ID {{ form.mapbox_id }}</p>
         {% endif %}
-        {% if action == 'update' %}
+        {% if action == 'update' or action == 'upload' %}
           <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
         {% elif action == 'new' %}
           <p>

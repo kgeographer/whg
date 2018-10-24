@@ -52,7 +52,7 @@ def read_csv(infile):
     if len(result['errors'].keys()) == 0:
         # add geometries
         result['geom'] = {"type":"FeatureCollection", "features":geometries}
-        print('looks ok to me, go ahead and map geom')
+        print('looks ok')
     else:
         print('got errors')
     return result
