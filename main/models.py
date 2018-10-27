@@ -27,6 +27,7 @@ class Place(models.Model):
         ]
 
 class Source(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     src_id = models.CharField(max_length=24)    # contributor's id
     uri = models.URLField(null=True, blank=True)
     label = models.CharField(max_length=255)    # short, e.g. title, author

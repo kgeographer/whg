@@ -5,22 +5,24 @@ from pprint import pprint
 def read_csv(infile, username):
     import csv
     result = {'format':'csv','errors':{}}
-    required = ['id', 'title', 'ccode', 'lon', 'lat']
+    # required fields
+    # TODO: req. fields not null or blank
+    required = ['id', 'name', 'name_src', 'ccode', 'lon', 'lat']
 
-    # learn delimiter
-    dialect = csv.Sniffer().sniff(infile.read(1024))
+    # learn delimiter [',',';']
+    dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
     result['delimiter'] = 'tab' if dialect.delimiter == '\t' else dialect.delimiter
 
     reader = csv.reader(infile, dialect)
     result['count'] = sum(1 for row in reader)
 
-    # get & test header
+    # get & test header (not field contents yet)
     infile.seek(0)
     header = next(reader, None) #.split(dialect.delimiter)
     result['cols'] = header
 
-    if not len(set(header) & set(required)) == 5:
-        result['errors']['req'] = 'missing required column (id,title,ccode,lon,lat)'
+    if not len(set(header) & set(required)) == 6:
+        result['errors']['req'] = 'missing required column (id,name,name_src, ccode,lon,lat)'
         return result
     #print(header)
     rowcount = 1
@@ -37,19 +39,18 @@ def read_csv(infile, username):
 
         # make geojson
         # TODO: test lon, lat makes valid geometry
-        feature = {
-            'type':'Feature',
-            'geometry': {'type':'Point',
-                         'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
-            'properties': {'id':r[header.index('id')], 'title': r[header.index('title')]}
-        }
-        props = set(header) - set(required)
-        for p in props:
-            feature['properties'][p] = r[header.index(p)]
-        geometries.append(feature)
-
-        # TODO: create insert into db
-        
+        if r[header.index('lon')] not in ('', None):
+            feature = {
+                'type':'Feature',
+                'geometry': {'type':'Point',
+                             'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
+                'properties': {'id':r[header.index('id')], 'name': r[header.index('name')]}
+            }
+            # props = set(header) - set(required)
+            # print('props',props)
+            # for p in props:
+            #     feature['properties'][p] = r[header.index(p)]
+            geometries.append(feature)
 
     if len(result['errors'].keys()) == 0:
         # don't add geometries to result

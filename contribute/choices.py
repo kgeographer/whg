@@ -1,7 +1,7 @@
 # contribute model field value choices
 
 FORMATS = [
-    ('csv', 'Simple CSV'),
+    ('csv', 'CSV'),
     ('lpf', 'Linked Places format'),
 ]
 

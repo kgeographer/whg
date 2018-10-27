@@ -81,11 +81,11 @@ def ds_insert(request, pk ):
     context = {'status': 'inserting'}
 
     infile = dataset.file.open(mode="r")
-    dialect = csv.Sniffer().sniff(infile.read(1024))
+    dialect = csv.Sniffer().sniff(infile.read(1024),['\t',';','|'])
     reader = csv.reader(infile, dialect)
     infile.seek(0)
     header = next(reader, None)
-    print(header)
+    print('header', header)
 
     objs = {"PlaceName":[], "PlaceType":[], "PlaceGeom":[], "PlaceWhen":[],
         "PlaceLink":[], "PlaceRelated":[], "PlaceDescription":[],
@@ -100,17 +100,21 @@ def ds_insert(request, pk ):
 
         # required
         src_id = r[header.index('id')]
-        name = r[header.index('name')]
+        title = r[header.index('name')]
         name_src = r[header.index('name_src')]
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'unk.'
         ccode = r[header.index('ccode')] if 'ccode' in header else 'unk.'
         coords = [float(r[header.index('lon')]), float(r[header.index('lat')])]
-        close_match = r[header.index('close_match')]
-        exact_match = r[header.index('exact_match')]
+        # TODO: should columns be required?
+        close_match = r[header.index('close_match')][2:-2].split('", "') if 'close_match' in header else []
+        exact_match = r[header.index('exact_match')][1:-1] \
+            if 'exact_match' in header else []
         # nice to have
-        description = r[header.index('description')]
-        depiction = r[header.index('depiction')]
+        description = r[header.index('description')] \
+            if 'description' in header else []
+        depiction = r[header.index('depiction')] \
+            if 'depiction' in header else []
 
         # build and save Place object
         newpl = Place(
@@ -123,7 +127,6 @@ def ds_insert(request, pk ):
         newpl.save()
 
         # build associated objects and add to arrays
-        # TODO; accept name variants array
 
         # PlaceName()
         objs['PlaceName'].append(PlaceName(placeid=newpl,
@@ -133,6 +136,7 @@ def ds_insert(request, pk ):
             # TODO get citation label through name_src FK; here?
             json={"toponym": title, "citation": {"id":name_src,"label":""}}
         ))
+        # TODO: variants array
 
         # PlaceType()
         objs['PlaceType'].append(PlaceType(placeid=newpl,
@@ -152,8 +156,16 @@ def ds_insert(request, pk ):
         # # PlaceWhen()
         # objs['PlaceWhen'].append(PlaceWhen())
         #
+
         # # PlaceLink()
-        # objs['PlaceLink'].append(PlaceLink())
+        # print('close_match',close_match)
+        if len(list(filter(None,close_match))) > 0:
+            print('close_match',close_match)
+        # objs['PlaceLink'].append(PlaceLink(
+        #     src_id = src_id,
+        #     dataset = dataset,
+        # ))
+
         #
         # # PlaceRelated()
         # objs['PlaceRelated'].append(PlaceRelated())

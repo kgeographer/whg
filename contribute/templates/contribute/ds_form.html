@@ -16,12 +16,14 @@
         <input type="hidden" name="status" value='format_ok'></input>
         <p>Name: {{ form.name }}</p>
         <p>Unique label: {{ form.label }}
-          <span class="text-danger"><i>12 char max, no spaces</i></span>
+          <span class="text-danger small"><i>12 char max, no spaces</i></span>
         </p>
         {% if errors %}<p>{{ errors }}</p>{% endif %}
         <p>Description: {{ form.description }}</p>
         <p>Data type {{ form.datatype }}</p>
-        <p>Format {{ form.format }}</p>
+        <p>Format {{ form.format }}
+          <span class="text-danger small"><i>delimiters: tab, semicolon or pipe ('|')</i></span>
+        </p>
         {% if form.mapbox_id != null %}
           <p>MapBox ID {{ form.mapbox_id }}</p>
         {% endif %}
