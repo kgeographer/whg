@@ -2,7 +2,8 @@
 
 FORMATS = [
     ('csv', 'CSV'),
-    ('lpf', 'Linked Places format'),
+    ('delimited', 'Delimited'),
+    ('lpf', 'Linked Places json-l'),
 ]
 
 DATATYPES = [

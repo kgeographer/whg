@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
-from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import JSONField, ArrayField
 
 from django.contrib.auth.models import User
 from .choices import *
@@ -14,19 +14,22 @@ def user_directory_path(instance, filename):
 
 # TODO: multiple files per dataset w/File model and formset
 class Dataset(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     label = models.CharField(max_length=20, null=False, unique="True")
     name = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=2044, null=False)
     file = models.FileField(upload_to=user_directory_path)
     format = models.CharField(max_length=12, null=False,choices=FORMATS,
-        default='csv')
+        default='delimited')
     datatype = models.CharField(max_length=12, null=False,choices=DATATYPES,
         default='place')
     status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     upload_date = models.DateTimeField(null=True, auto_now_add=True)
     accepted_date = models.DateTimeField(null=True, auto_now_add=True)
     mapbox_id = models.CharField(max_length=200, null=True, blank=True)
+    header = ArrayField(models.CharField(max_length=30, blank=True, null=True))
+    numrows = models.IntegerField()
+    delimiter = models.CharField(max_length=2, blank=True, null=True)
 
     def __str__(self):
         return self.label

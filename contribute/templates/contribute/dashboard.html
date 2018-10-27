@@ -25,9 +25,11 @@
             <!-- TODO: edit (same as create)-->
             <a href="{% url 'ds_update' d.id %}" title="Edit metadata" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a>
-            {% if d.status == 'format_ok' %}
+            {% if d.status == 'format_ok' or d.status == 'uploaded' %}
             <a href="{# url 'ds_insert' d.id #}" title="View/edit table" rel="tooltip"
-            class="float-right mr-3">{% fontawesome_icon 'table' color='#336699' %}</a>
+            class="float-right mr-3" onclick="alert('need a datagrid')">{% fontawesome_icon 'table' color='#336699' %}</a>
+            {% endif %}
+            {% if d.status == 'format_ok' %}
             <a href="{% url 'ds_insert' d.id %}" title="Insert to db" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'database' color='#336699' %}</a>
             {% endif %}
@@ -39,11 +41,18 @@
               {% if d.file %}
                 <b>File</b>: <span class="text-danger">{{ d.file }}</span><br/>
               {% endif %}
-             <b>Uploaded</b>: {{ d.upload_date }}
+            <b>Uploaded</b>: {{ d.upload_date }}<br/>
              {% if d.mapbox_id %}
                <span class="ml-3"><a href="{% url 'maps_home' %}">Map</a></span>
              {% endif %}
+            <b>Status</b>: <span class="text-danger">{{ d.status }}</span>
            </p>
+           {% if d.status == "uploaded" or d.status == "ready" %}
+           <div class="dataset-detail" >
+             <p><b># Rows</b>: {{ d.numrows }} <br/>
+             <b>Header</b>: {{ d.header }}</p>
+           </div>
+           {% endif %}
         </div>
       {% endfor %}
     </div>

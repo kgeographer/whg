@@ -61,6 +61,7 @@ def ds_new(request, template_name='contribute/ds_form.html'):
             # add status
             if len(result['errors']) == 0:
                 context['status'] = 'format_ok'
+                form.cleaned_data['status'] = 'format_ok'
                 form.save()
             else:
                 context['status'] = 'format_error'
@@ -74,6 +75,7 @@ def ds_new(request, template_name='contribute/ds_form.html'):
         print('context',context)
     return render(request, template_name, context=context)
 
+# insert LP-compatible records from csv file to database
 def ds_insert(request, pk ):
     # retrieve just-added record then db insert
     import os, csv, codecs,json
@@ -93,11 +95,13 @@ def ds_insert(request, pk ):
 
     # id*, name*, name_src*, type^, variants[], ccode[]^, lon^, lat^, geom_src, close_match[]^, exact_match[]^, description, depiction
     #
-    # TODO: simultaneous inserts?
+    # TODO: what if simultaneous inserts?
+    place_counter=0
     for i, r in zip(range(30), reader):
         # poll Place.objects.placeid.max()
-        nextpid = (Place.objects.all().aggregate(models.Max('placeid'))['placeid__max'] or 0) + 1
+        nextpid = (Place.objects.all().aggregate(models.Max('placeid'))['placeid__max'] or 0) + 1 if Place.objects.all().count() > 0 else 10000001
 
+        # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
         title = r[header.index('name')]
@@ -106,7 +110,6 @@ def ds_insert(request, pk ):
         type = r[header.index('type')] if 'type' in header else 'unk.'
         ccode = r[header.index('ccode')] if 'ccode' in header else 'unk.'
         coords = [float(r[header.index('lon')]), float(r[header.index('lat')])]
-        # TODO: should columns be required?
         close_match = r[header.index('close_match')][2:-2].split('", "') if 'close_match' in header else []
         exact_match = r[header.index('exact_match')][1:-1] \
             if 'exact_match' in header else []
@@ -125,7 +128,7 @@ def ds_insert(request, pk ):
             ccode = ccode
         )
         newpl.save()
-
+        place_counter += 1
         # build associated objects and add to arrays
 
         # PlaceName()
@@ -152,20 +155,20 @@ def ds_insert(request, pk ):
             json={"type": "Point", "coordinates": coords,
                 "geowkt": 'POINT('+str(coords[0])+' '+str(coords[1])+')'}
         ))
+
+        # # PlaceLink()
+        if len(list(filter(None,close_match))) > 0:
+            # print('close_match',close_match)
+            for m in close_match:
+                objs['PlaceLink'].append(PlaceLink(placeid=newpl,
+                    src_id = src_id,
+                    dataset = dataset,
+                    json={"type":"closeMatch", "identifier":m}
+                ))
+
         #
         # # PlaceWhen()
         # objs['PlaceWhen'].append(PlaceWhen())
-        #
-
-        # # PlaceLink()
-        # print('close_match',close_match)
-        if len(list(filter(None,close_match))) > 0:
-            print('close_match',close_match)
-        # objs['PlaceLink'].append(PlaceLink(
-        #     src_id = src_id,
-        #     dataset = dataset,
-        # ))
-
         #
         # # PlaceRelated()
         # objs['PlaceRelated'].append(PlaceRelated())
@@ -176,18 +179,19 @@ def ds_insert(request, pk ):
         # # PlaceDepiction()
         # objs['PlaceDepiction'].append(PlaceDepiction())
 
-
-        # run bulk_create(Class, batchsize=n) for each
-
         print('new place:', newpl)
 
-    # for k,v in enumerate(objs):
-    #     if len(objs[v]) > 0:
-    #         print(v, objs[v])
+    # bulk_create(Class, batchsize=n) for each
     PlaceName.objects.bulk_create(objs['PlaceName'])
     PlaceType.objects.bulk_create(objs['PlaceType'])
     PlaceGeom.objects.bulk_create(objs['PlaceGeom'])
+    PlaceLink.objects.bulk_create(objs['PlaceLink'])
 
+    context['status'] = 'uploaded'
+    dataset.status = 'uploaded'
+    dataset.numrows = place_counter
+    dataset.header = header
+    dataset.save()
     print('record:', dataset.__dict__)
     print('context:',context)
     infile.close()

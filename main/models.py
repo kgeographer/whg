@@ -84,19 +84,6 @@ class PlaceGeom(models.Model):
         db_table = 'place_geom'
 
 
-class PlaceWhen(models.Model):
-    placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', on_delete=models.CASCADE)
-    json = JSONField(blank=True, null=True)
-    # timespans[{start{}, end{}}], periods[{name,id}], label, duration
-
-    class Meta:
-        managed = True
-        db_table = 'place_when'
-
-
 class PlaceLink(models.Model):
     placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
     src_id = models.CharField(max_length=24)
@@ -108,6 +95,19 @@ class PlaceLink(models.Model):
     class Meta:
         managed = True
         db_table = 'place_link'
+
+
+class PlaceWhen(models.Model):
+    placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+    src_id = models.CharField(max_length=24)
+    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+        to_field='label', on_delete=models.CASCADE)
+    json = JSONField(blank=True, null=True)
+    # timespans[{start{}, end{}}], periods[{name,id}], label, duration
+
+    class Meta:
+        managed = True
+        db_table = 'place_when'
 
 
 class PlaceRelated(models.Model):

@@ -8,6 +8,11 @@
   padding:12px;
   border-radius: 16px;
 }
+.dataset-detail {
+  background-color: ghostwhite;
+  padding: 10px;
+  border-radius: 8px;
+)
 .form-box {
   border: 1px solid gray;
   background-color: #eeeee0;
