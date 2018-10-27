@@ -1,16 +1,15 @@
 # main.models
 from django.db import models
-from django.contrib.auth.models import User
-from django.utils import timezone
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.utils import timezone
 from django.contrib.postgres.fields import JSONField
 
+from django.contrib.auth.models import User
 from contribute.models import Dataset
 
 class Place(models.Model):
     placeid = models.IntegerField(primary_key=True)
-    # placeid = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
     src_id = models.CharField(max_length=24)
     dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
@@ -27,12 +26,26 @@ class Place(models.Model):
             models.Index(fields=['src_id', 'dataset']),
         ]
 
+class Source(models.Model):
+    src_id = models.CharField(max_length=24)    # contributor's id
+    uri = models.URLField(null=True, blank=True)
+    label = models.CharField(max_length=255)    # short, e.g. title, author
+    citation = models.CharField(max_length=500, null=True, blank=True)
+
+    def __str__(self):
+        return self.label
+
+    class Meta:
+        managed = True
+        db_table = 'sources'
+
 class PlaceName(models.Model):
-    placeid = models.ForeignKey(Place,on_delete=models.CASCADE)
+    placeid = models.ForeignKey(Place, on_delete=models.CASCADE)
     src_id = models.CharField(max_length=24)
     dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
         to_field='label', on_delete=models.CASCADE)
     toponym = models.CharField(max_length=200)
+    name_src = models.ForeignKey(Source, null=True, on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
 	# toponym, lang, citation{}, when{}
 
@@ -62,8 +75,8 @@ class PlaceGeom(models.Model):
     src_id = models.CharField(max_length=24)
     dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
         to_field='label', on_delete=models.CASCADE)
+    geom_src = models.ForeignKey(Source, null=True, on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
-    # type, geometries[{type,coordinates,geowkt,when{},source}], when{}
 
     class Meta:
         managed = True

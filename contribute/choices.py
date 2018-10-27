@@ -7,7 +7,8 @@ FORMATS = [
 
 DATATYPES = [
     ('place', 'Places'),
-    ('anno', 'Annotations')
+    ('anno', 'Annotations'),
+    ('source', 'Sources')
 ]
 
 STATUS = [

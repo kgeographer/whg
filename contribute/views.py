@@ -91,16 +91,26 @@ def ds_insert(request, pk ):
         "PlaceLink":[], "PlaceRelated":[], "PlaceDescription":[],
         "PlaceDepiction":[]}
 
-    # TODO: what about simultaneous inserts?
+    # id*, name*, name_src*, type^, variants[], ccode[]^, lon^, lat^, geom_src, close_match[]^, exact_match[]^, description, depiction
+    #
+    # TODO: simultaneous inserts?
     for i, r in zip(range(30), reader):
         # poll Place.objects.placeid.max()
         nextpid = (Place.objects.all().aggregate(models.Max('placeid'))['placeid__max'] or 0) + 1
 
+        # required
         src_id = r[header.index('id')]
-        title = r[header.index('title')]
+        name = r[header.index('name')]
+        name_src = r[header.index('name_src')]
+        # encouraged for reconciliation
+        type = r[header.index('type')] if 'type' in header else 'unk.'
         ccode = r[header.index('ccode')] if 'ccode' in header else 'unk.'
-        ptype = r[header.index('type')] if 'type' in header else 'unk.'
         coords = [float(r[header.index('lon')]), float(r[header.index('lat')])]
+        close_match = r[header.index('close_match')]
+        exact_match = r[header.index('exact_match')]
+        # nice to have
+        description = r[header.index('description')]
+        depiction = r[header.index('depiction')]
 
         # build and save Place object
         newpl = Place(
@@ -114,19 +124,21 @@ def ds_insert(request, pk ):
 
         # build associated objects and add to arrays
         # TODO; accept name variants array
+
         # PlaceName()
         objs['PlaceName'].append(PlaceName(placeid=newpl,
             src_id = src_id,
             dataset = dataset,
             toponym = title,
-            json={"toponym": title}
+            # TODO get citation label through name_src FK; here?
+            json={"toponym": title, "citation": {"id":name_src,"label":""}}
         ))
 
         # PlaceType()
         objs['PlaceType'].append(PlaceType(placeid=newpl,
             src_id = src_id,
             dataset = dataset,
-            json={"label": ptype}
+            json={"label": type}
         ))
 
         # PlaceGeom()

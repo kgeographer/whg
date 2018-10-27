@@ -1,11 +1,11 @@
 # contribute.models
 from django.db import models
-from django.utils import timezone
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.utils import timezone
 from django.contrib.postgres.fields import JSONField
+
 from django.contrib.auth.models import User
-# from main.models import Place
 from .choices import *
 
 def user_directory_path(instance, filename):
