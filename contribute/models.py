@@ -23,7 +23,7 @@ class Dataset(models.Model):
     datatype = models.CharField(max_length=12, null=False,choices=DATATYPES,
         default='place')
     status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS)
-    owner = models.ForeignKey(User, on_delete="models.CASCADE")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     upload_date = models.DateTimeField(null=True, auto_now_add=True)
     accepted_date = models.DateTimeField(null=True, auto_now_add=True)
     mapbox_id = models.CharField(max_length=200, null=True, blank=True)

@@ -48,13 +48,15 @@ def read_csv(infile, username):
             feature['properties'][p] = r[header.index(p)]
         geometries.append(feature)
 
+        # TODO: create insert into db
+        
+
     if len(result['errors'].keys()) == 0:
         # don't add geometries to result
         # TODO: write them to a user GeoJSON file?
         print('got username?', username)
         print('2 geoms:', geometries[:2])
         # result['geom'] = {"type":"FeatureCollection", "features":geometries}
-        # TODO: create insert into db
         print('looks ok')
     else:
         print('got errors')

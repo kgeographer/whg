@@ -2,12 +2,14 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from pprint import pprint
+from django.db import models
 import django.core.files.uploadedfile as upfile
 import codecs, tempfile, os
 
 from .tasks import read_csv, read_lpf
 from .forms import DatasetModelForm
 from .models import Dataset
+from main.models import *
 
 def home(request):
     return render(request, 'contribute/home.html')
@@ -74,41 +76,100 @@ def ds_new(request, template_name='contribute/ds_form.html'):
 
 def ds_insert(request, pk ):
     # retrieve just-added record then db insert
-    record = get_object_or_404(Dataset, label=label)
-    # form = DatasetModelForm(request.POST or None, instance=record)
-    print('record', record)
-    context = {'status': 'inserted'}
-    # if form.is_valid():
-    #     # open & write tempf to a temp location;
-    #     # call it tempfn for reference
-    #     tempf, tempfn = tempfile.mkstemp()
-    #     try:
-    #         for chunk in request.FILES['file'].chunks():
-    #             os.write(tempf, chunk)
-    #     except:
-    #         raise Exception("Problem with the input file %s" % request.FILES['file'])
-    #     finally:
-    #         os.close(tempf)
-    #
-    #     # open temp file
-    #     fin = codecs.open(tempfn, 'r', 'utf8')
-    #     # send for format validation
-    #     if form.cleaned_data['format'] == 'csv':
-    #         reader = csv.reader(fin)
-    #         count = sum(1 for row in reader)
-    #         print('count:',count)
-    #         # result = read_csv(fin)
-    #     elif form.cleaned_data['format'] == 'lpf':
-    #         result = read_lpf(fin)
-    #     # print('cleaned_data',form.cleaned_data)
-    #     fin.close()
-    #
-    #     # form.save()
+    import os, csv, codecs,json
+    dataset = get_object_or_404(Dataset, id=pk)
+    context = {'status': 'inserting'}
+
+    infile = dataset.file.open(mode="r")
+    dialect = csv.Sniffer().sniff(infile.read(1024))
+    reader = csv.reader(infile, dialect)
+    infile.seek(0)
+    header = next(reader, None)
+    print(header)
+
+    objs = {"PlaceName":[], "PlaceType":[], "PlaceGeom":[], "PlaceWhen":[],
+        "PlaceLink":[], "PlaceRelated":[], "PlaceDescription":[],
+        "PlaceDepiction":[]}
+
+    # TODO: what about simultaneous inserts?
+    for i, r in zip(range(30), reader):
+        # poll Place.objects.placeid.max()
+        nextpid = (Place.objects.all().aggregate(models.Max('placeid'))['placeid__max'] or 0) + 1
+
+        src_id = r[header.index('id')]
+        title = r[header.index('title')]
+        ccode = r[header.index('ccode')] if 'ccode' in header else 'unk.'
+        ptype = r[header.index('type')] if 'type' in header else 'unk.'
+        coords = [float(r[header.index('lon')]), float(r[header.index('lat')])]
+
+        # build and save Place object
+        newpl = Place(
+            placeid = nextpid,
+            src_id = src_id,
+            dataset = dataset,
+            title = title,
+            ccode = ccode
+        )
+        newpl.save()
+
+        # build associated objects and add to arrays
+        # TODO; accept name variants array
+        # PlaceName()
+        objs['PlaceName'].append(PlaceName(placeid=newpl,
+            src_id = src_id,
+            dataset = dataset,
+            toponym = title,
+            json={"toponym": title}
+        ))
+
+        # PlaceType()
+        objs['PlaceType'].append(PlaceType(placeid=newpl,
+            src_id = src_id,
+            dataset = dataset,
+            json={"label": ptype}
+        ))
+
+        # PlaceGeom()
+        objs['PlaceGeom'].append(PlaceGeom(placeid=newpl,
+            src_id = src_id,
+            dataset = dataset,
+            json={"type": "Point", "coordinates": coords,
+                "geowkt": 'POINT('+str(coords[0])+' '+str(coords[1])+')'}
+        ))
+        #
+        # # PlaceWhen()
+        # objs['PlaceWhen'].append(PlaceWhen())
+        #
+        # # PlaceLink()
+        # objs['PlaceLink'].append(PlaceLink())
+        #
+        # # PlaceRelated()
+        # objs['PlaceRelated'].append(PlaceRelated())
+        #
+        # # PlaceDescription()
+        # objs['PlaceDescription'].append(PlaceDescription())
+        #
+        # # PlaceDepiction()
+        # objs['PlaceDepiction'].append(PlaceDepiction())
+
+
+        # run bulk_create(Class, batchsize=n) for each
+
+        print('new place:', newpl)
+
+    # for k,v in enumerate(objs):
+    #     if len(objs[v]) > 0:
+    #         print(v, objs[v])
+    PlaceName.objects.bulk_create(objs['PlaceName'])
+    PlaceType.objects.bulk_create(objs['PlaceType'])
+    PlaceGeom.objects.bulk_create(objs['PlaceGeom'])
+
+    print('record:', dataset.__dict__)
+    print('context:',context)
+    infile.close()
+    # dataset.file.close()
+
     return redirect('/contribute/dashboard', context=context)
-    # else:
-    #     pprint(locals())
-    #     print('not valid', form.errors)
-    # return render(request, template_name, {'form':form, 'action': 'insert'})
 
 def ds_update(request, pk, template_name='contribute/ds_form.html'):
     record = get_object_or_404(Dataset, pk=pk)
@@ -120,6 +181,8 @@ def ds_update(request, pk, template_name='contribute/ds_form.html'):
 
 def ds_delete(request, pk):
     record = get_object_or_404(Dataset, pk=pk)
+    print('request, pk',request, pk)
+    print('record',type(record))
     # it's a GET not POST
     record.delete()
     return redirect('contrib_dashboard')

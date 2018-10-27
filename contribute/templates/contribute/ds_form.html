@@ -37,7 +37,7 @@
         <!-- upload button only if it's not yet ok -->
         {% if status != 'format_ok' %}
         <input class="btn btn-primary" type="submit" value="Save" />
-        <a href="{% url 'contrib_dashboard' %}">Cancel</a>
+        <span title="back"><a href="{% url 'contrib_dashboard' %}">Cancel</a></span>
         {% endif %}
 
     </div>
