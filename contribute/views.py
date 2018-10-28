@@ -97,7 +97,8 @@ def ds_insert(request, pk ):
     #
     # TODO: what if simultaneous inserts?
     place_counter=0
-    for i, r in zip(range(30), reader):
+    for r in reader:
+    # for i, r in zip(range(30), reader):
         # poll Place.objects.placeid.max()
         nextpid = (Place.objects.all().aggregate(models.Max('placeid'))['placeid__max'] or 0) + 1 if Place.objects.all().count() > 0 else 10000001
 
@@ -179,7 +180,7 @@ def ds_insert(request, pk ):
         # # PlaceDepiction()
         # objs['PlaceDepiction'].append(PlaceDepiction())
 
-        print('new place:', newpl)
+        # print('new place:', newpl)
 
     # bulk_create(Class, batchsize=n) for each
     PlaceName.objects.bulk_create(objs['PlaceName'])
