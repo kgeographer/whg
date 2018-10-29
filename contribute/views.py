@@ -23,15 +23,24 @@ def dashboard(request):
     print('dataset_list',dataset_list)
     return render(request, 'contribute/dashboard.html', {'datasets':dataset_list})
 
+# display dataset in editable grid
+def ds_grid(request, label):
+    print('request, pk',request, label)
+    ds = get_object_or_404(Dataset, label=label)
+    place_list = Place.objects.filter(dataset=label).order_by('title')
+
+    return render(request, 'contribute/ds_grid.html', {'ds':ds, 'place_list': place_list})
+
 # display dataset grid
 class DatasetGrid(TemplateView):
-    template_name = 'contribute/ds_grid.html'
+    template_name = 'contribute/ds_table.html'
 
 class DatasetGridJson(BaseDatatableView):
     order_columns = ['placeid', 'title', 'ccode']
 
     def get_initial_queryset(self):
         print('kwargs',self.kwargs)
+        # return Place.objects.filter(dataset=label)
         return Place.objects.filter(dataset=self.kwargs['label'])
 
     def filter_queryset(self, qs):
@@ -60,11 +69,6 @@ class DatasetGridJson(BaseDatatableView):
             ])
         return json_data
 
-# display dataset in editable grid
-# def ds_grid(request, pk):
-#     ds = get_object_or_404(Dataset, pk=pk)
-#
-#     return render(request, 'contribute/ds_grid.html', {'ds':ds})
 
 # new dataset: upload file, store if valid
 def ds_new(request, template_name='contribute/ds_form.html'):

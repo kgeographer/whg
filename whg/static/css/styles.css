@@ -28,3 +28,7 @@
   color: #dc3545 !important;
   font-weight: bold;
 }
+
+.hover {
+  cursor: pointer;
+}

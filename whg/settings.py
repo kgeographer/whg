@@ -73,6 +73,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'whg.wsgi.application'
 
+LEAFLET_CONFIG = {
+    'TILES':'https://api.mapbox.com/v4/mapbox.light/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg'}
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases

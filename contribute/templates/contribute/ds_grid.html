@@ -1,64 +1,118 @@
 <!-- contribute/ds_grid.html -->
 {% extends "main/base.html" %}
-{% load i18n staticfiles %}
+{% load leaflet_tags %}
+{% load fontawesome %}
+{% load static %}
+
 {% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
 
-{% block extra_head %}
-  <link rel="stylesheet" type="text/css"
-   href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
-  <link rel="stylesheet" type="text/css"
-   href="//cdn.datatables.net/select/1.2.7/css/select.dataTables.css">
-
-  <script type="text/javascript" charset="utf8"
-    src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
-  <script type="text/javascript" charset="utf8"
-    src="//cdn.datatables.net/select/1.2.7/js/dataTables.select.min.js"></script>
-
-  <script src="{% static "contribute/ds_grid.js" %}"></script>
-
-  <script type="text/javascript">
-      var DSGRID_JSON_URL = '{% url "ds_grid_json" %}';
-      // translations for datatables
-      var dt_language = {
-          "emptyTable":     "{% trans "No data available in table" %}",
-          "info":           "{% trans "Showing _START_ to _END_ of _TOTAL_ entries" %}",
-          "infoEmpty":      "{% trans "Showing 0 to 0 of 0 entries" %}",
-          "infoFiltered":   "{% trans "(filtered from _MAX_ total entries)" %}",
-          "infoPostFix":    "",
-          "thousands":      ",",
-          "lengthMenu":     "{% trans "Show _MENU_ entries" %}",
-          "loadingRecords": "{% trans "Loading..." %}",
-          "processing":     "{% trans "Processing..." %}",
-          "search":         "{% trans "Search:" %}",
-          "zeroRecords":    "{% trans "No matching records found" %}",
-          "paginate": {
-              "first":      "{% trans "First" %}",
-              "last":       "{% trans "Last" %}",
-              "next":       "{% trans "Next" %}",
-              "previous":   "{% trans "Previous" %}"
-          },
-          "aria": {
-              "sortAscending":  "{% trans ": activate to sort column ascending" %}",
-              "sortDescending": "{% trans ": activate to sort column descending" %}"
-          }
-      }
-  </script>
-{% endblock %}
-
 {% block content %}
-  {% load fontawesome %}
-  {% load static %}
-
-  <div class="container float-right col-sm-6 pt-6" >
-    <table class="datatable stripe row-border hover">
+<!-- incoming: ds, place_list -->
+<h4>Dataset :: {{ ds.name }} ({{ ds.label }}))</h4>
+<div class="row">
+  <div id="map_summary" class="col-sm-5 col-record pt-3">
+    <div id="dataset_summary">
+      <p>Dataset summary here </p>
+    </div>
+    <div id="map">{% leaflet_map "map" callback="map_init" %}</div>
+  </div>
+  <div id="data_grid" class="col-sm-7 float-right pt-6">
+    <table class="table table-striped">
         <thead>
-            <th>{% trans "placeid" %}</th>
-            <th>{% trans "src_id" %}</th>
-            <th>{% trans "title" %}</th>
-            <th>{% trans "ccode" %}</th>
+            <th></th>
+            <th>name</th>
+            <th>placeid</th>
+            <th>src_id</th>
+            <th>ccode(s)</th>
         </thead>
         <tbody>
+          {% for place in place_list %}
+            <tr class="edit-row">
+              <td><span class="edit-row">
+                {% fontawesome_icon 'edit' color='#336699' %}</span</td>
+              <td>{{ place.title }}</td>
+              <td>{{ place.placeid }}</td>
+              <td>{{ place.src_id }}</td>
+              <td>{{ place.ccode }}</td>
+            </tr>
+          {% endfor %}
         </tbody>
     </table>
   </div>
+</div>
+<script>
+// expose leaflet map for events, call it 'mappy'
+window.addEventListener('map:init', function (e) {
+  window.mappy = e.detail.map
+}, false);
+
+// closer look
+function zoomTo(id) {
+  mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
+}
+
+// initialize, render map
+function map_init (map, options) {
+  geom = {"type":"FeatureCollecton","features":[]}
+
+  if ("{{ record.t_geom }}"  != "None"){
+    var t_geom = JSON.parse("{{ record.t_geom }}".replace(/&#39;/g, '"'));
+    t_geom['properties'] = {"id": "{{ record.tgnid }}", "dataset": "tgn"}
+    geom['features'].push(t_geom)
+  }
+
+  if ("{{ record.d_geom }}" != "None") {
+    var d_geom = JSON.parse("{{ record.d_geom }}".replace(/&#39;/g, '"'));
+    d_geom['properties'] = {"id": "{{ record.dbp_item }}", "dataset": "dbp"}
+    geom['features'].push(d_geom)
+  }
+
+  if ("{{ record.g_geom }}" != "None"){
+    var g_geom = JSON.parse("{{ record.g_geom }}".replace(/&#39;/g, '"'));
+    g_geom['properties'] = {"id": "{{ record.gnid }}", "dataset": "gn"}
+    geom['features'].push(g_geom)
+  }
+
+  function fill(dataset) {
+    if (dataset == 'tgn')
+      return "#ff7800"
+    else if (dataset == 'dbp')
+      return "#98E2FA"
+    else
+      return "#7AFF7A"
+  }
+
+  if (geom['features'].length > 0) {
+  <!--console.log('geom: ',geom)-->
+    window.idToFeature = {} <!-- feature lookup -->
+    features = L.geoJSON(geom, {
+      pointToLayer: function (feature, latlng) {
+        matchid = feature.properties.dataset+':'+feature.properties.id
+        marker = L.circleMarker(latlng,
+          {
+            radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+            color: "#000", fillColor: fill(feature.properties.dataset)
+          }
+        ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+
+        idToFeature[matchid] = marker
+        return marker
+      }
+    }).addTo(map);
+
+  if (geom['features'].length > 1) {
+    map.fitBounds(features.getBounds().pad(1))
+  } else {
+    <!--console.log(geom['features'][0].coordinates)-->
+    latlng = L.latLng(geom['features'][0].coordinates[1],geom['features'][0].coordinates[0] )
+    map.setView(latlng, 4)
+  }
+} else {
+  console.log('no geometries, no feature')
+}
+} // end map_init
+$(.editrow).on("click") {
+  alert('open a modal')
+}
+</script>
 {% endblock %}
