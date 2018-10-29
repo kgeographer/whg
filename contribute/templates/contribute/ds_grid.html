@@ -5,14 +5,19 @@
 {% load static %}
 
 {% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
+{% block extra_head %}
 
+{% endblock %}
 {% block content %}
 <!-- incoming: ds, place_list -->
+<div class="container flex">
 <h4>Dataset :: {{ ds.name }} ({{ ds.label }}))</h4>
 <div class="row">
   <div id="map_summary" class="col-sm-5 col-record pt-3">
     <div id="dataset_summary">
-      <p>Dataset summary here </p>
+      <p>
+        rows: {{ ds.numrows }}
+      </p>
     </div>
     <div id="map">{% leaflet_map "map" callback="map_init" %}</div>
   </div>
@@ -24,95 +29,92 @@
             <th>placeid</th>
             <th>src_id</th>
             <th>ccode(s)</th>
+            <!-- <th>lon, lat</th> -->
         </thead>
         <tbody>
           {% for place in place_list %}
-            <tr class="edit-row">
-              <td><span class="edit-row">
+            <tr>
+              <td><span class="edit-row" style="cursor:pointer;">
                 {% fontawesome_icon 'edit' color='#336699' %}</span</td>
               <td>{{ place.title }}</td>
               <td>{{ place.placeid }}</td>
               <td>{{ place.src_id }}</td>
               <td>{{ place.ccode }}</td>
+              <!-- <td>{{ place.placegeom_set.all }}</td> -->
             </tr>
           {% endfor %}
         </tbody>
     </table>
   </div>
 </div>
-<script>
-// expose leaflet map for events, call it 'mappy'
-window.addEventListener('map:init', function (e) {
-  window.mappy = e.detail.map
-}, false);
+</div>
+<script type="text/javascript">
+  // expose leaflet map for events, call it 'mappy'
+  window.addEventListener('map:init', function (e) {
+    window.mappy = e.detail.map
+  }, false);
 
-// closer look
-function zoomTo(id) {
-  mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
-}
-
-// initialize, render map
-function map_init (map, options) {
-  geom = {"type":"FeatureCollecton","features":[]}
-
-  if ("{{ record.t_geom }}"  != "None"){
-    var t_geom = JSON.parse("{{ record.t_geom }}".replace(/&#39;/g, '"'));
-    t_geom['properties'] = {"id": "{{ record.tgnid }}", "dataset": "tgn"}
-    geom['features'].push(t_geom)
+  // closer look
+  function zoomTo(id) {
+    mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
   }
 
-  if ("{{ record.d_geom }}" != "None") {
-    var d_geom = JSON.parse("{{ record.d_geom }}".replace(/&#39;/g, '"'));
-    d_geom['properties'] = {"id": "{{ record.dbp_item }}", "dataset": "dbp"}
-    geom['features'].push(d_geom)
-  }
+  // initialize, render map
+  function map_init (map, options) {
+    $('.edit-row').on('click', function(){
+      alert('open a modal with full record')
+    })
+    console.log('in map_init()')
+    geom = {"type":"FeatureCollecton","features":[]}
 
-  if ("{{ record.g_geom }}" != "None"){
-    var g_geom = JSON.parse("{{ record.g_geom }}".replace(/&#39;/g, '"'));
-    g_geom['properties'] = {"id": "{{ record.gnid }}", "dataset": "gn"}
-    geom['features'].push(g_geom)
-  }
+    window.gelems = $('script').filter(function() {
+      return this.id.match(/[0-9]/);
+    });
+    for (i=0;i<gelems.length;i++){
+      let t_geom = JSON.parse(JSON.parse(gelems[i].text))
+      t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
+      geom['features'].push(t_geom)
+    }
 
-  function fill(dataset) {
-    if (dataset == 'tgn')
-      return "#ff7800"
-    else if (dataset == 'dbp')
-      return "#98E2FA"
-    else
-      return "#7AFF7A"
-  }
+    function fill(dataset) {
+      if (dataset == 'tgn')
+        return "#ff7800"
+      else if (dataset == 'dbp')
+        return "#98E2FA"
+      else
+        return "#7AFF7A"
+    }
 
-  if (geom['features'].length > 0) {
-  <!--console.log('geom: ',geom)-->
-    window.idToFeature = {} <!-- feature lookup -->
-    features = L.geoJSON(geom, {
-      pointToLayer: function (feature, latlng) {
-        matchid = feature.properties.dataset+':'+feature.properties.id
-        marker = L.circleMarker(latlng,
-          {
-            radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
-            color: "#000", fillColor: fill(feature.properties.dataset)
-          }
-        ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+    if (geom['features'].length > 0) {
+      console.log('geom: ',geom)
+      idToFeature = {} // for feature lookup
+      features = L.geoJSON(geom, {
+        pointToLayer: function (feature, latlng) {
+          matchid = feature.properties.dataset+':'+feature.properties.id
+          marker = L.circleMarker(latlng,
+            {
+              radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+              color: "#000", fillColor: fill(feature.properties.dataset)
+            }
+          ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
 
-        idToFeature[matchid] = marker
-        return marker
+          idToFeature[matchid] = marker
+          return marker
+        }
+      }).addTo(map);
+
+      if (geom['features'].length > 1) {
+        map.fitBounds(features.getBounds().pad(1))
+      } else {
+        latlng = L.latLng(
+          geom['features'][0].coordinates[1],
+          geom['features'][0].coordinates[0])
+        map.setView(latlng, 4)
       }
-    }).addTo(map);
 
-  if (geom['features'].length > 1) {
-    map.fitBounds(features.getBounds().pad(1))
-  } else {
-    <!--console.log(geom['features'][0].coordinates)-->
-    latlng = L.latLng(geom['features'][0].coordinates[1],geom['features'][0].coordinates[0] )
-    map.setView(latlng, 4)
-  }
-} else {
-  console.log('no geometries, no feature')
-}
-} // end map_init
-$(.editrow).on("click") {
-  alert('open a modal')
-}
+    } else {
+      console.log('no geometries, no feature')
+    }
+  } // end map_init
 </script>
 {% endblock %}

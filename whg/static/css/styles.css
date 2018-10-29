@@ -29,6 +29,6 @@
   font-weight: bold;
 }
 
-.hover {
+span.edit-row {
   cursor: pointer;
 }
