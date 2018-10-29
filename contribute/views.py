@@ -23,6 +23,7 @@ def dashboard(request):
     print('dataset_list',dataset_list)
     return render(request, 'contribute/dashboard.html', {'datasets':dataset_list})
 
+
 # display dataset in editable grid
 def ds_grid(request, label):
     print('request, pk',request, label)
@@ -30,6 +31,7 @@ def ds_grid(request, label):
     place_list = Place.objects.filter(dataset=label).order_by('title')
 
     return render(request, 'contribute/ds_grid.html', {'ds':ds, 'place_list': place_list})
+
 
 # display dataset grid
 class DatasetGrid(TemplateView):

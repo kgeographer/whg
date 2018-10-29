@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'leaflet',
     'fontawesome',
     'mathfilters',
+    'django_bootstrap_breadcrumbs',
 
     'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
@@ -66,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },

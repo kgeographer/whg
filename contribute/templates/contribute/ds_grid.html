@@ -1,5 +1,6 @@
 <!-- contribute/ds_grid.html -->
 {% extends "main/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
 {% load leaflet_tags %}
 {% load fontawesome %}
 {% load static %}
@@ -11,7 +12,14 @@
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container flex">
-<h4>Dataset :: {{ ds.name }} ({{ ds.label }}))</h4>
+
+<h4 class="text-danger">{{ ds.name }} ({{ ds.label }}))</h4>
+{% block breadcrumbs %}
+    {% breadcrumb "Home" "/" %}
+    {% breadcrumb " Dashboard" "contrib_dashboard" %}
+    {% breadcrumb " dataset" "foo" %}
+{% endblock %}
+{% render_breadcrumbs %}
 <div class="row">
   <div id="map_summary" class="col-sm-5 col-record pt-3">
     <div id="dataset_summary">

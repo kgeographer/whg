@@ -23,11 +23,3 @@ urlpatterns = [
     # path('datagrid/<str:label>', views.ds_grid.as_view(), name='ds_grid'),
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
-
-    # url(r'^upload$', views.upload, name="contrib_upload"),
-    # path('<int:dataset_id>/delete', views.delete, name="contrib_delete"),
-    # path('<int:dataset_id>/edit', views.edit, name="contrib_edit"),
-
-    # path('<int:product_id>/', views.detail, name='detail'),
-    # path('<int:product_id>/upvote', views.upvote, name='upvote'),
-    # path('create', views.create, name='create'),

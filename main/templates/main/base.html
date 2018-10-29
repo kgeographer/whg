@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 {% load leaflet_tags %}
 {% load fontawesome %}
+{% load django_bootstrap_breadcrumbs %}
 <html lang="en">
 <head>
   {% block title %}<title>WHG</title>{% endblock %}
@@ -98,7 +99,8 @@
     </nav>
   </header>
   <div class="container-fluid">
-    {% block content %}{% endblock %}
+    {% block content %}
+    {% endblock %}
   </div>
 </body>
 </html>
