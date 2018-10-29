@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'leaflet',
     'fontawesome',
+    'mathfilters',
 
     'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
@@ -141,6 +142,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'whg/static/'),
+    os.path.join(BASE_DIR, 'contribute/static/'),
 ]
 
 try:

@@ -14,6 +14,14 @@ urlpatterns = [
     path('insert/<int:pk>', views.ds_insert, name="ds_insert"),
     path('delete/<int:pk>', views.ds_delete, name="ds_delete"),
 
+    # url(r'^testmodel$', TestModelList.as_view(), name="testmodel"),
+    # url(r'^testmodel_data/$', TestModelListJson.as_view(), name="testmodel_list_json"),
+    path('datagrid/<str:label>', views.DatasetGrid.as_view(), name="ds_grid"),
+    path('datagrid_data/', views.DatasetGridJson.as_view(), name="ds_grid_json"),
+
+    # path('datagrid/<str:label>', views.ds_grid, name='ds_grid'),
+    # path('datagrid/<str:label>', views.ds_grid.as_view(), name='ds_grid'),
+
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 
     # url(r'^upload$', views.upload, name="contrib_upload"),

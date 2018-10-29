@@ -3,8 +3,9 @@
 {% block title %}<title>WHG::Contributing</title>{% endblock %}
 
 {% block content %}
-{% load static %}
-{% load fontawesome %}
+  {% load static %}
+  {% load fontawesome %}
+  {% load mathfilters %}
 
   <div class="container">
     <div class="d-flex justify-content-center mt-3">
@@ -16,7 +17,7 @@
         <a href="{% url 'ds_new' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
       {% for d in datasets %}
         <div class="dataset-box mb-2">
-          <h4>{{ d.name }}
+          <h4>{{ d.name }} ({{ d.id }})
             <!-- TODO: confirm popup dialog -->
               <a onclick="return confirm('Are you sure?')"
                 href="{% url 'ds_delete' d.id %}" class=" float-right"
@@ -26,8 +27,8 @@
             <a href="{% url 'ds_update' d.id %}" title="Edit metadata" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a>
             {% if d.status == 'format_ok' or d.status == 'uploaded' %}
-            <a href="{# url 'ds_insert' d.id #}" title="View/edit table" rel="tooltip"
-            class="float-right mr-3" onclick="alert('need a datagrid')">{% fontawesome_icon 'table' color='#336699' %}</a>
+            <a href="{% url 'ds_grid' d.label %}" title="View/edit table" rel="tooltip"
+            class="float-right mr-3">{% fontawesome_icon 'table' color='#336699' %}</a>
             {% endif %}
             {% if d.status == 'format_ok' %}
             <a href="{% url 'ds_insert' d.id %}" title="Insert to db" rel="tooltip"
@@ -49,8 +50,10 @@
            </p>
            {% if d.status == "uploaded" or d.status == "ready" %}
            <div class="dataset-detail" >
-             <p><b># Rows</b>: {{ d.numrows }} <br/>
-             <b>Header</b>: {{ d.header }}</p>
+             <p>
+               <b>{{ d.numrows }}</b> rows; <b>{{ d.numlinked }}</b> have total of <b>{{ d.total_links }}</b> match links; <b>{{ d.numrows|sub:d.numlinked }}</b> have none<br/>
+               <b>Columns</b>: {{ d.header }} <br/>
+             </p>
            </div>
            {% endif %}
         </div>

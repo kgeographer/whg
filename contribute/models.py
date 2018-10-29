@@ -23,13 +23,16 @@ class Dataset(models.Model):
         default='delimited')
     datatype = models.CharField(max_length=12, null=False,choices=DATATYPES,
         default='place')
+    delimiter = models.CharField(max_length=2, blank=True, null=True)
     status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS)
     upload_date = models.DateTimeField(null=True, auto_now_add=True)
     accepted_date = models.DateTimeField(null=True, auto_now_add=True)
-    mapbox_id = models.CharField(max_length=200, null=True, blank=True)
+    # backfilled
     header = ArrayField(models.CharField(max_length=30, blank=True, null=True))
     numrows = models.IntegerField()
-    delimiter = models.CharField(max_length=2, blank=True, null=True)
+    numlinked = models.IntegerField()
+    total_links = models.IntegerField()
+    mapbox_id = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.label

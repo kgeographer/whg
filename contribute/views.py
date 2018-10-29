@@ -1,10 +1,13 @@
 # contribute.views
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-from pprint import pprint
 from django.db import models
 import django.core.files.uploadedfile as upfile
+from django.utils.html import escape
+from django.views.generic import TemplateView
+from django_datatables_view.base_datatable_view import BaseDatatableView
 import codecs, tempfile, os
+from pprint import pprint
 
 from .tasks import read_csv, read_lpf
 from .forms import DatasetModelForm
@@ -19,6 +22,49 @@ def dashboard(request):
     dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
     print('dataset_list',dataset_list)
     return render(request, 'contribute/dashboard.html', {'datasets':dataset_list})
+
+# display dataset grid
+class DatasetGrid(TemplateView):
+    template_name = 'contribute/ds_grid.html'
+
+class DatasetGridJson(BaseDatatableView):
+    order_columns = ['placeid', 'title', 'ccode']
+
+    def get_initial_queryset(self):
+        print('kwargs',self.kwargs)
+        return Place.objects.filter(dataset=self.kwargs['label'])
+
+    def filter_queryset(self, qs):
+        # use request parameters to filter queryset
+        # simple example:
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(title__istartswith=search)
+
+        return qs
+
+    def prepare_results(self, qs):
+        # prepare list with output column data
+        # queryset is already paginated here
+        json_data = []
+        for item in qs:
+            json_data.append([
+                item.placeid,
+                item.src_id,
+                item.title,
+                item.ccode,
+                # item.get_state_display(), # ?
+                # escape(item.foo),  # escape HTML for security reasons
+                # item.created.strftime("%Y-%m-%d %H:%M:%S"),
+                # item.modified.strftime("%Y-%m-%d %H:%M:%S")
+            ])
+        return json_data
+
+# display dataset in editable grid
+# def ds_grid(request, pk):
+#     ds = get_object_or_404(Dataset, pk=pk)
+#
+#     return render(request, 'contribute/ds_grid.html', {'ds':ds})
 
 # new dataset: upload file, store if valid
 def ds_new(request, template_name='contribute/ds_form.html'):
@@ -96,9 +142,11 @@ def ds_insert(request, pk ):
     # id*, name*, name_src*, type^, variants[], ccode[]^, lon^, lat^, geom_src, close_match[]^, exact_match[]^, description, depiction
     #
     # TODO: what if simultaneous inserts?
-    place_counter=0
-    for r in reader:
-    # for i, r in zip(range(30), reader):
+    countrows=0
+    countlinked = 0
+    countlinks = 0
+    # for r in reader:
+    for i, r in zip(range(200), reader):
         # poll Place.objects.placeid.max()
         nextpid = (Place.objects.all().aggregate(models.Max('placeid'))['placeid__max'] or 0) + 1 if Place.objects.all().count() > 0 else 10000001
 
@@ -129,7 +177,7 @@ def ds_insert(request, pk ):
             ccode = ccode
         )
         newpl.save()
-        place_counter += 1
+        countrows += 1
         # build associated objects and add to arrays
 
         # PlaceName()
@@ -159,8 +207,10 @@ def ds_insert(request, pk ):
 
         # # PlaceLink()
         if len(list(filter(None,close_match))) > 0:
+            countlinked += 1
             # print('close_match',close_match)
             for m in close_match:
+                countlinks += 1
                 objs['PlaceLink'].append(PlaceLink(placeid=newpl,
                     src_id = src_id,
                     dataset = dataset,
@@ -189,8 +239,11 @@ def ds_insert(request, pk ):
     PlaceLink.objects.bulk_create(objs['PlaceLink'])
 
     context['status'] = 'uploaded'
+    print('rows,linked,links:',countrows,countlinked,countlinks)
     dataset.status = 'uploaded'
-    dataset.numrows = place_counter
+    dataset.numrows = countrows
+    dataset.numlinked = countlinked
+    dataset.total_links = countlinks
     dataset.header = header
     dataset.save()
     print('record:', dataset.__dict__)

@@ -1,13 +1,14 @@
 amqp==2.3.2
 billiard==3.5.0.4
 celery==4.2.1
-chkcsv==0.8.0.2
 Django==2.1.2
 django-cors-headers==2.4.0
+django-datatables-view==1.17.0
 django-filter==2.0.0
 django-fontawesome==1.0
 django-geojson==2.11.0
 django-leaflet==0.24.0
+django-mathfilters==0.4.0
 django-templated-mail==1.1.1
 django-webpack-loader==0.6.0
 djangorestframework==3.8.2
@@ -29,5 +30,6 @@ pytz==2018.5
 PyYAML==3.13
 Shapely==1.6.4.post2
 six==1.11.0
+topojson==1.0.1+2.g581c6b4
 urllib3==1.23
 vine==1.1.4

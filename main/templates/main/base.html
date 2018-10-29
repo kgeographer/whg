@@ -1,3 +1,4 @@
+{% load i18n staticfiles %}
 <!DOCTYPE html>
 {% load leaflet_tags %}
 {% load fontawesome %}
@@ -16,12 +17,14 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
-  <!-- Add additional CSS in static file -->
+  <!-- Add additional CSS in static -->
   {% leaflet_js %}
   {% leaflet_css %}
   {% load static %}
   {% fontawesome_stylesheet %}
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <!-- some pages will want more -->
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
   <header>
