@@ -4,7 +4,8 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.home, name="search_home"),
+    # url(r'^$', views.home, name="search_home"),
+    url(r'^$', views.search, name="searchy"),
     url(r'^advanced$', views.advanced, name="search_adv"),
 
 
