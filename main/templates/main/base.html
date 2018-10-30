@@ -32,18 +32,15 @@
     <nav class="navbar navbar-expand-lg navbar-light">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}">
-          <img src="{% static 'images/whg_logo_38h.png'%}" class="d-inline-block align-bottom" height=38 width=50 alt=""/>&nbsp;World-Historical Gazetteer</a>
-
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+          <img src="{% static 'images/whg_logo_38h.png'%}" class="d-inline-block align-bottom" height=38 width=50 alt=""/>&nbsp;World-Historical Gazetteer
+        </a>
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav ml-auto">
             {% if user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'search_home' %}">Search</a>
-            </li>
+            <!-- <li class="nav-item">
+              <a class="nav-link" href="{# url 'search_home' #}">Search</a>
+            </li> -->
             <li class="nav-item">
               <a class="nav-link" href="{% url 'maps_home' %}">Maps</a>
             </li>
@@ -51,7 +48,7 @@
               <a class="nav-link" href="{% url 'usingapi' %}">API</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'contrib_home' %}">Contribute</a>
+              <a class="nav-link" href="{% url 'contrib_home' %}">Contributing</a>
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -65,17 +62,20 @@
               </div>
             </li>
 
-            <li class="nav-item dropdown mr-5">
+            <li class="nav-item">
+              <a class="nav-link red-bold" href="{% url 'contrib_dashboard' %}">
+                {{ user.username }}</a>
+            </li>
+
+            <!-- <li class="nav-item dropdown mr-5">
               <a class="nav-link dropdown-toggle red-bold" href="#" id="aboutDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {{ user.username }}
               </a>
               <div class="dropdown-menu" aria-labelledby="aboutDropdown">
                 <a class="dropdown-item" href="/contribute/dashboard">Dashboard</a>
                 <a class="dropdown-item" href="/accounts/profile">Profile</a>
-                <!-- <a class="dropdown-item" href="{# url 'dashboard' #}">Dashboard</a>
-                <a class="dropdown-item" href="{# url 'profile' #}">Profile</a> -->
               </div>
-            </li>
+            </li> -->
 
             <li class="nav-item">
               <a class="nav-link `ml-5" href="javascript:{document.getElementById('logout').submit()}">Logout</a>
