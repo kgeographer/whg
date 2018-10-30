@@ -26,6 +26,24 @@ def dashboard(request):
 # initiate, monitor reconciliation service
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
+    print('request, method:',request, request.method)
+    context = {
+        "dataset": ds.name,
+    }
+
+    if request.method == 'GET':
+        print('context',context)
+    elif request.method == 'POST' and request.POST:
+        authority = request.POST['recon']
+        dataset = request.POST['ds']
+        pprint(request.POST)
+        # run task
+        context['response'] = 'ran something'
+        context['dataset'] = ds.label
+        context['authority'] = authority
+        context['hits'] = '?? not wired yet'
+        context['result'] = 'completed'
+        return render(request, 'contribute/ds_recon.html', {'ds':ds, 'context': context})
 
     return render(request, 'contribute/ds_recon.html', {'ds':ds})
 

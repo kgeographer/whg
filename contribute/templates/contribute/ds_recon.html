@@ -20,33 +20,35 @@
 <h4 class="mb-3 mt-3">{% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }} ({{ ds.label }}))</h4>
 <hr/>
 <div class="row">
-  <div class="col-sm-12">
-    <form action="javascript:alert('fer chrissake')">
+  <div class="col-sm-8">
+    <form action="{% url 'ds_recon' ds.id %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="ds" value="{{ ds.id }}">
       <div class="form-check">
         <label class="form-check-label text-muted" for="auth1">
           <input type="radio" class="form-check-input" id="auth1"
-            name="recon" value="tgn" disabled>Getty TGN
-            <span class="ml-2 text-success">completed + disabled</span>
+            name="recon" value="tgn" disabled>Getty TGN (tgn)
+            <span class="ml-2 text-success">{ result }</span>
         </label>
       </div>
       <div class="form-check">
         <label class="form-check-label" for="auth2">
           <input type="radio" class="form-check-input" id="auth2"
-            name="recon" value="dbp" checked>DBpedia
-            <span class="ml-2 text-success">{ progress }, disabled on completion</span>
+            name="recon" value="dbp" checked>DBpedia (dbp)
+            <span class="ml-2 text-success">{{ context.result }}</span>
         </label>
       </div>
       <div class="form-check">
         <label class="form-check-label" for="auth3">
           <input type="radio" class="form-check-input" id="auth3"
-            name="recon" value="wd">Wikidata
+            name="recon" value="wd">Wikidata (wd)
             <span class="ml-2 text-success d-none"> </span>
         </label>
       </div>
       <div class="form-check">
         <label class="form-check-label" for="auth4">
           <input type="radio" class="form-check-input" id="auth4"
-            name="recon" value="gn">GeoNames
+            name="recon" value="gn">GeoNames (gn)
             <span class="ml-2 text-success d-none"> </span>
         </label>
       </div> <br/>
@@ -77,6 +79,16 @@
       <button type="submit" class="btn btn-secondary">Go</button>
     </form> -->
   </div>
+  {% if context.response %}
+  <div class="col-sm-4">
+    <p>{{ context.response }}!</p>
+    <p><b>Dataset</b>: {{ context.dataset }}</p>
+    <p><b>Authority</b>: {{ context.authority }}</p>
+    <p><b>Hits</b>: {{ context.hits }}</p>
+    <p class="mb-3"><b>Result</b>: {{ context.result }}</p>
+    <button type="submit" action="javascript:alert('load review app')" class="btn btn-primary">Review hits</button>
+  </div>
+  {% endif %}
 </div>
 
 <script type="text/javascript">
