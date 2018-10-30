@@ -8,13 +8,10 @@
   {% load mathfilters %}
 
   <div class="container">
-    <div class="d-flex justify-content-center mt-3">
-      <h3>Contribution Dashboard</h3></div>
-    <div class="d-flex justify-content-center">
-      <h4 class="text-danger">{{ user.username }}</h4></div>
-    <div class="px-5">
-      <h4>Datasets
+    <!--<div class="px-5 mt-3"> -->
+      <h4 class="mt-3">My Datasets
         <a href="{% url 'ds_new' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
+
       {% for d in datasets %}
         <div class="dataset-box mb-2">
           <h4>{{ d.name }} ({{ d.id }})
@@ -30,13 +27,17 @@
             <a href="{% url 'ds_grid' d.label %}" title="View/edit table" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'table' color='#336699' %}</a>
             {% endif %}
+            {% if d.status == 'uploaded' %}
+            <a href="{% url 'ds_recon' d.id %}" title="Reconciler" rel="tooltip"
+            class="float-right mr-3">{% fontawesome_icon 'link' color='#336699' %}</a>
+            {% endif %}
             {% if d.status == 'format_ok' %}
             <a href="{% url 'ds_insert' d.id %}" title="Insert to db" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'database' color='#336699' %}</a>
             {% endif %}
-
           </h4>
-          <p>
+          <div class="row">
+          <div id="ds_metadata" class="col-sm-6"><p>
             <b>Label</b>: {{ d.label }} <br/>
             <b>Description</b>: {{ d.description }} <br/>
               {% if d.file %}
@@ -47,19 +48,34 @@
                <span class="ml-3"><a href="{% url 'maps_home' %}">Map</a></span>
              {% endif %}
             <b>Status</b>: <span class="text-danger">{{ d.status }}</span>
-           </p>
-           {% if d.status == "uploaded" or d.status == "ready" %}
-           <div class="dataset-detail" >
+          </p></div>
+          {% if d.status == "uploaded" %}
+          <!-- NOT HERE
+            <div id="recon" class="col-sm-5 float-right mb-2" style="background-color:cornsilk;">
+            <span><b>Reconciliation services</b></span>&nbsp;
+              {% fontawesome_icon 'question-circle' color='#336699' %}<br/>
+            <ul>
+              <li><input type="checkbox"> Getty TGN</input></li>
+              <li><input type="checkbox"> DBpedia</input></li>
+              <li><input type="checkbox"> Wikidata</input></li>
+              <li><input type="checkbox"> GeoNames</input></li>
+            </ul>
+          </div> -->
+          {% endif %}
+          </div>
+         {% if d.status == "uploaded" or d.status == "ready" %}
+           <div class="row dataset-detail">
              <p>
                <b>{{ d.numrows }}</b> rows; <b>{{ d.numlinked }}</b> have total of <b>{{ d.total_links }}</b> match links; <b>{{ d.numrows|sub:d.numlinked }}</b> have none<br/>
                <b>Columns</b>: {{ d.header }} <br/>
              </p>
            </div>
-           {% endif %}
+         {% endif %}
         </div>
       {% endfor %}
-    </div>
-  </div>
+      <!--</div> <!-- row -->
+    <!-- </div> -->
+  </div> <!-- container -->
   <script>
     $("[rel='tooltip']").tooltip();
     // $(document).on('click', '.confirm-delete', function(){

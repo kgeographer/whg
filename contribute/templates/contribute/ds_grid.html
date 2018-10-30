@@ -6,20 +6,17 @@
 {% load static %}
 
 {% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
-{% block extra_head %}
-
-{% endblock %}
+{% block extra_head %}{% endblock %}
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container flex">
-
-<h4 class="text-danger">{{ ds.name }} ({{ ds.label }}))</h4>
-{% block breadcrumbs %}
-    {% breadcrumb "Home" "/" %}
-    {% breadcrumb " Dashboard" "contrib_dashboard" %}
-    {% breadcrumb " dataset" "foo" %}
-{% endblock %}
-{% render_breadcrumbs %}
+<!-- {# block breadcrumbs #}
+    {# breadcrumb "Home" "/" #}
+    {# breadcrumb " Dashboard" "contrib_dashboard" #}
+    {# breadcrumb " dataset" "foo" #}
+{# endblock #}
+{# render_breadcrumbs #} -->
+<h4 class="text-danger mt-3">{{ ds.name }} ({{ ds.label }}))</h4>
 <div class="row">
   <div id="map_summary" class="col-sm-5 col-record pt-3">
     <div id="dataset_summary">

@@ -1,6 +1,7 @@
 /* h3 {
   font-family: Georgia, serif;
 } */
+
 .dataset-box {
   border: 1px solid gray;
   min-height: 100px;
@@ -12,14 +13,34 @@
   background-color: ghostwhite;
   padding: 10px;
   border-radius: 8px;
-)
+  width: 95%;
+  margin-left: 0 !important;
+}
+.block-left {
+  display:block;
+  float:left;
+}
+#recon ul {
+  list-style: none;
+  padding-left: 0;
+  /* margin-top: 12px; */
+}
+.recon-done {
+  font-style: italic;
+  color: grey;
+}
 .form-box {
   border: 1px solid gray;
   background-color: #eeeee0;
   padding:12px;
   border-radius: 16px;
 }
-
+.form-check-input {
+  margin-top: .2rem;
+}
+:-moz-any(.form-check-input) {
+  margin-top: .35rem;
+}
 .h2em {
   height: 2em;
 }

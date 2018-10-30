@@ -23,6 +23,11 @@ def dashboard(request):
     print('dataset_list',dataset_list)
     return render(request, 'contribute/dashboard.html', {'datasets':dataset_list})
 
+# initiate, monitor reconciliation service
+def ds_recon(request, pk):
+    ds = get_object_or_404(Dataset, id=pk)
+
+    return render(request, 'contribute/ds_recon.html', {'ds':ds})
 
 # display dataset in editable grid
 def ds_grid(request, label):
@@ -33,7 +38,7 @@ def ds_grid(request, label):
     return render(request, 'contribute/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
 
-# display dataset grid
+# display DataTable
 class DatasetGrid(TemplateView):
     template_name = 'contribute/ds_table.html'
 

@@ -13,6 +13,7 @@ urlpatterns = [
     path('edit/<int:pk>', views.ds_update, name="ds_update"),
     path('insert/<int:pk>', views.ds_insert, name="ds_insert"),
     path('delete/<int:pk>', views.ds_delete, name="ds_delete"),
+    path('recon/<int:pk>', views.ds_recon, name="ds_recon"),
 
     # url(r'^testmodel$', TestModelList.as_view(), name="testmodel"),
     # url(r'^testmodel_data/$', TestModelListJson.as_view(), name="testmodel_list_json"),

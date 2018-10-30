@@ -1,0 +1,84 @@
+<!-- contribute/ds_grid.html -->
+{% extends "main/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
+{% load fontawesome %}
+{% load static %}
+
+{% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
+{% block extra_head %}
+
+{% endblock %}
+{% block content %}
+<!-- incoming: ds, place_list -->
+<div class="container flex">
+<!-- {# block breadcrumbs #}
+    {# breadcrumb "Home" "/" #}
+    {# breadcrumb " Dashboard" "contrib_dashboard" #}
+    {# breadcrumb " dataset" "foo" #}
+{# endblock #}
+{# render_breadcrumbs #} -->
+<h4 class="mb-3 mt-3">{% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }} ({{ ds.label }}))</h4>
+<hr/>
+<div class="row">
+  <div class="col-sm-12">
+    <form action="javascript:alert('fer chrissake')">
+      <div class="form-check">
+        <label class="form-check-label text-muted" for="auth1">
+          <input type="radio" class="form-check-input" id="auth1"
+            name="recon" value="tgn" disabled>Getty TGN
+            <span class="ml-2 text-success">completed + disabled</span>
+        </label>
+      </div>
+      <div class="form-check">
+        <label class="form-check-label" for="auth2">
+          <input type="radio" class="form-check-input" id="auth2"
+            name="recon" value="dbp" checked>DBpedia
+            <span class="ml-2 text-success">{ progress }, disabled on completion</span>
+        </label>
+      </div>
+      <div class="form-check">
+        <label class="form-check-label" for="auth3">
+          <input type="radio" class="form-check-input" id="auth3"
+            name="recon" value="wd">Wikidata
+            <span class="ml-2 text-success d-none"> </span>
+        </label>
+      </div>
+      <div class="form-check">
+        <label class="form-check-label" for="auth4">
+          <input type="radio" class="form-check-input" id="auth4"
+            name="recon" value="gn">GeoNames
+            <span class="ml-2 text-success d-none"> </span>
+        </label>
+      </div> <br/>
+      <button type="submit" class="btn btn-primary">Start</button>
+    </form>
+    <!-- <form action="javascript:alert('go align now')">
+      <div class="custom-control custom-radio">
+        <label class="custom-control-label" for="auth-1">Getty TGN</label>
+        <input type="radio" id="auth-1" name="auth" value="tgn"
+          class="custom-control-input">
+        <span class="ml-2 text-danger">{ progress widget, result }</span>
+      </div>
+      <div class="custom-control custom-radio">
+        <label class="custom-control-label" for="auth-2">DBpedia</label>
+        <input type="radio" id="auth-2" name="auth" value="dbp"
+          class="custom-control-input">
+      </div>
+      <div class="custom-control custom-radio">
+        <label class="custom-control-label" for="auth-3">Wikidata</label>
+        <input type="radio" id="auth-3" name="auth" value="wd"
+          class="custom-control-input">
+      </div>
+      <div class="custom-control custom-radio">
+        <label class="custom-control-label" for="auth-4">GeoNames</label>
+        <input type="radio" id="auth-4" name="auth" value="gn"
+          class="custom-control-input">
+      </div>
+      <button type="submit" class="btn btn-secondary">Go</button>
+    </form> -->
+  </div>
+</div>
+
+<script type="text/javascript">
+</script>
+{% endblock %}
