@@ -1,6 +1,5 @@
 <!-- contribute/ds_grid.html -->
 {% extends "main/base.html" %}
-{% load django_bootstrap_breadcrumbs %}
 {% load fontawesome %}
 {% load static %}
 
@@ -11,12 +10,6 @@
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container flex">
-<!-- {# block breadcrumbs #}
-    {# breadcrumb "Home" "/" #}
-    {# breadcrumb " Dashboard" "contrib_dashboard" #}
-    {# breadcrumb " dataset" "foo" #}
-{# endblock #}
-{# render_breadcrumbs #} -->
 <h4 class="mb-3 mt-3">{% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }} ({{ ds.label }}))</h4>
 <hr/>
 <div class="row">

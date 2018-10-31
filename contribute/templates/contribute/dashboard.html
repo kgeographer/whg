@@ -23,11 +23,9 @@
             <!-- TODO: edit (same as create)-->
             <a href="{% url 'ds_update' d.id %}" title="Edit metadata" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a>
-            {% if d.status == 'format_ok' or d.status == 'uploaded' %}
+            {% if d.status == 'uploaded' %}
             <a href="{% url 'ds_grid' d.label %}" title="View/edit table" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'table' color='#336699' %}</a>
-            {% endif %}
-            {% if d.status == 'uploaded' %}
             <a href="{% url 'ds_recon' d.id %}" title="Reconciler" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'link' color='#336699' %}</a>
             {% endif %}

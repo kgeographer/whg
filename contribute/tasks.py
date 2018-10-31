@@ -19,7 +19,7 @@ def read_csv(infile, username):
     # get & test header (not field contents yet)
     infile.seek(0)
     header = next(reader, None) #.split(dialect.delimiter)
-    result['cols'] = header
+    result['columns'] = header
 
     if not len(set(header) & set(required)) == 6:
         result['errors']['req'] = 'missing required column (id,name,name_src, ccode,lon,lat)'

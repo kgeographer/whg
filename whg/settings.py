@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'leaflet',
     'fontawesome',
     'mathfilters',
-    'django_bootstrap_breadcrumbs',
 
     'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
