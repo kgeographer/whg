@@ -2,6 +2,7 @@ amqp==2.3.2
 billiard==3.5.0.4
 celery==4.2.1
 Django==2.1.2
+django-bootstrap-breadcrumbs==0.9.1
 django-cors-headers==2.4.0
 django-datatables-view==1.17.0
 django-filter==2.0.0
