@@ -2,8 +2,6 @@ _dumps/
 _notes/
 _older/
 
-TODO.txt
-
 nohup.out
 
 ### Django ###
@@ -14,5 +12,4 @@ __pycache__/
 whg/__pycache__/
 local_settings.py
 db.sqlite3
-/media
 /static
