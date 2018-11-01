@@ -1,4 +1,5 @@
 # contribute.views
+
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
@@ -54,46 +55,6 @@ def ds_grid(request, label):
     place_list = Place.objects.filter(dataset=label).order_by('title')
 
     return render(request, 'contribute/ds_grid.html', {'ds':ds, 'place_list': place_list})
-
-
-# display DataTable
-class DatasetGrid(TemplateView):
-    template_name = 'contribute/ds_table.html'
-
-class DatasetGridJson(BaseDatatableView):
-    order_columns = ['placeid', 'title', 'ccode']
-
-    def get_initial_queryset(self):
-        print('kwargs',self.kwargs)
-        # return Place.objects.filter(dataset=label)
-        return Place.objects.filter(dataset=self.kwargs['label'])
-
-    def filter_queryset(self, qs):
-        # use request parameters to filter queryset
-        # simple example:
-        search = self.request.GET.get('search[value]', None)
-        if search:
-            qs = qs.filter(title__istartswith=search)
-
-        return qs
-
-    def prepare_results(self, qs):
-        # prepare list with output column data
-        # queryset is already paginated here
-        json_data = []
-        for item in qs:
-            json_data.append([
-                item.placeid,
-                item.src_id,
-                item.title,
-                item.ccode,
-                # item.get_state_display(), # ?
-                # escape(item.foo),  # escape HTML for security reasons
-                # item.created.strftime("%Y-%m-%d %H:%M:%S"),
-                # item.modified.strftime("%Y-%m-%d %H:%M:%S")
-            ])
-        return json_data
-
 
 # new dataset: upload file, store if valid
 def ds_new(request, template_name='contribute/ds_form.html'):
@@ -297,3 +258,43 @@ def ds_delete(request, pk):
     # it's a GET not POST
     record.delete()
     return redirect('contrib_dashboard')
+
+
+# display DataTable
+# not implemented - awaiting
+class DatasetGrid(TemplateView):
+    template_name = 'contribute/ds_table.html'
+
+class DatasetGridJson(BaseDatatableView):
+    order_columns = ['placeid', 'title', 'ccode']
+
+    def get_initial_queryset(self):
+        print('kwargs',self.kwargs)
+        # return Place.objects.filter(dataset=label)
+        return Place.objects.filter(dataset=self.kwargs['label'])
+
+    def filter_queryset(self, qs):
+        # use request parameters to filter queryset
+        # simple example:
+        search = self.request.GET.get('search[value]', None)
+        if search:
+            qs = qs.filter(title__istartswith=search)
+
+        return qs
+
+    def prepare_results(self, qs):
+        # prepare list with output column data
+        # queryset is already paginated here
+        json_data = []
+        for item in qs:
+            json_data.append([
+                item.placeid,
+                item.src_id,
+                item.title,
+                item.ccode,
+                # item.get_state_display(), # ?
+                # escape(item.foo),  # escape HTML for security reasons
+                # item.created.strftime("%Y-%m-%d %H:%M:%S"),
+                # item.modified.strftime("%Y-%m-%d %H:%M:%S")
+            ])
+        return json_data

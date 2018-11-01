@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'leaflet',
     'fontawesome',
     'mathfilters',
+    'rest_framework',
 
     'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
@@ -52,6 +53,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'whg.urls'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
 
 TEMPLATES = [
     {
