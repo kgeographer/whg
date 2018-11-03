@@ -147,6 +147,7 @@ def ds_insert(request, pk ):
         name_src = r[header.index('name_src')]
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'unk.'
+        aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
         ccode = r[header.index('ccode')] if 'ccode' in header else 'unk.'
         coords = [float(r[header.index('lon')]), float(r[header.index('lat')])]
         close_match = r[header.index('close_match')][2:-2].split('", "') if 'close_match' in header else []
@@ -184,7 +185,7 @@ def ds_insert(request, pk ):
         objs['PlaceType'].append(PlaceType(placeid=newpl,
             # src_id = src_id,
             # dataset = dataset,
-            json={"label": type}
+            json={"src_label": type, "label":aat_type}
         ))
 
         # PlaceGeom()

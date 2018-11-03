@@ -10,7 +10,6 @@ from contribute.models import Dataset
 import json
 
 class Place(models.Model):
-    # uh-oh; this should have been auto generated
     # id = models.AutoField(primary_key=True)
     placeid = models.IntegerField(unique=True, db_index=True)
     title = models.CharField(max_length=255)
@@ -21,8 +20,6 @@ class Place(models.Model):
 
     def __str__(self):
         return str(self.placeid) + '_' + self.title
-    # def __unicode__(self):
-    #     return '%d: %s' % (self.placeid, self.title)
 
     class Meta:
         managed = True
@@ -66,12 +63,13 @@ class PlaceName(models.Model):
 
 
 class PlaceType(models.Model):
-    placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    # src_id = models.CharField(max_length=24)
-    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-    #     to_field='label', related_name='types', on_delete=models.CASCADE)
-    json = JSONField(blank=True, null=True)
     # identifier, label, source_label, when{}
+    placeid = models.ForeignKey(Place,to_field='placeid',related_name='types',
+        on_delete=models.CASCADE)
+    json = JSONField(blank=True, null=True)
+
+    def __str__(self):
+        return self.label (self.json.source_label)
 
     class Meta:
         managed = True
