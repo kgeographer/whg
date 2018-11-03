@@ -2,10 +2,11 @@
 
 from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
-from .serializers import UserSerializer, GroupSerializer, DatasetSerializer
+from .serializers import UserSerializer, GroupSerializer, DatasetSerializer, \
+    PlaceSerializer, PlaceNameSerializer
 
 from contribute.models import Dataset
-from main.models import Place
+from main.models import Place, PlaceName
 
 class DatasetViewSet(viewsets.ModelViewSet):
     """
@@ -19,7 +20,14 @@ class PlaceViewSet(viewsets.ModelViewSet):
     API endpoint that allows places to be viewed or edited (!).
     """
     queryset = Place.objects.all().order_by('title')
-    serializer_class = DatasetSerializer
+    serializer_class = PlaceSerializer
+
+class PlaceNameViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows places to be viewed or edited (!).
+    """
+    queryset = PlaceName.objects.all().order_by('title')
+    serializer_class = PlaceNameSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
