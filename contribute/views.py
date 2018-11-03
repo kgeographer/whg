@@ -172,8 +172,8 @@ def ds_insert(request, pk ):
 
         # PlaceName()
         objs['PlaceName'].append(PlaceName(placeid=newpl,
-            src_id = src_id,
-            dataset = dataset,
+            # src_id = src_id,
+            # dataset = dataset,
             toponym = title,
             # TODO get citation label through name_src FK; here?
             json={"toponym": title, "citation": {"id":name_src,"label":""}}
@@ -182,15 +182,15 @@ def ds_insert(request, pk ):
 
         # PlaceType()
         objs['PlaceType'].append(PlaceType(placeid=newpl,
-            src_id = src_id,
-            dataset = dataset,
+            # src_id = src_id,
+            # dataset = dataset,
             json={"label": type}
         ))
 
         # PlaceGeom()
         objs['PlaceGeom'].append(PlaceGeom(placeid=newpl,
-            src_id = src_id,
-            dataset = dataset,
+            # src_id = src_id,
+            # dataset = dataset,
             json={"type": "Point", "coordinates": coords,
                 "geowkt": 'POINT('+str(coords[0])+' '+str(coords[1])+')'}
         ))
@@ -202,8 +202,8 @@ def ds_insert(request, pk ):
             for m in close_match:
                 countlinks += 1
                 objs['PlaceLink'].append(PlaceLink(placeid=newpl,
-                    src_id = src_id,
-                    dataset = dataset,
+                    # src_id = src_id,
+                    # dataset = dataset,
                     json={"type":"closeMatch", "identifier":m}
                 ))
 

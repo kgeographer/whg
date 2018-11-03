@@ -7,6 +7,7 @@ from django.contrib.postgres.fields import JSONField
 
 from django.contrib.auth.models import User
 from contribute.models import Dataset
+import json
 
 class Place(models.Model):
     # uh-oh; this should have been auto generated
@@ -18,10 +19,10 @@ class Place(models.Model):
         to_field='label', related_name='places', on_delete=models.CASCADE)
     ccode = models.CharField(max_length=2)
 
-    # def __str__(self):
-    #     return str(self.placeid) + '_' + self.title
-    def __unicode__(self):
-        return '%d: %s' % (self.placeid, self.title)
+    def __str__(self):
+        return str(self.placeid) + '_' + self.title
+    # def __unicode__(self):
+    #     return '%d: %s' % (self.placeid, self.title)
 
     class Meta:
         managed = True
@@ -45,17 +46,19 @@ class Source(models.Model):
         db_table = 'sources'
 
 class PlaceName(models.Model):
+    # {toponym, lang, citation{}, when{}}
     placeid = models.ForeignKey(Place, to_field='placeid', related_name='names', on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', on_delete=models.CASCADE)
     toponym = models.CharField(max_length=200)
     name_src = models.ForeignKey(Source, null=True, on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
-	# toponym, lang, citation{}, when{}
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', on_delete=models.CASCADE)
 
-    def __unicode__(self):
-        return '%d' % (self.toponym)
+    def __str__(self):
+        return self.toponym
+        # return json.dumps('{"placeid": %d, "toponym":%s }' % (self.placeid.id, self.toponym))
+        # return str(self.toponym)
 
     class Meta:
         managed = True
@@ -64,9 +67,9 @@ class PlaceName(models.Model):
 
 class PlaceType(models.Model):
     placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', related_name='types', on_delete=models.CASCADE)
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', related_name='types', on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     # identifier, label, source_label, when{}
 
@@ -77,9 +80,9 @@ class PlaceType(models.Model):
 
 class PlaceGeom(models.Model):
     placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', related_name='geoms', on_delete=models.CASCADE)
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', related_name='geoms', on_delete=models.CASCADE)
     geom_src = models.ForeignKey(Source, null=True, on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
 
@@ -90,9 +93,9 @@ class PlaceGeom(models.Model):
 
 class PlaceLink(models.Model):
     placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', related_name='links', on_delete=models.CASCADE)
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', related_name='links', on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     # type, identifier
 
@@ -103,9 +106,9 @@ class PlaceLink(models.Model):
 
 class PlaceWhen(models.Model):
     placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', related_name='whens', on_delete=models.CASCADE)
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', related_name='whens', on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     # timespans[{start{}, end{}}], periods[{name,id}], label, duration
 
@@ -116,9 +119,9 @@ class PlaceWhen(models.Model):
 
 class PlaceRelated(models.Model):
     placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', related_name='related', on_delete=models.CASCADE)
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', related_name='related', on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     # relation_type, relation_to, label, when{}, citation{label,id}, certainty
 
@@ -129,9 +132,9 @@ class PlaceRelated(models.Model):
 
 class PlaceDescription(models.Model):
     placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', related_name='descriptions', on_delete=models.CASCADE)
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', related_name='descriptions', on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     # id, value, lang
 
@@ -142,9 +145,9 @@ class PlaceDescription(models.Model):
 
 class PlaceDepiction(models.Model):
     placeid = models.ForeignKey(Place,to_field='placeid',on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)
-    dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
-        to_field='label', related_name='depictions', on_delete=models.CASCADE)
+    # src_id = models.CharField(max_length=24)
+    # dataset = models.ForeignKey('contribute.Dataset', db_column='dataset',
+    #     to_field='label', related_name='depictions', on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     # id, title, license
 

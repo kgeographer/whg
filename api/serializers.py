@@ -13,43 +13,26 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Dataset
-        fields = ('id', 'owner', 'label', 'name', 'description','format',
+        fields = ('id', 'url', 'owner', 'label', 'name', 'description','format',
             'datatype', 'delimiter', 'status', 'upload_date',
             'accepted_date', 'mapbox_id', 'places')
 
+# class PlaceNameSerializer(serializers.HyperlinkedModelSerializer):
 class PlaceNameSerializer(serializers.ModelSerializer):
+    toponym = serializers.ReadOnlyField(source='json.toponym')
+    citation = serializers.ReadOnlyField(source='json.citation')
+
     class Meta:
         model = PlaceName
-        fields = ('src_id', 'toponym')
+        # fields = ('json',)
+        fields = ('toponym', 'citation')
 
 # class PlaceSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.HyperlinkedModelSerializer):
     dataset = serializers.ReadOnlyField(source='dataset.label')
 
-    # RESULT: no error, no names
-    # names = serializers.ReadOnlyField(source='names.json')
-    # names = PlaceNameSerializer(many=True,read_only=True)
+    names = PlaceNameSerializer(many=True, read_only=True)
 
-    # RESULT: AttributeError: 'Place' object has no attribute 'names'
-    # names = serializers.StringRelatedField(many=True,read_only=True)
-    #
-    names = serializers.PrimaryKeyRelatedField(
-        # queryset=PlaceName.objects.all(),
-        many=True, read_only=True,
-        pk_field='placeid'
-    )
-
-    # names = serializers.HyperlinkedRelatedField(
-    #     many=True, read_only=True,
-    #     view_name='PlaceNameViewSet',
-    #     lookup_field='placeid_id', allow_null=True
-    # )
-    #
-    # names = serializers.SlugRelatedField(
-    #     many=True, read_only=True,slug_field='placeid'
-    # )
-
-    # names = serializers.ReadOnlyField(source='names.json')
     # types = serializers.StringRelatedField(source='types.json',many=True)
     # geoms = serializers.StringRelatedField(source='geoms.json',many=True)
     # links = serializers.StringRelatedField(source='links.json',many=True)
@@ -60,15 +43,10 @@ class PlaceSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Place
-        fields = ('id', 'placeid', 'title', 'src_id', 'dataset','ccode',
+        fields = ('url','placeid', 'title', 'src_id', 'dataset','ccode',
             'names')
             # , 'types', 'geoms', 'links', 'relations',
             # 'whens', 'descriptions', 'depictions')
-
-class PlaceNameSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = PlaceName
-        fields = ('url', 'toponym')
 
 class UserSerializer(serializers.ModelSerializer):
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
