@@ -38,7 +38,6 @@ class PlaceNameSerializer(serializers.ModelSerializer):
         fields = ('toponym', 'citation')
         lookup_field = 'placeid'
 
-# class PlaceSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.HyperlinkedModelSerializer):
     dataset = serializers.ReadOnlyField(source='dataset.label')
     names = PlaceNameSerializer(many=True, read_only=True)
