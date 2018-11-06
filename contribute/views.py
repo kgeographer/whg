@@ -137,8 +137,9 @@ def ds_insert(request, pk ):
     countlinks = 0
     # for r in reader:
     for i, r in zip(range(200), reader):
-        # poll Place.objects.placeid.max()
-        nextpid = (Place.objects.all().aggregate(models.Max('placeid'))['placeid__max'] or 0) + 1 if Place.objects.all().count() > 0 else 10000001
+        # ABANDONED place.placeid ## poll Place.objects.placeid.max()
+        # nextpid = (Place.objects.all().aggregate(models.Max('id'))['id__max'] or 0) + 1
+            # if Place.objects.all().count() > 0 else 10000001
 
         # TODO: should columns be required even if blank?
         # required
@@ -161,7 +162,7 @@ def ds_insert(request, pk ):
 
         # build and save Place object
         newpl = Place(
-            placeid = nextpid,
+            # placeid = nextpid,
             src_id = src_id,
             dataset = dataset,
             title = title,
@@ -172,7 +173,7 @@ def ds_insert(request, pk ):
         # build associated objects and add to arrays
 
         # PlaceName()
-        objs['PlaceName'].append(PlaceName(placeid=newpl,
+        objs['PlaceName'].append(PlaceName(place_id=newpl,
             # src_id = src_id,
             # dataset = dataset,
             toponym = title,
@@ -182,12 +183,12 @@ def ds_insert(request, pk ):
         # TODO: variants array
 
         # PlaceType()
-        objs['PlaceType'].append(PlaceType(placeid=newpl,
+        objs['PlaceType'].append(PlaceType(place_id=newpl,
             json={"src_label": type, "label":aat_type}
         ))
 
         # PlaceGeom()
-        objs['PlaceGeom'].append(PlaceGeom(placeid=newpl,
+        objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
             # src_id = src_id,
             # dataset = dataset,
             json={"type": "Point", "coordinates": coords,
@@ -200,7 +201,7 @@ def ds_insert(request, pk ):
             # print('close_match',close_match)
             for m in close_match:
                 countlinks += 1
-                objs['PlaceLink'].append(PlaceLink(placeid=newpl,
+                objs['PlaceLink'].append(PlaceLink(place_id=newpl,
                     # src_id = src_id,
                     # dataset = dataset,
                     json={"type":"closeMatch", "identifier":m}
@@ -261,39 +262,39 @@ def ds_delete(request, pk):
 
 # display DataTable
 # not implemented - awaiting
-class DatasetGrid(TemplateView):
-    template_name = 'contribute/ds_table.html'
-
-class DatasetGridJson(BaseDatatableView):
-    order_columns = ['placeid', 'title', 'ccode']
-
-    def get_initial_queryset(self):
-        print('kwargs',self.kwargs)
-        # return Place.objects.filter(dataset=label)
-        return Place.objects.filter(dataset=self.kwargs['label'])
-
-    def filter_queryset(self, qs):
-        # use request parameters to filter queryset
-        # simple example:
-        search = self.request.GET.get('search[value]', None)
-        if search:
-            qs = qs.filter(title__istartswith=search)
-
-        return qs
-
-    def prepare_results(self, qs):
-        # prepare list with output column data
-        # queryset is already paginated here
-        json_data = []
-        for item in qs:
-            json_data.append([
-                item.placeid,
-                item.src_id,
-                item.title,
-                item.ccode,
-                # item.get_state_display(), # ?
-                # escape(item.foo),  # escape HTML for security reasons
-                # item.created.strftime("%Y-%m-%d %H:%M:%S"),
-                # item.modified.strftime("%Y-%m-%d %H:%M:%S")
-            ])
-        return json_data
+# class DatasetGrid(TemplateView):
+#     template_name = 'contribute/ds_table.html'
+#
+# class DatasetGridJson(BaseDatatableView):
+#     order_columns = ['id', 'title', 'ccode']
+#
+#     def get_initial_queryset(self):
+#         print('kwargs',self.kwargs)
+#         # return Place.objects.filter(dataset=label)
+#         return Place.objects.filter(dataset=self.kwargs['label'])
+#
+#     def filter_queryset(self, qs):
+#         # use request parameters to filter queryset
+#         # simple example:
+#         search = self.request.GET.get('search[value]', None)
+#         if search:
+#             qs = qs.filter(title__istartswith=search)
+#
+#         return qs
+#
+#     def prepare_results(self, qs):
+#         # prepare list with output column data
+#         # queryset is already paginated here
+#         json_data = []
+#         for item in qs:
+#             json_data.append([
+#                 item.placeid,
+#                 item.src_id,
+#                 item.title,
+#                 item.ccode,
+#                 # item.get_state_display(), # ?
+#                 # escape(item.foo),  # escape HTML for security reasons
+#                 # item.created.strftime("%Y-%m-%d %H:%M:%S"),
+#                 # item.modified.strftime("%Y-%m-%d %H:%M:%S")
+#             ])
+#         return json_data

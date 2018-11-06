@@ -67,7 +67,7 @@ class Authority(models.Model):
 # product of hit validation
 class Link(models.Model):
     # WHG identifier
-    placeid = models.ForeignKey('main.Place', on_delete="models.CASCADE")
+    place_id = models.ForeignKey('main.Place', on_delete="models.CASCADE")
 
     # contributor identifier
     src_id = models.CharField(max_length=24)
@@ -92,7 +92,7 @@ class Link(models.Model):
 
 # raw hits from reconciliation
 class Hit(models.Model):
-    placeid = models.ForeignKey('main.Place', on_delete="models.CASCADE")
+    place_id = models.ForeignKey('main.Place', on_delete="models.CASCADE")
     authority = models.ForeignKey(Authority, db_column="authority", to_field="id", on_delete="models.CASCADE")
 
     # authority place record identifier

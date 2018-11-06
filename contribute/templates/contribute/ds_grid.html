@@ -24,7 +24,7 @@
         <thead>
             <th></th>
             <th>name</th>
-            <th>placeid</th>
+            <th>place_id</th>
             <th>src_id</th>
             <th>ccode(s)</th>
             <!-- <th>lon, lat</th> -->
@@ -35,7 +35,7 @@
               <td><span class="edit-row" style="cursor:pointer;">
                 {% fontawesome_icon 'edit' color='#336699' %}</span</td>
               <td>{{ place.title }}</td>
-              <td>{{ place.placeid }}</td>
+              <td>{{ place.id }}</td>
               <td>{{ place.src_id }}</td>
               <td>{{ place.ccode }}</td>
               <!-- <td>{{ place.placegeom_set.all }}</td> -->

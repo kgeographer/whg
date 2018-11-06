@@ -13,12 +13,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all().order_by('label')
     serializer_class = DatasetSerializer
 
+
 class PlaceViewSet(viewsets.ModelViewSet):
-# class PlaceViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Place.objects.all().order_by('title')
     serializer_class = PlaceSerializer
 
-# TODO: get place url to use placeid, not pk
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')

@@ -3,7 +3,7 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from contribute.models import Dataset
-from main.models import Place,PlaceName,PlaceType
+from main.models import Place, PlaceName, PlaceType
 
 
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
@@ -26,7 +26,7 @@ class PlaceTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceType
         fields = ('label', 'source_label', 'when', 'identifier')
-        lookup_field = 'placeid'
+
 
 class PlaceNameSerializer(serializers.ModelSerializer):
     # toponym, citation{}
@@ -36,7 +36,7 @@ class PlaceNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceName
         fields = ('toponym', 'citation')
-        lookup_field = 'placeid'
+
 
 class PlaceSerializer(serializers.HyperlinkedModelSerializer):
     dataset = serializers.ReadOnlyField(source='dataset.label')
@@ -51,13 +51,13 @@ class PlaceSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Place
-        fields = ('url','placeid', 'title', 'src_id', 'dataset','ccode',
+        fields = ('url','id', 'title', 'src_id', 'dataset','ccode',
             'names' , 'types')
             # , 'geoms', 'links', 'relations',
             # 'whens', 'descriptions', 'depictions')
 
-class UserSerializer(serializers.ModelSerializer):
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     datasets = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True

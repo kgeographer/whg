@@ -11,7 +11,7 @@ $(document).ready(function() {
            targets: [0, 1, 2, 3]
           },
           {
-              name: 'placeid',
+              name: 'place_id',
               targets: [0]
           },
           {
