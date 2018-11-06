@@ -20,12 +20,13 @@ class PlaceTypeSerializer(serializers.ModelSerializer):
     # identifier, label, source_label, when{}
     identifier = serializers.ReadOnlyField(source='json.identifier')
     label = serializers.ReadOnlyField(source='json.label')
-    source_label = serializers.ReadOnlyField(source='json.source_label')
+    source_label = serializers.ReadOnlyField(source='json.src_label')
     when = serializers.ReadOnlyField(source='json.when')
 
     class Meta:
         model = PlaceType
         fields = ('label', 'source_label', 'when', 'identifier')
+        lookup_field = 'placeid'
 
 class PlaceNameSerializer(serializers.ModelSerializer):
     # toponym, citation{}
@@ -35,11 +36,11 @@ class PlaceNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceName
         fields = ('toponym', 'citation')
+        lookup_field = 'placeid'
 
 # class PlaceSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.HyperlinkedModelSerializer):
     dataset = serializers.ReadOnlyField(source='dataset.label')
-
     names = PlaceNameSerializer(many=True, read_only=True)
     types = PlaceTypeSerializer(many=True, read_only=True)
     # geom = PlaceGeomSerializer(many=True, read_only=True)

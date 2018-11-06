@@ -183,8 +183,6 @@ def ds_insert(request, pk ):
 
         # PlaceType()
         objs['PlaceType'].append(PlaceType(placeid=newpl,
-            # src_id = src_id,
-            # dataset = dataset,
             json={"src_label": type, "label":aat_type}
         ))
 

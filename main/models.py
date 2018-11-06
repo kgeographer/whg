@@ -10,7 +10,6 @@ from contribute.models import Dataset
 import json
 
 class Place(models.Model):
-    # id = models.AutoField(primary_key=True)
     placeid = models.IntegerField(unique=True, db_index=True)
     title = models.CharField(max_length=255)
     src_id = models.CharField(max_length=24)
