@@ -14,7 +14,7 @@ def user_directory_path(instance, filename):
 
 # TODO: multiple files per dataset w/File model and formset
 class Dataset(models.Model):
-    owner = models.ForeignKey(User, related_name= 'datasets', on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, related_name='datasets', on_delete=models.CASCADE)
     label = models.CharField(max_length=20, null=False, unique="True")
     name = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=2044, null=False)
