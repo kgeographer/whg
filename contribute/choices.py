@@ -15,7 +15,8 @@ DATATYPES = [
 STATUS = [
     ('format_error', 'Invalid format'),
     ('format_ok', 'Valid format'),
-    ('uploaded', 'Uploaded'),
+    ('inserted', 'Data inserted'),
+    ('uploaded', 'File uploaded'),
     ('ready', 'Ready for submittal'),
     ('accepted', 'Accepted'),
 ]

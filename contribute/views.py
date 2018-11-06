@@ -228,13 +228,13 @@ def ds_insert(request, pk ):
     PlaceGeom.objects.bulk_create(objs['PlaceGeom'])
     PlaceLink.objects.bulk_create(objs['PlaceLink'])
 
-    context['status'] = 'uploaded'
+    context['status'] = 'inserted'
     print('rows,linked,links:',countrows,countlinked,countlinks)
-    dataset.status = 'uploaded'
     dataset.numrows = countrows
     dataset.numlinked = countlinked
     dataset.total_links = countlinks
     dataset.header = header
+    dataset.status = 'inserted'
     dataset.save()
     print('record:', dataset.__dict__)
     print('context:',context)
@@ -249,6 +249,8 @@ def ds_update(request, pk, template_name='contribute/ds_form.html'):
     if form.is_valid():
         form.save()
         return redirect('/contribute/dashboard')
+    else:
+        print('not valid', form.errors)
     return render(request, template_name, {'form':form, 'action': 'update'})
 
 def ds_delete(request, pk):

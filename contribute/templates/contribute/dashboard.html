@@ -61,7 +61,7 @@
           </div> -->
           {% endif %}
           </div>
-         {% if d.status == "uploaded" or d.status == "ready" %}
+         {% if d.status == "inserted" or d.status == "ready" %}
            <div class="row dataset-detail">
              <p>
                <b>{{ d.numrows }}</b> rows; <b>{{ d.numlinked }}</b> have total of <b>{{ d.total_links }}</b> match links; <b>{{ d.numrows|sub:d.numlinked }}</b> have none<br/>
