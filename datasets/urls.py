@@ -6,6 +6,7 @@ from django.conf import settings
 from . import views
 
 # dataset actions
+app_name='datasets'
 urlpatterns = [
     # url(r'^$', views.home, name="contrib_home"),
 

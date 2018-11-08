@@ -14,7 +14,7 @@
 <hr/>
 <div class="row">
   <div class="col-sm-8">
-    <form action="{% url 'ds_recon' ds.id %}" method="POST">
+    <form action="{% url 'datasets:ds_recon' ds.id %}" method="POST">
       {% csrf_token %}
       <input type="hidden" name="ds" value="{{ ds.id }}">
       <div class="form-check">
