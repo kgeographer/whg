@@ -1,4 +1,4 @@
-# functions related to contribute apps
+# functions related to datasets app
 import sys, os, re, json, codecs, datetime, time
 from pprint import pprint
 

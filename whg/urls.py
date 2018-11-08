@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from main import views
+from datasets.views import dashboard
 
 from django.contrib import admin
 from django.urls import include, path
@@ -15,9 +16,11 @@ urlpatterns = [
     # apps
     path('search/', include('search.urls')),
     path('maps/', include('maps.urls')),
-    path('contribute/', include('contribute.urls')),
+    path('datasets/', include('datasets.urls')),
+    url(r'^dashboard/$', dashboard, name='dashboard'),
 
     # static content
+    url(r'^contributing/$', views.contributing, name="contributing"),
     url(r'^usingapi/$', views.usingapi, name="usingapi"),
     url(r'^community/$', views.community, name="community"),
     url(r'^about/$', views.about, name="about"),

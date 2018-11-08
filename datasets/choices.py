@@ -1,4 +1,4 @@
-# contribute model field value choices
+# datasets model field value choices
 
 FORMATS = [
     ('csv', 'CSV'),

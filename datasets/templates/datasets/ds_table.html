@@ -1,4 +1,4 @@
-<!-- contribute/ds_table.html -->
+<!-- datasets/ds_table.html -->
 {% extends "main/base.html" %}
 {% load i18n staticfiles %}
 {% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
@@ -14,7 +14,7 @@
   <script type="text/javascript" charset="utf8"
     src="//cdn.datatables.net/select/1.2.7/js/dataTables.select.min.js"></script>
 
-  <script src="{% static "contribute/ds_grid.js" %}"></script>
+  <script src="{% static "datasets/ds_grid.js" %}"></script>
 
   <script type="text/javascript">
       var DSGRID_JSON_URL = '{% url "ds_grid_json"%}';

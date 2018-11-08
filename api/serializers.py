@@ -2,7 +2,7 @@
 
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from contribute.models import Dataset
+from datasets.models import Dataset
 from main.models import Place, PlaceName, PlaceType
 
 

@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'maps.apps.MapsConfig',
     'search.apps.SearchConfig',
-    'contribute.apps.ContributeConfig',
+    'datasets.apps.DatasetsConfig',
 ]
 
 MIDDLEWARE = [
@@ -151,7 +151,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'whg/static/'),
-    os.path.join(BASE_DIR, 'contribute/static/'),
+    os.path.join(BASE_DIR, 'datasets/static/'),
 ]
 
 try:

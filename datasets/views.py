@@ -1,4 +1,4 @@
-# contribute.views
+# datasets.views
 
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
@@ -15,14 +15,14 @@ from .forms import DatasetModelForm
 from .models import Dataset
 from main.models import *
 
-def home(request):
-    return render(request, 'contribute/home.html')
+# def home(request):
+#     return render(request, 'datasets/home.html')
 
 # list datasets per user
 def dashboard(request):
     dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
     print('dataset_list',dataset_list)
-    return render(request, 'contribute/dashboard.html', {'datasets':dataset_list})
+    return render(request, 'datasets/dashboard.html', {'datasets':dataset_list})
 
 # initiate, monitor reconciliation service
 def ds_recon(request, pk):
@@ -44,9 +44,9 @@ def ds_recon(request, pk):
         context['authority'] = authority
         context['hits'] = '?? not wired yet'
         context['result'] = 'completed'
-        return render(request, 'contribute/ds_recon.html', {'ds':ds, 'context': context})
+        return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
-    return render(request, 'contribute/ds_recon.html', {'ds':ds})
+    return render(request, 'datasets/ds_recon.html', {'ds':ds})
 
 # display dataset in editable grid
 def ds_grid(request, label):
@@ -54,10 +54,10 @@ def ds_grid(request, label):
     ds = get_object_or_404(Dataset, label=label)
     place_list = Place.objects.filter(dataset=label).order_by('title')
 
-    return render(request, 'contribute/ds_grid.html', {'ds':ds, 'place_list': place_list})
+    return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
 # new dataset: upload file, store if valid
-def ds_new(request, template_name='contribute/ds_form.html'):
+def ds_new(request, template_name='datasets/ds_form.html'):
     form = DatasetModelForm(request.POST, request.FILES)
     context = {
         'form':form, 'action': 'new'
@@ -104,7 +104,7 @@ def ds_new(request, template_name='contribute/ds_form.html'):
                 print('result:', result)
 
             context['result'] = result
-            # return redirect('/contribute/dashboard')
+            # return redirect('/datasets/dashboard')
         else:
             print('not valid', form.errors)
             context['errors'] = form.errors
@@ -241,31 +241,31 @@ def ds_insert(request, pk ):
     infile.close()
     # dataset.file.close()
 
-    return redirect('/contribute/dashboard', context=context)
+    return redirect('/datasets/dashboard', context=context)
 
-def ds_update(request, pk, template_name='contribute/ds_form.html'):
+def ds_update(request, pk, template_name='datasets/ds_form.html'):
     record = get_object_or_404(Dataset, pk=pk)
     form = DatasetModelForm(request.POST or None, instance=record)
     if form.is_valid():
         form.save()
-        return redirect('/contribute/dashboard')
+        return redirect('/datasets/dashboard')
     else:
         print('not valid', form.errors)
     return render(request, template_name, {'form':form, 'action': 'update'})
 
 def ds_delete(request, pk):
     record = get_object_or_404(Dataset, pk=pk)
-    print('request, pk',request, pk)
-    print('record',type(record))
+    # print('request, pk',request, pk)
+    # print('record',type(record))
     # it's a GET not POST
     record.delete()
-    return redirect('contrib_dashboard')
+    return redirect('dashboard')
 
 
 # display DataTable
 # not implemented - awaiting
 # class DatasetGrid(TemplateView):
-#     template_name = 'contribute/ds_table.html'
+#     template_name = 'datasets/ds_table.html'
 #
 # class DatasetGridJson(BaseDatatableView):
 #     order_columns = ['id', 'title', 'ccode']

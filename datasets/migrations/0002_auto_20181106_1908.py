@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('main', '0001_initial'),
-        ('contribute', '0001_initial'),
+        ('datasets', '0001_initial'),
     ]
 
     operations = [
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='hit',
             name='authority',
-            field=models.ForeignKey(db_column='authority', on_delete='models.CASCADE', to='contribute.Authority'),
+            field=models.ForeignKey(db_column='authority', on_delete='models.CASCADE', to='datasets.Authority'),
         ),
         migrations.AddField(
             model_name='hit',

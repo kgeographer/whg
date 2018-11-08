@@ -1,4 +1,4 @@
-<!-- contribute/ds_form.html -->
+<!-- datasets/ds_form.html -->
 {% extends "main/base.html" %}
 {% block title %}<title>WHG::Create/Update</title>{% endblock %}
 
@@ -44,7 +44,7 @@
         <!-- upload button only if it's not yet ok -->
         {% if status != 'format_ok' %}
         <input class="btn btn-primary" type="submit" value="Save" />
-        <span title="back"><a href="{% url 'contrib_dashboard' %}">Cancel</a></span>
+        <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
         {% endif %}
 
     </div>
@@ -59,7 +59,7 @@
           <li>{{ k }}: {{ v }}</li>
         {% endfor %}
       </ul>
-      <a href="{% url 'contrib_dashboard' %}">
+      <a href="{% url 'dashboard' %}">
         <input class="btn btn-primary" type="text" value="OK"/>
     </div>
     {% endif %}

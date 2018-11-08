@@ -1,4 +1,4 @@
-<!-- contribute/ds_grid.html -->
+<!-- datasets/ds_grid.html -->
 {% extends "main/base.html" %}
 {% load leaflet_tags %}
 {% load fontawesome %}
@@ -51,11 +51,6 @@
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map
   }, false);
-
-  // closer look
-  function zoomTo(id) {
-    mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
-  }
 
   // initialize, render map
   function map_init (map, options) {
@@ -114,5 +109,10 @@
       console.log('no geometries, no feature')
     }
   } // end map_init
+  // zoom on click
+  function zoomTo(id) {
+    mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
+  }
+
 </script>
 {% endblock %}

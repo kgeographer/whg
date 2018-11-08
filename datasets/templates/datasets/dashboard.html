@@ -1,4 +1,4 @@
-<!-- contribute/home.html -->
+<!-- datasets/home.html -->
 {% extends "main/base.html" %}
 {% block title %}<title>WHG::Contributing</title>{% endblock %}
 
@@ -15,15 +15,17 @@
       {% for d in datasets %}
         <div class="dataset-box mb-2">
           <h4>{{ d.name }} ({{ d.id }})
-            <!-- TODO: confirm popup dialog -->
+            <!-- TODO: built in confirm using CBV -->
               <a onclick="return confirm('Are you sure?')"
                 href="{% url 'ds_delete' d.id %}" class=" float-right"
                 title="Delete dataset" rel="tooltip">
                 {% fontawesome_icon 'trash' color='#336699' %}</a>
             <!-- TODO: edit (same as create)-->
-            <a href="{% url 'ds_update' d.id %}" title="Edit metadata" rel="tooltip"
+            <!-- href="{# url 'ds_update' d.id #}" title="Edit metadata" rel="tooltip" -->
+            <a
+            href="{{ d.get_absolute_url }}" title="Edit metadata" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a>
-            {% if d.status == 'uploaded' %}
+            {% if d.status == 'uploaded' or d.status == 'inserted' %}
             <a href="{% url 'ds_grid' d.label %}" title="View/edit table" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'table' color='#336699' %}</a>
             <a href="{% url 'ds_recon' d.id %}" title="Reconciler" rel="tooltip"

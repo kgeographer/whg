@@ -37,9 +37,6 @@
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav ml-auto">
             {% if user.is_authenticated %}
-            <!-- <li class="nav-item">
-              <a class="nav-link" href="{# url 'search_home' #}">Search</a>
-            </li> -->
             <li class="nav-item">
               <a class="nav-link" href="{% url 'maps_home' %}">Maps</a>
             </li>
@@ -47,7 +44,7 @@
               <a class="nav-link" href="{% url 'usingapi' %}">API</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'contrib_home' %}">Contributing</a>
+              <a class="nav-link" href="{% url 'contributing' %}">Contributing</a>
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -62,7 +59,7 @@
             </li>
 
             <li class="nav-item">
-              <a class="nav-link red-bold" href="{% url 'contrib_dashboard' %}">
+              <a class="nav-link red-bold" href="{% url 'dashboard' %}">
                 {{ user.username }}</a>
             </li>
 
@@ -71,7 +68,7 @@
                 {{ user.username }}
               </a>
               <div class="dropdown-menu" aria-labelledby="aboutDropdown">
-                <a class="dropdown-item" href="/contribute/dashboard">Dashboard</a>
+                <a class="dropdown-item" href="/datasets/dashboard">Dashboard</a>
                 <a class="dropdown-item" href="/accounts/profile">Profile</a>
               </div>
             </li> -->

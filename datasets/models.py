@@ -1,9 +1,10 @@
-# contribute.models
+# datasets.models
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.postgres.fields import JSONField, ArrayField
+from django.urls import reverse
 
 from django.contrib.auth.models import User
 from .choices import *
@@ -45,7 +46,8 @@ class Dataset(models.Model):
         db_table = 'datasets'
 
     def get_absolute_url(self):
-        return reverse('ds_edit', kwargs={'pk': self.pk})
+        # return f"/datasets/{self.id}"
+        return reverse('ds_edit', kwargs={'pk': self.id})
 
 @receiver(pre_delete, sender=Dataset)
 def remove_file(**kwargs):

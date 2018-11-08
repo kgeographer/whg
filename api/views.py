@@ -4,9 +4,9 @@ from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
 from rest_framework import generics
 from .serializers import UserSerializer, GroupSerializer, DatasetSerializer, \
-    PlaceSerializer, PlaceNameSerializer, PlaceTypeSerializer
+    PlaceSerializer
 
-from contribute.models import Dataset
+from datasets.models import Dataset
 from main.models import Place, PlaceName, PlaceType
 
 class DatasetViewSet(viewsets.ModelViewSet):
@@ -25,8 +25,5 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class GroupViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer

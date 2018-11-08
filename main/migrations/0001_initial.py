@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('contribute', '0001_initial'),
+        ('datasets', '0001_initial'),
     ]
 
     operations = [
@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=255)),
                 ('src_id', models.CharField(max_length=24)),
                 ('ccode', models.CharField(max_length=2)),
-                ('dataset', models.ForeignKey(db_column='dataset', on_delete=django.db.models.deletion.CASCADE, to='contribute.Dataset', to_field='label')),
+                ('dataset', models.ForeignKey(db_column='dataset', on_delete=django.db.models.deletion.CASCADE, to='datasets.Dataset', to_field='label')),
             ],
             options={
                 'db_table': 'places',
