@@ -1,0 +1,75 @@
+<!-- datasets/ds_form.html -->
+{% extends "main/base.html" %}
+{% block title %}<title>WHG::Create/Update</title>{% endblock %}
+
+{% block content %}
+{% load static %}
+
+  <div class="container">
+    <h4 class="mt-3">
+      {% if request.resolver_match.url_name == 'dataset-update' %}
+      Update{% else %}Create{% endif %} dataset</h4>
+    <div class="d-flex">
+    <div class="form-box mt-2">
+      <!-- action="{# url 'contrib_upload' #}"  -->
+      <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="owner" value='{{ user.id }}'></input>
+        {% if action == 'update' %}
+        <input type="hidden" name="status" value='{{ form.status.value }}'></input>
+        {% elif action == 'new' %}
+        <input type="hidden" name="status" value='format_ok'></input>
+        {% endif %}
+        <p>Name: {{ form.name }}</p>
+        <p>Unique label: {{ form.label }}
+          <span class="text-danger small"><i>12 char max, no spaces</i></span>
+        </p>
+        {% if errors %}<p>{{ errors }}</p>{% endif %}
+        <p>Description: {{ form.description }}</p>
+        <p>Data type {{ form.datatype }}</p>
+        <p>Format {{ form.format }}
+          <span class="text-danger small"><i>delimiters: tab, semicolon or pipe ('|')</i></span>
+        </p>
+        {% if form.mapbox_id != null %}
+          <p>MapBox ID {{ form.mapbox_id }}</p>
+        {% endif %}
+        {% if request.resolver_match.url_name == 'dataset-update' %}
+          <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
+          <p>Status: <span class="text-danger" >{{ form.status.value }}</span></p>
+        {% else %}
+          <p>
+            <input class="text-danger" type="file" name="file"
+              value='{{ form.file }}'></input>
+          </p>
+        {% endif %}
+        <br/>
+        <!-- upload button only if it's not yet ok -->
+        {% if status != 'format_ok' %}
+        <input class="btn btn-primary" type="submit" value="Save" />
+        <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
+        {% endif %}
+
+    </div>
+    {% if result %}
+    <!-- <input type="hidden" name="status" value='{{ status }}'></input> -->
+    <input type="hidden" name="file" value='{{ form.file }}'></input>
+    <div class="form-box mt-3 ml-3" id="ds_errors">
+      <h5 class="text-danger">Validation Results</h5>
+        <p>{{ status }}</p>
+      <ul>
+        {% for k, v in result.items %}
+          <li>{{ k }}: {{ v }}</li>
+        {% endfor %}
+      </ul>
+      <a href="{% url 'dashboard' %}">
+        <input class="btn btn-primary" type="text" value="OK"/>
+    </div>
+    {% endif %}
+    </form>
+  </div>
+  </div>
+
+{% endblock %}
+<!-- action="{# url 'ds_insert' form.label #}" -->
+
+<!-- <p>{{ form.non_field_errors }}</p> -->

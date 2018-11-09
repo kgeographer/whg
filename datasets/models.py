@@ -47,7 +47,8 @@ class Dataset(models.Model):
 
     def get_absolute_url(self):
         # return f"/datasets/{self.id}"
-        return reverse('datasets:ds_edit', kwargs={'pk': self.id})
+        # return reverse('datasets:ds_edit', kwargs={'pk': self.id})
+        return reverse('datasets:dataset-update', kwargs={'id': self.id})
 
 @receiver(pre_delete, sender=Dataset)
 def remove_file(**kwargs):

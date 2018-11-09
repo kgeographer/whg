@@ -1,9 +1,8 @@
 # datasets model field value choices
 
 FORMATS = [
-    ('csv', 'CSV'),
     ('delimited', 'Delimited'),
-    ('lpf', 'Linked Places json-l'),
+    ('lpf', 'Linked Places (JSON-LD)'),
 ]
 
 DATATYPES = [

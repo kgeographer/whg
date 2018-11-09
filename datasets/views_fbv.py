@@ -1,73 +1,27 @@
-# datasets.views CLASS-BASED
+# datasets.views FUNCTION-BASED
 
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse
-from django.views.generic import (
-    CreateView,
-    ListView,
-    DetailView,
-    UpdateView,
-    DeleteView )
+from django.db import models
+import django.core.files.uploadedfile as upfile
+from django.utils.html import escape
+from django.views.generic import TemplateView
+from django_datatables_view.base_datatable_view import BaseDatatableView
+import codecs, tempfile, os
+from pprint import pprint
 
-from .models import Dataset
+from .tasks import read_csv, read_lpf
 from .forms import DatasetModelForm
+from .models import Dataset
+from main.models import *
 
-# refactoring views as class-based
-class DatasetCreateView(CreateView):
-    form_class = DatasetModelForm
-    template_name = 'datasets/dataset_create.html'
-    queryset = Dataset.objects.all()
-    success_url = '/dashboard'
-
-    def form_valid(self, form):
-        if form.is_valid():
-            print(form.cleaned_data)
-        else:
-            print('form not valid', form.errors)
-        return super().form_valid(form)
-
-class DatasetListView(ListView):
-    template_name = 'datasets/dataset_list.html'
-    queryset = Dataset.objects.all()
-
-class DatasetDetailView(DetailView):
-    template_name = 'datasets/dataset_detail.html'
-
-    def get_object(self):
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Dataset, id=id_)
-
-class DatasetUpdateView(UpdateView):
-    form_class = DatasetModelForm
-    template_name = 'datasets/dataset_create.html'
-    success_url = '/dashboard'
-
-    def get_object(self):
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Dataset, id=id_)
-
-    def form_valid(self, form):
-        if form.is_valid():
-            print(form.cleaned_data)
-        else:
-            print('form not valid', form.errors)
-        return super().form_valid(form)
-
-class DatasetDeleteView(DeleteView):
-    template_name = 'datasets/dataset_delete.html'
-
-    def get_object(self):
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Dataset, id=id_)
-
-    def get_success_url(self):
-        return reverse('dashboard')
-
+# list datasets per user
 def dashboard(request):
     dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
     print('dataset_list',dataset_list)
     return render(request, 'datasets/dashboard.html', {'datasets':dataset_list})
 
+# display dataset in editable grid
 def ds_grid(request, label):
     print('request, pk',request, label)
     ds = get_object_or_404(Dataset, label=label)

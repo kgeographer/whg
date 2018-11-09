@@ -1,3 +1,5 @@
+# main.views
+
 from django.shortcuts import render
 
 # views for static content

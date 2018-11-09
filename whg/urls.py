@@ -5,11 +5,13 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from main import views
-from datasets.views import dashboard
+# from datasets.views import dashboard
+from datasets.views import DatasetListView
 
 from django.contrib import admin
 from django.urls import include, path
 
+app_name='main'
 urlpatterns = [
     url(r'^$', views.home, name="home"),
 
@@ -17,7 +19,8 @@ urlpatterns = [
     path('search/', include('search.urls')),
     path('maps/', include('maps.urls')),
     path('datasets/', include('datasets.urls')),
-    url(r'^dashboard/$', dashboard, name='dashboard'),
+    # url(r'^dashboard/$', dashboard, name='dashboard'),
+    path('dashboard/', DatasetListView.as_view(), name='dashboard'),
 
     # static content
     url(r'^contributing/$', views.contributing, name="contributing"),

@@ -1,0 +1,12 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+
+
+<form action='' method='POST'>{% csrf_token %}
+    <h4>Do you really want to delete the dataset "{{ object.label }}"?</h4>
+    <p><input type='submit' value='Yes' />  <a href='/dashboard'>Cancel</a></p>
+</form>
+
+
+{% endblock %}

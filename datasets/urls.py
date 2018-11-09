@@ -4,6 +4,8 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from . import views
+from datasets.views import (DatasetDetailView, DatasetCreateView,
+    DatasetUpdateView, DatasetDeleteView)
 
 # dataset actions
 app_name='datasets'
@@ -11,14 +13,21 @@ urlpatterns = [
     # url(r'^$', views.home, name="contrib_home"),
 
     # list for logged in user
-    url(r'^$', views.dashboard, name="dashboard"),
+    # url(r'^$', views.dashboard, name="dashboard"),
+    # path('', views.DatasetListView.as_view(), name="dashboard"),
+    # path('dashboard/', DatasetListView.as_view(), name='dashboard'),
+
+    path('<int:id>/detail', DatasetDetailView.as_view(), name='dataset-detail'),
+    path('<int:id>/update', DatasetUpdateView.as_view(), name='dataset-update'),
+    path('<int:id>/delete', DatasetDeleteView.as_view(), name='dataset-delete'),
+    path('create/', DatasetCreateView.as_view(), name='dataset-create'),
 
     # upload file, validate format
     path('new', views.ds_new, name="ds_new"),
 
     # destroy
     # path('delete/<int:pk>', views.ds_delete, name="ds_delete"),
-    path('<int:pk>delete/', views.ds_delete, name="ds_delete"),
+    path('<int:pk>/delete/', views.ds_delete, name="ds_delete"),
 
     # edit metadata
     # path('edit/<int:pk>', views.ds_update, name="ds_edit"),
