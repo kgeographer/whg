@@ -2,9 +2,9 @@
 import sys, os, re, json, codecs, datetime, time
 from pprint import pprint
 
-def read_csv(infile, username):
+def read_delimited(infile, username):
     import csv
-    result = {'format':'csv','errors':{}}
+    result = {'format':'delimited','errors':{}}
     # required fields
     # TODO: req. fields not null or blank
     required = ['id', 'name', 'name_src', 'ccode', 'lon', 'lat']
@@ -55,8 +55,8 @@ def read_csv(infile, username):
     if len(result['errors'].keys()) == 0:
         # don't add geometries to result
         # TODO: write them to a user GeoJSON file?
-        print('got username?', username)
-        print('2 geoms:', geometries[:2])
+        # print('got username?', username)
+        # print('2 geoms:', geometries[:2])
         # result['geom'] = {"type":"FeatureCollection", "features":geometries}
         print('looks ok')
     else:

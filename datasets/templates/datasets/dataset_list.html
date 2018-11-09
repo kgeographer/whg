@@ -1,7 +1,9 @@
 {% extends "main/base.html" %}
 
 {% block content %}
+{% load fontawesome %}
 
+<p><a href="{% url 'datasets:dataset-create' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></p>
 {% for ds in dataset_list %}
 
   <p>{{ ds.id }},

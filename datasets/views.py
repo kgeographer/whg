@@ -1,5 +1,4 @@
 # datasets.views CLASS-BASED
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import (
@@ -11,19 +10,72 @@ from django.views.generic import (
 
 from .models import Dataset
 from .forms import DatasetModelForm
+from .tasks import read_delimited, read_lpf
+import codecs, tempfile, os
 
 # refactoring views as class-based
 class DatasetCreateView(CreateView):
     form_class = DatasetModelForm
     template_name = 'datasets/dataset_create.html'
     queryset = Dataset.objects.all()
-    success_url = '/dashboard'
+    # success_url = 'datasets:dataset-update'
 
     def form_valid(self, form):
         if form.is_valid():
-            print(form.cleaned_data)
+            print('form is valid')
+            print('cleaned_data: before ->', form.cleaned_data)
+
+            # open & write tempf to a temp location;
+            # call it tempfn for reference
+            tempf, tempfn = tempfile.mkstemp()
+            try:
+                for chunk in form.cleaned_data['file'].chunks():
+                # for chunk in request.FILES['file'].chunks():
+                    os.write(tempf, chunk)
+            except:
+                raise Exception("Problem with the input file %s" % request.FILES['file'])
+            finally:
+                os.close(tempf)
+
+            # open the temp file
+            fin = codecs.open(tempfn, 'r', 'utf8')
+            # send for format validation
+            if form.cleaned_data['format'] == 'delimited':
+                result = read_delimited(fin,form.cleaned_data['owner'])
+                # result = read_csv(fin,request.user.username)
+            elif form.cleaned_data['format'] == 'lpf':
+                result = read_lpf(fin,form.cleaned_data['owner'])
+                # result = read_lpf(fin,request.user.username)
+            # print('cleaned_data',form.cleaned_data)
+            fin.close()
+
+# if form.is_valid():
+#     obj = form.save(commit=False)
+#     obj.field1 = request.user
+#     obj.save()
+
+            # add status & stats
+            if len(result['errors'].keys()) == 0:
+                print('columns, type', result['columns'], type(result['columns']))
+                obj = form.save(commit=False)
+                obj.status = 'format_ok'
+                # form.format = result['format']
+                obj.format = result['format']
+                # obj.delimiter = result['delimiter']
+                # # form.cleaned_data['delimiter'] = result['delimiter']
+                obj.numrows = result['count']
+                obj.header = result['columns']
+                print('cleaned_data:after ->',form.cleaned_data)
+                obj.save()
+            else:
+                context['status'] = 'format_error'
+                print('result:', result)
+
+            # context['result'] = result
+
         else:
             print('form not valid', form.errors)
+            context['errors'] = form.errors
         return super().form_valid(form)
 
 class DatasetListView(ListView):
@@ -74,61 +126,6 @@ def ds_grid(request, label):
     place_list = Place.objects.filter(dataset=label).order_by('title')
 
     return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
-
-# new dataset: upload file, store if valid
-def ds_new(request, template_name='datasets/ds_form.html'):
-    form = DatasetModelForm(request.POST, request.FILES)
-    context = {
-        'form':form, 'action': 'new'
-    }
-    def removekey(d, key):
-        r = dict(d)
-        del r[key]
-        return r
-
-    if request.method == 'POST':
-        if form.is_valid():
-            context['action'] = 'upload'
-            print('form is valid')
-            print('cleaned_data', form.cleaned_data)
-
-            # open & write tempf to a temp location;
-            # call it tempfn for reference
-            tempf, tempfn = tempfile.mkstemp()
-            try:
-                for chunk in request.FILES['file'].chunks():
-                    os.write(tempf, chunk)
-            except:
-                raise Exception("Problem with the input file %s" % request.FILES['file'])
-            finally:
-                os.close(tempf)
-
-            # open temp file
-            fin = codecs.open(tempfn, 'r', 'utf8')
-            # send for format validation
-            if form.cleaned_data['format'] == 'csv':
-                result = read_csv(fin,request.user.username)
-            elif form.cleaned_data['format'] == 'lpf':
-                result = read_lpf(fin,request.user.username)
-            # print('cleaned_data',form.cleaned_data)
-            fin.close()
-
-            # add status
-            if len(result['errors']) == 0:
-                context['status'] = 'format_ok'
-                form.cleaned_data['status'] = 'format_ok'
-                form.save()
-            else:
-                context['status'] = 'format_error'
-                print('result:', result)
-
-            context['result'] = result
-            # return redirect('/datasets/dashboard')
-        else:
-            print('not valid', form.errors)
-            context['errors'] = form.errors
-        print('context',context)
-    return render(request, template_name, context=context)
 
 # insert LP-compatible records from csv file to database
 def ds_insert(request, pk ):
@@ -252,7 +249,7 @@ def ds_insert(request, pk ):
     dataset.numrows = countrows
     dataset.numlinked = countlinked
     dataset.total_links = countlinks
-    dataset.header = header
+    # dataset.header = header
     dataset.status = 'inserted'
     dataset.save()
     print('record:', dataset.__dict__)
@@ -261,24 +258,6 @@ def ds_insert(request, pk ):
     # dataset.file.close()
 
     return redirect('/datasets/dashboard', context=context)
-
-def ds_update(request, pk, template_name='datasets/ds_form.html'):
-    record = get_object_or_404(Dataset, pk=pk)
-    form = DatasetModelForm(request.POST or None, instance=record)
-    if form.is_valid():
-        form.save()
-        return redirect('/datasets/dashboard')
-    else:
-        print('not valid', form.errors)
-    return render(request, template_name, {'form':form, 'action': 'update'})
-
-def ds_delete(request, pk):
-    record = get_object_or_404(Dataset, pk=pk)
-    # print('request, pk',request, pk)
-    # print('record',type(record))
-    # it's a GET not POST
-    record.delete()
-    return redirect('dashboard')
 
 # initiate, monitor reconciliation service
 def ds_recon(request, pk):
@@ -303,3 +282,77 @@ def ds_recon(request, pk):
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds})
+
+# new dataset: upload file, store if valid
+def ds_new(request, template_name='datasets/ds_form.html'):
+    form = DatasetModelForm(request.POST, request.FILES)
+    context = {
+        'form':form, 'action': 'new'
+    }
+    def removekey(d, key):
+        r = dict(d)
+        del r[key]
+        return r
+
+    if request.method == 'POST':
+        if form.is_valid():
+            context['action'] = 'upload'
+            print('form is valid')
+            print('cleaned_data', form.cleaned_data)
+
+            # open & write tempf to a temp location;
+            # call it tempfn for reference
+            tempf, tempfn = tempfile.mkstemp()
+            try:
+                for chunk in request.FILES['file'].chunks():
+                    os.write(tempf, chunk)
+            except:
+                raise Exception("Problem with the input file %s" % request.FILES['file'])
+            finally:
+                os.close(tempf)
+
+            # open temp file
+            fin = codecs.open(tempfn, 'r', 'utf8')
+            # send for format validation
+            if form.cleaned_data['format'] == 'csv':
+                result = read_csv(fin,request.user.username)
+            elif form.cleaned_data['format'] == 'lpf':
+                result = read_lpf(fin,request.user.username)
+            # print('cleaned_data',form.cleaned_data)
+            fin.close()
+
+            # add status
+            if len(result['errors']) == 0:
+                context['status'] = 'format_ok'
+                form.cleaned_data['status'] = 'format_ok'
+                form.save()
+            else:
+                context['status'] = 'format_error'
+                print('result:', result)
+
+            context['result'] = result
+            # return redirect('/datasets/dashboard')
+        else:
+            print('not valid', form.errors)
+            context['errors'] = form.errors
+        print('context',context)
+    return render(request, template_name, context=context)
+
+
+def ds_update(request, pk, template_name='datasets/ds_form.html'):
+    record = get_object_or_404(Dataset, pk=pk)
+    form = DatasetModelForm(request.POST or None, instance=record)
+    if form.is_valid():
+        form.save()
+        return redirect('/datasets/dashboard')
+    else:
+        print('not valid', form.errors)
+    return render(request, template_name, {'form':form, 'action': 'update'})
+
+def ds_delete(request, pk):
+    record = get_object_or_404(Dataset, pk=pk)
+    # print('request, pk',request, pk)
+    # print('record',type(record))
+    # it's a GET not POST
+    record.delete()
+    return redirect('dashboard')

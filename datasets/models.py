@@ -24,7 +24,7 @@ class Dataset(models.Model):
         default='delimited')
     datatype = models.CharField(max_length=12, null=False,choices=DATATYPES,
         default='place')
-    delimiter = models.CharField(max_length=2, blank=True, null=True)
+    delimiter = models.CharField(max_length=5, blank=True, null=True)
     status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS)
     upload_date = models.DateTimeField(null=True, auto_now_add=True)
     accepted_date = models.DateTimeField(null=True, auto_now_add=True)

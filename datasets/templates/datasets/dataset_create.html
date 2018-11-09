@@ -9,16 +9,20 @@
     <h4 class="mt-3">
       {% if request.resolver_match.url_name == 'dataset-update' %}
       Update{% else %}Create{% endif %} dataset</h4>
+      {{ request.resolver_match.url_name }}
     <div class="d-flex">
     <div class="form-box mt-2">
-      <!-- action="{# url 'contrib_upload' #}"  -->
+      <!-- status, format, delimiter, numrows, header  -->
       <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="owner" value='{{ user.id }}'></input>
-        {% if action == 'update' %}
-        <input type="hidden" name="status" value='{{ form.status.value }}'></input>
-        {% elif action == 'new' %}
-        <input type="hidden" name="status" value='format_ok'></input>
+        {% if request.resolver_match.url_name == 'dataset-update' %}
+          <input type="hidden" name="status" value='{{ form.status.value }}'></input>
+        {% elif request.resolver_match.url_name == 'dataset-create' %}
+          <input type="hidden" name="status" value=''></input>
+          <input type="hidden" name="delimiter" value=''></input>
+          <input type="hidden" name="numrows" value=-1></input>
+          <input type="hidden" name="header" value=[]></input>
         {% endif %}
         <p>Name: {{ form.name }}</p>
         <p>Unique label: {{ form.label }}
@@ -50,19 +54,24 @@
         {% endif %}
 
     </div>
-    {% if result %}
+    {% if request.resolver_match.url_name == 'dataset-update' %}
+    <!-- have validation results-->
     <!-- <input type="hidden" name="status" value='{{ status }}'></input> -->
     <input type="hidden" name="file" value='{{ form.file }}'></input>
     <div class="form-box mt-3 ml-3" id="ds_errors">
-      <h5 class="text-danger">Validation Results</h5>
-        <p>{{ status }}</p>
-      <ul>
-        {% for k, v in result.items %}
-          <li>{{ k }}: {{ v }}</li>
-        {% endfor %}
-      </ul>
-      <a href="{% url 'dashboard' %}">
-        <input class="btn btn-primary" type="text" value="OK"/>
+      <h5>Validation Results</h5>
+      {% if form.status.value != '' %}
+        <p>numrows: {{ form.numrows.value }}</p>
+        <p>format: {{ form.format.value }}</p>
+        <p>delimiter: {{ form.delimiter.value }}</p>
+        <p>columns: {{ form.header.value }}</p>
+        <!-- <p>columns: {{ form.columns.value|make_list }}</p> -->
+        {% if form.status.value == 'format_ok' %}
+        <p>Not yet inserted, so button back to dashboard</p>
+            <a href="{% url 'dashboard' %}">
+              <input class="btn btn-primary" type="text" value="Dashboard"/></a>
+        {% endif %}
+      {% endif %}
     </div>
     {% endif %}
     </form>
