@@ -9,9 +9,11 @@ from django.views.generic import (
     DeleteView )
 
 from .models import Dataset
+from main.models import *
 from .forms import DatasetModelForm
 from .tasks import read_delimited, read_lpf
 import codecs, tempfile, os
+from pprint import pprint
 
 # refactoring views as class-based
 class DatasetCreateView(CreateView):
@@ -49,11 +51,6 @@ class DatasetCreateView(CreateView):
             # print('cleaned_data',form.cleaned_data)
             fin.close()
 
-# if form.is_valid():
-#     obj = form.save(commit=False)
-#     obj.field1 = request.user
-#     obj.save()
-
             # add status & stats
             if len(result['errors'].keys()) == 0:
                 print('columns, type', result['columns'], type(result['columns']))
@@ -61,7 +58,7 @@ class DatasetCreateView(CreateView):
                 obj.status = 'format_ok'
                 # form.format = result['format']
                 obj.format = result['format']
-                # obj.delimiter = result['delimiter']
+                obj.delimiter = result['delimiter']
                 # # form.cleaned_data['delimiter'] = result['delimiter']
                 obj.numrows = result['count']
                 obj.header = result['columns']
@@ -71,15 +68,14 @@ class DatasetCreateView(CreateView):
                 context['status'] = 'format_error'
                 print('result:', result)
 
-            # context['result'] = result
-
         else:
             print('form not valid', form.errors)
             context['errors'] = form.errors
         return super().form_valid(form)
 
 class DatasetListView(ListView):
-    template_name = 'datasets/dataset_list.html'
+    # template_name = 'datasets/dataset_list.html'
+    template_name = 'datasets/dashboard.html'
     queryset = Dataset.objects.all()
 
 class DatasetDetailView(DetailView):
@@ -114,11 +110,6 @@ class DatasetDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse('dashboard')
-
-def dashboard(request):
-    dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
-    print('dataset_list',dataset_list)
-    return render(request, 'datasets/dashboard.html', {'datasets':dataset_list})
 
 def ds_grid(request, label):
     print('request, pk',request, label)
@@ -257,7 +248,7 @@ def ds_insert(request, pk ):
     infile.close()
     # dataset.file.close()
 
-    return redirect('/datasets/dashboard', context=context)
+    return redirect('/dashboard', context=context)
 
 # initiate, monitor reconciliation service
 def ds_recon(request, pk):
@@ -282,6 +273,14 @@ def ds_recon(request, pk):
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds})
+
+##
+# outdated FBVs
+##
+def dashboard(request):
+    dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
+    print('dataset_list',dataset_list)
+    return render(request, 'datasets/dashboard.html', {'datasets':dataset_list})
 
 # new dataset: upload file, store if valid
 def ds_new(request, template_name='datasets/ds_form.html'):
@@ -337,7 +336,6 @@ def ds_new(request, template_name='datasets/ds_form.html'):
             context['errors'] = form.errors
         print('context',context)
     return render(request, template_name, context=context)
-
 
 def ds_update(request, pk, template_name='datasets/ds_form.html'):
     record = get_object_or_404(Dataset, pk=pk)

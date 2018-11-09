@@ -31,7 +31,7 @@
         </thead>
         <tbody>
           {% for place in place_list %}
-            <tr>
+            <tr class="place-row">
               <td><span class="edit-row" style="cursor:pointer;">
                 {% fontawesome_icon 'edit' color='#336699' %}</span</td>
               <td>{{ place.title }}</td>
@@ -52,6 +52,14 @@
     window.mappy = e.detail.map
   }, false);
 
+  $(".place-row").on("click", function(e){
+    row = $(this)[0]
+    pid = parseInt(row.cells[2].textContent)
+    console.log('pid',pid)
+    // ajax call for Place.objects.get('id'==pid)
+    // render data returned
+    // TODO: render it in an editable Django form 
+  })
   // initialize, render map
   function map_init (map, options) {
     $('.edit-row').on('click', function(){

@@ -12,7 +12,7 @@
       <h4 class="mt-3">My Datasets
         <a href="{% url 'datasets:ds_new' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
 
-      {% for d in datasets %}
+      {% for d in dataset_list %}
         <div class="dataset-box mb-2">
           <h4>{{ d.name }} ({{ d.id }})
             <!-- TODO: built in confirm using CBV -->

@@ -61,10 +61,10 @@
     <div class="form-box mt-3 ml-3" id="ds_errors">
       <h5>Validation Results</h5>
       {% if form.status.value != '' %}
-        <p>numrows: {{ form.numrows.value }}</p>
-        <p>format: {{ form.format.value }}</p>
-        <p>delimiter: {{ form.delimiter.value }}</p>
-        <p>columns: {{ form.header.value }}</p>
+        <p><b>numrows</b>: {{ form.numrows.value }}</p>
+        <p><b>format</b>: {{ form.format.value }}</p>
+        <p><b>delimiter</b>: {{ form.delimiter.value }}</p>
+        <p><b>columns</b>: {{ form.header.value }}</p>
         <!-- <p>columns: {{ form.columns.value|make_list }}</p> -->
         {% if form.status.value == 'format_ok' %}
         <p>Not yet inserted, so button back to dashboard</p>
