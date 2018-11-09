@@ -9,12 +9,13 @@
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container flex">
-<h4 class="text-danger mt-3">{{ ds.name }} ({{ ds.label }}))</h4>
+<h4 class="text-danger mt-3">{{ ds.name }} ({{ ds.label }})</h4>
 <div class="row">
-  <div id="map_summary" class="col-sm-5 col-record pt-3">
-    <div id="dataset_summary">
+  <div id="map_detail" class="col-sm-5 col-record pt-3">
+    <div id="place_detail">
       <p>
-        rows: {{ ds.numrows }}
+        Display editable place record detail here:<br/>
+        names, geometries, types, links, relations, descriptions, depictions
       </p>
     </div>
     <div id="map">{% leaflet_map "map" callback="map_init" %}</div>
@@ -58,7 +59,7 @@
     console.log('pid',pid)
     // ajax call for Place.objects.get('id'==pid)
     // render data returned
-    // TODO: render it in an editable Django form 
+    // TODO: render it in an editable Django form
   })
   // initialize, render map
   function map_init (map, options) {

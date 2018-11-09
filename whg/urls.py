@@ -8,26 +8,26 @@ from main import views
 # from datasets.views import dashboard
 from datasets.views import DatasetListView
 
+from django.views.generic.base import TemplateView
 from django.contrib import admin
 from django.urls import include, path
 
 app_name='main'
 urlpatterns = [
-    url(r'^$', views.home, name="home"),
+    url(r'^$', TemplateView.as_view(template_name="main/home.html"), name="home"),
 
     # apps
     path('search/', include('search.urls')),
     path('maps/', include('maps.urls')),
     path('datasets/', include('datasets.urls')),
-    # url(r'^dashboard/$', dashboard, name='dashboard'),
     path('dashboard/', DatasetListView.as_view(), name='dashboard'),
 
     # static content
-    url(r'^contributing/$', views.contributing, name="contributing"),
-    url(r'^usingapi/$', views.usingapi, name="usingapi"),
-    url(r'^community/$', views.community, name="community"),
-    url(r'^about/$', views.about, name="about"),
-    url(r'^credits/$', views.credits, name="credits"),
+    url(r'^contributing/$', TemplateView.as_view(template_name="main/contributing.html"), name="contributing"),
+    url(r'^usingapi/$', TemplateView.as_view(template_name="main/usingapi.html"), name="usingapi"),
+    url(r'^community/$', TemplateView.as_view(template_name="main/community.html"), name="community"),
+    url(r'^about/$', TemplateView.as_view(template_name="main/about.html"), name="about"),
+    url(r'^credits/$', TemplateView.as_view(template_name="main/credits"), name="credits"),
 
     path('api/', include('api.urls')),
     path('accounts/', include('accounts.urls')),

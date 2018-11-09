@@ -10,28 +10,12 @@ from datasets.views import (DatasetDetailView, DatasetCreateView,
 # dataset actions
 app_name='datasets'
 urlpatterns = [
-    # url(r'^$', views.home, name="contrib_home"),
 
-    # list for logged in user
-    # url(r'^$', views.dashboard, name="dashboard"),
-    # path('', views.DatasetListView.as_view(), name="dashboard"),
-    # path('dashboard/', DatasetListView.as_view(), name='dashboard'),
-
+    path('create/', DatasetCreateView.as_view(), name='dataset-create'),
     path('<int:id>/detail', DatasetDetailView.as_view(), name='dataset-detail'),
     path('<int:id>/update', DatasetUpdateView.as_view(), name='dataset-update'),
     path('<int:id>/delete', DatasetDeleteView.as_view(), name='dataset-delete'),
-    path('create/', DatasetCreateView.as_view(), name='dataset-create'),
 
-    # upload file, validate format
-    path('new', views.ds_new, name="ds_new"),
-
-    # destroy
-    # path('delete/<int:pk>', views.ds_delete, name="ds_delete"),
-    path('<int:pk>/delete/', views.ds_delete, name="ds_delete"),
-
-    # edit metadata
-    # path('edit/<int:pk>', views.ds_update, name="ds_edit"),
-    path('<int:pk>/edit/', views.ds_update, name="ds_edit"),
 
     # insert file data to db
     # path('insert/<int:pk>', views.ds_insert, name="ds_insert"),
@@ -45,11 +29,5 @@ urlpatterns = [
     # path('datagrid/<str:label>', views.ds_grid, name='ds_grid'),
     path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
 
-    # url(r'^testmodel$', TestModelList.as_view(), name="testmodel"),
-    # url(r'^testmodel_data/$', TestModelListJson.as_view(), name="testmodel_list_json"),
-    # path('datagrid/<str:label>', views.DatasetGrid.as_view(), name="ds_grid"),
-    # path('datagrid_data/', views.DatasetGridJson.as_view(), name="ds_grid_json"),
-
-    # path('datagrid/<str:label>', views.ds_grid.as_view(), name='ds_grid'),
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
