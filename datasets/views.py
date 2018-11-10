@@ -20,7 +20,6 @@ class DatasetCreateView(CreateView):
     form_class = DatasetModelForm
     template_name = 'datasets/dataset_create.html'
     queryset = Dataset.objects.all()
-    # success_url = 'datasets:dataset-update'
 
     def form_valid(self, form):
         if form.is_valid():
@@ -73,6 +72,11 @@ class DatasetCreateView(CreateView):
             context['errors'] = form.errors
         return super().form_valid(form)
 
+    def get_context_data(self, *args, **kwargs):
+        context = super(DatasetCreateView, self).get_context_data(*args, **kwargs)
+        context['action'] = 'create'
+        return context
+
 class DatasetListView(ListView):
     # template_name = 'datasets/dataset_list.html'
     template_name = 'datasets/dashboard.html'
@@ -100,6 +104,11 @@ class DatasetUpdateView(UpdateView):
         else:
             print('form not valid', form.errors)
         return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(DatasetUpdateView, self).get_context_data(*args, **kwargs)
+        context['action'] = 'update'
+        return context
 
 class DatasetDeleteView(DeleteView):
     template_name = 'datasets/dataset_delete.html'

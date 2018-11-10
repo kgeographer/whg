@@ -27,7 +27,7 @@ urlpatterns = [
     url(r'^usingapi/$', TemplateView.as_view(template_name="main/usingapi.html"), name="usingapi"),
     url(r'^community/$', TemplateView.as_view(template_name="main/community.html"), name="community"),
     url(r'^about/$', TemplateView.as_view(template_name="main/about.html"), name="about"),
-    url(r'^credits/$', TemplateView.as_view(template_name="main/credits"), name="credits"),
+    url(r'^credits/$', TemplateView.as_view(template_name="main/credits.html"), name="credits"),
 
     path('api/', include('api.urls')),
     path('accounts/', include('accounts.urls')),
