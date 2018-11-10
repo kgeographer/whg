@@ -50,6 +50,11 @@
   font-weight: bold;
 }
 
+.link-bold {
+  color: #336699 !important;
+  font-weight: bold;
+}
+
 span.edit-row {
   cursor: pointer;
 }
