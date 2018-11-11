@@ -15,7 +15,7 @@ class Place(models.Model):
     title = models.CharField(max_length=255)
     src_id = models.CharField(max_length=24)
     dataset = models.ForeignKey(Dataset, db_column='dataset',
-        to_field='label', related_name='datasets', on_delete=models.CASCADE)
+        to_field='label', related_name='places', on_delete=models.CASCADE)
     ccode = models.CharField(max_length=2)
 
     def __str__(self):
