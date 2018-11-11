@@ -1,21 +1,31 @@
 # datasets.models
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from django.utils import timezone
-from django.contrib.postgres.fields import JSONField, ArrayField
 from django.urls import reverse
+from django.utils import timezone
 
-from django.contrib.auth.models import User
 from .choices import *
 
 def user_directory_path(instance, filename):
     # upload to MEDIA_ROOT/user_<username>/<filename>
     return 'user_{0}/{1}'.format(instance.owner.username, filename)
 
+# TODO: operations on entire table
+# class DatasetQueryset(models.Queryset):
+#     pass
+# class DatasetManager(models.Manager):
+#     pass
+
 # TODO: multiple files per dataset w/File model and formset
+# TODO: linking delimited dataset with sources dataset
 class Dataset(models.Model):
-    owner = models.ForeignKey(User, related_name='datasets', on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+        related_name='datasets', on_delete=models.CASCADE)
+    # owner = models.ForeignKey(User, related_name='datasets', on_delete=models.CASCADE)
     label = models.CharField(max_length=20, null=False, unique="True")
     name = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=2044, null=False)
@@ -27,7 +37,8 @@ class Dataset(models.Model):
     delimiter = models.CharField(max_length=5, blank=True, null=True)
     status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS)
     upload_date = models.DateTimeField(null=True, auto_now_add=True)
-    accepted_date = models.DateTimeField(null=True, auto_now_add=True)
+    accepted_date = models.DateTimeField(null=True)
+    # accepted_date = models.DateTimeField(null=True, auto_now_add=True)
     mapbox_id = models.CharField(max_length=200, null=True, blank=True)
 
     # backfilled
@@ -57,15 +68,18 @@ def remove_file(**kwargs):
 
 
 class Authority(models.Model):
-	name = models.CharField(choices=AUTHORITIES, max_length=64)
-	base_uri = models.CharField(max_length=255)
+    name = models.CharField(choices=AUTHORITIES, max_length=64)
+    base_uri = models.CharField(max_length=255)
 
-	def __str__(self):
-		return str(self.name)
+    def __str__(self):
+        return str(self.name)
 
-	class Meta:
-		managed = True
-		db_table = 'authorities'
+    class Meta:
+        managed = True
+        db_table = 'authorities'
+        verbose_name = 'Authority sources'
+        verbose_name_plural = 'Authorities'
+
 
 # product of hit validation
 class Link(models.Model):
@@ -87,11 +101,11 @@ class Link(models.Model):
     modified = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-    	return str(self.id)
+        return str(self.id)
 
     class Meta:
-    	managed = True
-    	db_table = 'links'
+        managed = True
+        db_table = 'links'
 
 # raw hits from reconciliation
 class Hit(models.Model):
@@ -105,8 +119,8 @@ class Hit(models.Model):
     result = JSONField(blank=True, null=True)
 
     def __str__(self):
-    	return str(self.id)
+        return str(self.id)
 
     class Meta:
-    	managed = True
-    	db_table = 'hits'
+        managed = True
+        db_table = 'hits'

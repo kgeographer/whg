@@ -4,8 +4,6 @@ from django import forms
 from main.models import Dataset
 
 class DatasetModelForm(forms.ModelForm):
-    # nothing here? really?
-
     class Meta:
         model = Dataset
         fields = ('id','label','name','description','file','format','datatype',
@@ -16,6 +14,10 @@ class DatasetModelForm(forms.ModelForm):
             'datatype': forms.Select()
         }
         initial = {'format': 'delimited', 'datatype': 'places'}
+
+    def unique_label(self, *args, **kwargs):
+        label = self.cleaned_content['label']
+        # TODO: test uniqueness somehow
 
     def __init__(self, *args, **kwargs):
         self.format = 'delimited'

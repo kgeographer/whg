@@ -19,6 +19,7 @@ geographiclib==1.49
 geopy==1.17.0
 jobtastic==2.0.0
 kombu==4.2.1
+Markdown==3.0.1
 numpy==1.15.2
 pandas==0.23.4
 Pillow==5.0.0

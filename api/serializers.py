@@ -5,7 +5,7 @@ from rest_framework import serializers
 from datasets.models import Dataset
 from main.models import Place, PlaceName, PlaceType
 
-
+# COPIED TO datasets.api.serializers
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     places = serializers.PrimaryKeyRelatedField(many=True, queryset=Place.objects.all())
     owner = serializers.ReadOnlyField(source='owner.username')
