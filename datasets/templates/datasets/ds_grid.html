@@ -18,7 +18,7 @@
         names, geometries, types, links, relations, descriptions, depictions
       </p>
     </div>
-    <div id="map">{% leaflet_map "map" callback="map_init" %}</div>
+    <!-- <div id="map">{# leaflet_map "map" callback="map_init" #}</div> -->
   </div>
   <div id="data_grid" class="col-sm-7 float-right pt-6">
     <table class="table table-striped">
@@ -53,14 +53,41 @@
     window.mappy = e.detail.map
   }, false);
 
+  function parsePlace(data) {
+    html='<div>'
+    for (var key in data){
+      html+='<p class="place-detail"><b>'+[key]+
+        '</b>: '+JSON.stringify(data[key])+'</p>';
+    }
+    html += '</div>'
+    return html
+  }
+
+  function getPlace(pid){
+    $.ajax({
+      url: "/api/places/"+pid,
+      }).done(function( data ) {
+        $("#place_detail").html(parsePlace(data))
+      });
+  }
+
+  $(function(){
+    // get detail for first place in list
+    row = $("#data_grid table tbody")[0].rows[0]
+    pid = parseInt(row.cells[2].textContent)
+    getPlace(pid)
+    console.log('onload')
+  })
+
   $(".place-row").on("click", function(e){
+    // TODO: render it in an editable Django form
     row = $(this)[0]
     pid = parseInt(row.cells[2].textContent)
+    console.log('this',$(this))
     console.log('pid',pid)
-    // ajax call for Place.objects.get('id'==pid)
-    // render data returned
-    // TODO: render it in an editable Django form
+    getPlace(pid)
   })
+
   // initialize, render map
   function map_init (map, options) {
     $('.edit-row').on('click', function(){
