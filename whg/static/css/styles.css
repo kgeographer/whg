@@ -55,7 +55,7 @@
   font-weight: bold;
 }
 
-.place-row {
+tr.place-row {
   cursor: pointer;
 }
 span.edit-row {

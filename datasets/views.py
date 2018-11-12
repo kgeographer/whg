@@ -77,10 +77,14 @@ class DatasetCreateView(CreateView):
         context['action'] = 'create'
         return context
 
+
 class DatasetListView(ListView):
-    # template_name = 'datasets/dataset_list.html'
+    model = Dataset
     template_name = 'datasets/dashboard.html'
-    queryset = Dataset.objects.all()
+    paginate_by = 4
+
+    def get_queryset(self):
+        return Dataset.objects.filter(owner = self.request.user)
 
 class DatasetDetailView(DetailView):
     template_name = 'datasets/dataset_detail.html'

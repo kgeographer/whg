@@ -72,11 +72,10 @@
   }
 
   $(function(){
-    // get detail for first place in list
+    // initialize with detail for first place in list
     row = $("#data_grid table tbody")[0].rows[0]
     pid = parseInt(row.cells[2].textContent)
     getPlace(pid)
-    console.log('onload')
   })
 
   $(".place-row").on("click", function(e){

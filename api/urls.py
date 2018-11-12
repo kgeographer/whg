@@ -4,6 +4,7 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from . import views
 
+# TODO: too much of a black box
 router = routers.DefaultRouter()
 
 router.register(r'datasets', views.DatasetViewSet)
