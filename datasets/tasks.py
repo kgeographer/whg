@@ -1,6 +1,24 @@
 # functions related to datasets app
+from __future__ import absolute_import, unicode_literals
+
 import sys, os, re, json, codecs, datetime, time
 from pprint import pprint
+
+import random
+from celery.decorators import task
+
+@task(name="sum_two_numbers")
+def add(x, y):
+    return x + y
+
+@task(name="multiply_two_numbers")
+def mul(x, y):
+    total = x * (y * random.randint(3, 100))
+    return total
+
+@task(name="sum_list_numbers")
+def xsum(numbers):
+    return sum(numbers)
 
 def read_delimited(infile, username):
     import csv
