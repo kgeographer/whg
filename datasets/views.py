@@ -12,17 +12,45 @@ from django.views.generic import (
 from .models import Dataset
 from main.models import *
 from .forms import DatasetModelForm
-from .tasks import read_delimited, read_lpf
+from .tasks import read_delimited, align_tgn, read_lpf, add, mul, xsum
 import codecs, tempfile, os
 from pprint import pprint
 
-# refactoring views as class-based
+# initiate, monitor reconciliation service
+def ds_recon(request, pk):
+    ds = get_object_or_404(Dataset, id=pk)
+    # print('request, method:',request, request.method)
+    context = {
+        "dataset": ds.name,
+    }
+    if request.method == 'GET':
+        print('request:',request)
+    elif request.method == 'POST' and request.POST:
+        fun = eval('align_'+request.POST['recon'])
+        # pprint(request.POST)
+
+        # run celery/redis task
+        # result = fun.delay(ds)
+        result = align_tgn.delay(ds.id)
+
+        context['response'] = result.state
+        context['dataset id'] = ds.label
+        context['authority'] = request.POST['recon']
+        context['hits'] = '?? not wired yet'
+        context['result'] = result.get()
+        # pprint(locals())
+        return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
+
+    return render(request, 'datasets/ds_recon.html', {'ds':ds})
+
+# distinct from (redundant to?) api.views
 class DatasetCreateView(CreateView):
     form_class = DatasetModelForm
     template_name = 'datasets/dataset_create.html'
     queryset = Dataset.objects.all()
 
     def form_valid(self, form):
+        context={}
         if form.is_valid():
             print('form is valid')
             print('cleaned_data: before ->', form.cleaned_data)
@@ -77,7 +105,6 @@ class DatasetCreateView(CreateView):
         context = super(DatasetCreateView, self).get_context_data(*args, **kwargs)
         context['action'] = 'create'
         return context
-
 
 class DatasetListView(ListView):
     model = Dataset
@@ -263,30 +290,6 @@ def ds_insert(request, pk ):
     # dataset.file.close()
 
     return redirect('/dashboard', context=context)
-
-# initiate, monitor reconciliation service
-def ds_recon(request, pk):
-    ds = get_object_or_404(Dataset, id=pk)
-    print('request, method:',request, request.method)
-    context = {
-        "dataset": ds.name,
-    }
-
-    if request.method == 'GET':
-        print('context',context)
-    elif request.method == 'POST' and request.POST:
-        authority = request.POST['recon']
-        dataset = request.POST['ds']
-        pprint(request.POST)
-        # run task
-        context['response'] = 'ran something'
-        context['dataset'] = ds.label
-        context['authority'] = authority
-        context['hits'] = '?? not wired yet'
-        context['result'] = 'completed'
-        return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
-
-    return render(request, 'datasets/ds_recon.html', {'ds':ds})
 
 ##
 # outdated FBVs

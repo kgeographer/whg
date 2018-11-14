@@ -1,27 +1,24 @@
 # functions related to datasets app
 from __future__ import absolute_import, unicode_literals
-
-import sys, os, re, json, codecs, datetime, time
-from pprint import pprint
-
-import random
+from django.shortcuts import render, get_object_or_404, redirect
 from celery.decorators import task
 
-@task(name="sum_two_numbers")
-def add(x, y):
-    return x + y
+import sys, os, re, json, codecs, datetime, time, csv
+import random
+from pprint import pprint
+from .models import Dataset
 
-@task(name="multiply_two_numbers")
-def mul(x, y):
-    total = x * (y * random.randint(3, 100))
-    return total
-
-@task(name="sum_list_numbers")
-def xsum(numbers):
-    return sum(numbers)
+@task(name="align_tgn")
+def align_tgn(pk):
+    ds = get_object_or_404(Dataset, id=pk)
+    place_array = []
+    print('align_tgn():',ds)
+    for place in ds.places.all():
+        plids.append(place.title)
+    result = {"places": place_array}
+    return result
 
 def read_delimited(infile, username):
-    import csv
     result = {'format':'delimited','errors':{}}
     # required fields
     # TODO: req. fields not null or blank
@@ -83,3 +80,16 @@ def read_delimited(infile, username):
 
 def read_lpf(infile):
     return 'reached tasks.read_lpf()'
+
+@task(name="sum_two_numbers")
+def add(x, y):
+    return x + y
+
+@task(name="multiply_two_numbers")
+def mul(x, y):
+    total = x * (y * random.randint(3, 100))
+    return total
+
+@task(name="sum_list_numbers")
+def xsum(numbers):
+    return sum(numbers)

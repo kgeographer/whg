@@ -13,7 +13,7 @@ from datasets.models import Dataset
 from main.models import Place #, PlaceName, PlaceType
 
 class DatasetViewSet(viewsets.ModelViewSet):
-    print('in DatasetViewSet()')
+    # print('in DatasetViewSet()')
     queryset = Dataset.objects.all().order_by('label')
     # TODO: public list only accepted datasets
     # queryset = Dataset.objects.exclude(accepted_date__isnull=True).order_by('label')
@@ -32,7 +32,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
 
 class PlaceViewSet(viewsets.ModelViewSet):
-    print('in PlaceViewSet()')
+    # print('in PlaceViewSet()')
     queryset = Place.objects.all().order_by('title')
     serializer_class = PlaceSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)

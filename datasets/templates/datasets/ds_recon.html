@@ -10,71 +10,48 @@
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container flex">
-<h4 class="mb-3 mt-3">{% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }} ({{ ds.label }}))</h4>
+<h4 class="mb-3 mt-3">{% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }} ({{ ds.label }})</h4>
 <hr/>
 <div class="row">
-  <div class="col-sm-8">
+  <div class="col-sm-4">
     <form action="{% url 'datasets:ds_recon' ds.id %}" method="POST">
       {% csrf_token %}
       <input type="hidden" name="ds" value="{{ ds.id }}">
       <div class="form-check">
-        <label class="form-check-label text-muted" for="auth1">
+        <label class="form-check-label" for="auth1">
           <input type="radio" class="form-check-input" id="auth1"
-            name="recon" value="tgn" disabled>Getty TGN (tgn)
-            <span class="ml-2 text-success">{ result }</span>
+            name="recon" value="tgn" checked>Getty TGN (tgn)
+            <span class="ml-2 text-success">{ some status indicator }</span>
+            <!-- <span class="ml-2 text-success">{{ context.response }}</span> -->
         </label>
       </div>
       <div class="form-check">
-        <label class="form-check-label" for="auth2">
+        <label class="form-check-label text-muted" for="auth2">
           <input type="radio" class="form-check-input" id="auth2"
-            name="recon" value="dbp" checked>DBpedia (dbp)
-            <span class="ml-2 text-success">{{ context.result }}</span>
+            name="recon" value="dbp" disabled>DBpedia (dbp)
+            <span class="ml-2 text-success"></span>
         </label>
       </div>
       <div class="form-check">
-        <label class="form-check-label" for="auth3">
+        <label class="form-check-label text-muted" for="auth3">
           <input type="radio" class="form-check-input" id="auth3"
-            name="recon" value="wd">Wikidata (wd)
+            name="recon" value="wd" disabled>Wikidata (wd)
             <span class="ml-2 text-success d-none"> </span>
         </label>
       </div>
       <div class="form-check">
-        <label class="form-check-label" for="auth4">
+        <label class="form-check-label text-muted" for="auth4">
           <input type="radio" class="form-check-input" id="auth4"
-            name="recon" value="gn">GeoNames (gn)
-            <span class="ml-2 text-success d-none"> </span>
+            name="recon" value="gn" disabled>GeoNames (gn)
+            <span class="ml-2 text-success d-none"></span>
         </label>
       </div> <br/>
       <button type="submit" class="btn btn-primary">Start</button>
     </form>
-    <!-- <form action="javascript:alert('go align now')">
-      <div class="custom-control custom-radio">
-        <label class="custom-control-label" for="auth-1">Getty TGN</label>
-        <input type="radio" id="auth-1" name="auth" value="tgn"
-          class="custom-control-input">
-        <span class="ml-2 text-danger">{ progress widget, result }</span>
-      </div>
-      <div class="custom-control custom-radio">
-        <label class="custom-control-label" for="auth-2">DBpedia</label>
-        <input type="radio" id="auth-2" name="auth" value="dbp"
-          class="custom-control-input">
-      </div>
-      <div class="custom-control custom-radio">
-        <label class="custom-control-label" for="auth-3">Wikidata</label>
-        <input type="radio" id="auth-3" name="auth" value="wd"
-          class="custom-control-input">
-      </div>
-      <div class="custom-control custom-radio">
-        <label class="custom-control-label" for="auth-4">GeoNames</label>
-        <input type="radio" id="auth-4" name="auth" value="gn"
-          class="custom-control-input">
-      </div>
-      <button type="submit" class="btn btn-secondary">Go</button>
-    </form> -->
   </div>
   {% if context.response %}
-  <div class="col-sm-4">
-    <p>{{ context.response }}!</p>
+  <div class="col-sm-8">
+    <p><i>result</i>: {{ context.response }}</p>
     <p><b>Dataset</b>: {{ context.dataset }}</p>
     <p><b>Authority</b>: {{ context.authority }}</p>
     <p><b>Hits</b>: {{ context.hits }}</p>
