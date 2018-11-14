@@ -8,21 +8,46 @@ import random
 from pprint import pprint
 from .models import Dataset
 
+
+
 @task(name="align_tgn")
 def align_tgn(pk):
     ds = get_object_or_404(Dataset, id=pk)
     place_array = []
     print('align_tgn():',ds)
-    for place in ds.places.all():
-        plids.append(place.title)
+    # build query object on the fly
+    for place in ds.places.all()[:10]:
+        qobj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
+        altnames=[]; geoms=[]; types=[]; ccodes=[]
+
+        for name in place.names.all():
+            altnames.append(name.toponym)
+        qobj['altnames'] = altnames
+        qobj['countries'] = place.ccodes
+        # TODO: make multipoint?
+        qobj['geoms'] = place.geoms.first().json
+        qobj['placetypes'] = [place.types.first().json['label']]
+        place_array.append(qobj)
     result = {"places": place_array}
     return result
+
+# {	"placeid" : 10028560,
+# 	"src_id" : "1000001",
+# 	"prefname" : "Ciudad de Mexico",
+# 	"altnames" : ["Ciudad de Mexico","Mexico"],
+# 	"geom" : {"type":"MultiPoint","coordinates":[[-99.13313445,19.43378643]]},
+# 	"placetypes" : ["inhabited place"],
+# 	"countries" : ["MX"],
+# 	"province" : "Mexico",
+# 	"minmax" : [1521,1808],
+# 	"region" : ""
+# }
 
 def read_delimited(infile, username):
     result = {'format':'delimited','errors':{}}
     # required fields
     # TODO: req. fields not null or blank
-    required = ['id', 'name', 'name_src', 'ccode', 'lon', 'lat']
+    required = ['id', 'name', 'name_src', 'ccodes', 'lon', 'lat']
 
     # learn delimiter [',',';']
     dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
@@ -37,7 +62,7 @@ def read_delimited(infile, username):
     result['columns'] = header
 
     if not len(set(header) & set(required)) == 6:
-        result['errors']['req'] = 'missing required column (id,name,name_src, ccode,lon,lat)'
+        result['errors']['req'] = 'missing required column (id,name,name_src, ccodes,lon,lat)'
         return result
     #print(header)
     rowcount = 1

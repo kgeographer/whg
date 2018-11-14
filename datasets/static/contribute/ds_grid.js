@@ -23,7 +23,7 @@ $(document).ready(function() {
               targets: [2]
           },
           {
-              name: 'ccode',
+              name: 'ccodes',
               targets: [3]
           }
       ],

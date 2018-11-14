@@ -3,7 +3,7 @@ from .models import Place, Source, PlaceName, PlaceType, PlaceGeom, PlaceWhen, P
 
 # appear in admin
 class PlaceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'dataset','title', 'ccode', 'src_id')
+    list_display = ('id', 'dataset','title', 'ccodes', 'src_id')
 admin.site.register(Place,PlaceAdmin)
 
 class SourceAdmin(admin.ModelAdmin):

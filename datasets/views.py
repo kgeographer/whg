@@ -167,7 +167,8 @@ def ds_insert(request, pk ):
     context = {'status': 'inserting'}
 
     infile = dataset.file.open(mode="r")
-    dialect = csv.Sniffer().sniff(infile.read(1024),['\t',';','|'])
+    # already know delimiter
+    dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
     reader = csv.reader(infile, dialect)
     infile.seek(0)
     header = next(reader, None)
@@ -177,7 +178,7 @@ def ds_insert(request, pk ):
         "PlaceLink":[], "PlaceRelated":[], "PlaceDescription":[],
         "PlaceDepiction":[]}
 
-    # id*, name*, name_src*, type^, variants[], ccode[]^, lon^, lat^, geom_src, close_match[]^, exact_match[]^, description, depiction
+    # id*, name*, name_src*, type^, variants[], ccodes[]^, lon^, lat^, geom_src, close_match[]^, exact_match[]^, description, depiction
     #
     # TODO: what if simultaneous inserts?
     countrows=0
@@ -197,7 +198,7 @@ def ds_insert(request, pk ):
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'unk.'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
-        ccode = r[header.index('ccode')] if 'ccode' in header else 'unk.'
+        ccodes = r[header.index('ccodes')][2:-2].split('", "') if 'ccodes' in header else []
         coords = [float(r[header.index('lon')]), float(r[header.index('lat')])]
         close_match = r[header.index('close_match')][2:-2].split('", "') if 'close_match' in header else []
         exact_match = r[header.index('exact_match')][1:-1] \
@@ -214,7 +215,7 @@ def ds_insert(request, pk ):
             src_id = src_id,
             dataset = dataset,
             title = title,
-            ccode = ccode
+            ccodes = ccodes
         )
         newpl.save()
         countrows += 1
@@ -294,80 +295,80 @@ def ds_insert(request, pk ):
 ##
 # outdated FBVs
 ##
-def dashboard(request):
-    dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
-    print('dataset_list',dataset_list)
-    return render(request, 'datasets/dashboard.html', {'datasets':dataset_list})
-
-# new dataset: upload file, store if valid
-def ds_new(request, template_name='datasets/ds_form.html'):
-    form = DatasetModelForm(request.POST, request.FILES)
-    context = {
-        'form':form, 'action': 'new'
-    }
-    def removekey(d, key):
-        r = dict(d)
-        del r[key]
-        return r
-
-    if request.method == 'POST':
-        if form.is_valid():
-            context['action'] = 'upload'
-            print('form is valid')
-            print('cleaned_data', form.cleaned_data)
-
-            # open & write tempf to a temp location;
-            # call it tempfn for reference
-            tempf, tempfn = tempfile.mkstemp()
-            try:
-                for chunk in request.FILES['file'].chunks():
-                    os.write(tempf, chunk)
-            except:
-                raise Exception("Problem with the input file %s" % request.FILES['file'])
-            finally:
-                os.close(tempf)
-
-            # open temp file
-            fin = codecs.open(tempfn, 'r', 'utf8')
-            # send for format validation
-            if form.cleaned_data['format'] == 'csv':
-                result = read_csv(fin,request.user.username)
-            elif form.cleaned_data['format'] == 'lpf':
-                result = read_lpf(fin,request.user.username)
-            # print('cleaned_data',form.cleaned_data)
-            fin.close()
-
-            # add status
-            if len(result['errors']) == 0:
-                context['status'] = 'format_ok'
-                form.cleaned_data['status'] = 'format_ok'
-                form.save()
-            else:
-                context['status'] = 'format_error'
-                print('result:', result)
-
-            context['result'] = result
-            # return redirect('/datasets/dashboard')
-        else:
-            print('not valid', form.errors)
-            context['errors'] = form.errors
-        print('context',context)
-    return render(request, template_name, context=context)
-
-def ds_update(request, pk, template_name='datasets/ds_form.html'):
-    record = get_object_or_404(Dataset, pk=pk)
-    form = DatasetModelForm(request.POST or None, instance=record)
-    if form.is_valid():
-        form.save()
-        return redirect('/datasets/dashboard')
-    else:
-        print('not valid', form.errors)
-    return render(request, template_name, {'form':form, 'action': 'update'})
-
-def ds_delete(request, pk):
-    record = get_object_or_404(Dataset, pk=pk)
-    # print('request, pk',request, pk)
-    # print('record',type(record))
-    # it's a GET not POST
-    record.delete()
-    return redirect('dashboard')
+# def dashboard(request):
+#     dataset_list = Dataset.objects.filter(owner=request.user.id).order_by('-upload_date')
+#     print('dataset_list',dataset_list)
+#     return render(request, 'datasets/dashboard.html', {'datasets':dataset_list})
+#
+# # new dataset: upload file, store if valid
+# def ds_new(request, template_name='datasets/ds_form.html'):
+#     form = DatasetModelForm(request.POST, request.FILES)
+#     context = {
+#         'form':form, 'action': 'new'
+#     }
+#     def removekey(d, key):
+#         r = dict(d)
+#         del r[key]
+#         return r
+#
+#     if request.method == 'POST':
+#         if form.is_valid():
+#             context['action'] = 'upload'
+#             print('form is valid')
+#             print('cleaned_data', form.cleaned_data)
+#
+#             # open & write tempf to a temp location;
+#             # call it tempfn for reference
+#             tempf, tempfn = tempfile.mkstemp()
+#             try:
+#                 for chunk in request.FILES['file'].chunks():
+#                     os.write(tempf, chunk)
+#             except:
+#                 raise Exception("Problem with the input file %s" % request.FILES['file'])
+#             finally:
+#                 os.close(tempf)
+#
+#             # open temp file
+#             fin = codecs.open(tempfn, 'r', 'utf8')
+#             # send for format validation
+#             if form.cleaned_data['format'] == 'csv':
+#                 result = read_csv(fin,request.user.username)
+#             elif form.cleaned_data['format'] == 'lpf':
+#                 result = read_lpf(fin,request.user.username)
+#             # print('cleaned_data',form.cleaned_data)
+#             fin.close()
+#
+#             # add status
+#             if len(result['errors']) == 0:
+#                 context['status'] = 'format_ok'
+#                 form.cleaned_data['status'] = 'format_ok'
+#                 form.save()
+#             else:
+#                 context['status'] = 'format_error'
+#                 print('result:', result)
+#
+#             context['result'] = result
+#             # return redirect('/datasets/dashboard')
+#         else:
+#             print('not valid', form.errors)
+#             context['errors'] = form.errors
+#         print('context',context)
+#     return render(request, template_name, context=context)
+#
+# def ds_update(request, pk, template_name='datasets/ds_form.html'):
+#     record = get_object_or_404(Dataset, pk=pk)
+#     form = DatasetModelForm(request.POST or None, instance=record)
+#     if form.is_valid():
+#         form.save()
+#         return redirect('/datasets/dashboard')
+#     else:
+#         print('not valid', form.errors)
+#     return render(request, template_name, {'form':form, 'action': 'update'})
+#
+# def ds_delete(request, pk):
+#     record = get_object_or_404(Dataset, pk=pk)
+#     # print('request, pk',request, pk)
+#     # print('record',type(record))
+#     # it's a GET not POST
+#     record.delete()
+#     return redirect('dashboard')

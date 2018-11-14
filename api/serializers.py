@@ -123,7 +123,7 @@ class PlaceSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Place
-        fields = ('url','id', 'title', 'src_id', 'dataset','ccode',
+        fields = ('url','id', 'title', 'src_id', 'dataset','ccodes',
             'names','types','geoms','links','related',
             'whens', 'descriptions', 'depictions')
 
@@ -131,7 +131,7 @@ class PlaceSerializer(serializers.HyperlinkedModelSerializer):
 class PlaceQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('id','src_id','title','names','types','ccode')
+        fields = ('id','src_id','title','names','types','ccodes')
 # {	"placeid" : 10028560,
 # 	"src_id" : "1000001",
 # 	"prefname" : "Ciudad de Mexico",
