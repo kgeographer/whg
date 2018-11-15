@@ -66,20 +66,20 @@ def remove_file(**kwargs):
     instance = kwargs.get('instance')
     instance.file.delete(save=False)
 
-
-class Authority(models.Model):
-    name = models.CharField(choices=AUTHORITIES, max_length=64)
-    base_uri = models.CharField(max_length=255)
-
-    def __str__(self):
-        return str(self.name)
-
-    class Meta:
-        managed = True
-        db_table = 'authorities'
-        verbose_name = 'Authority sources'
-        verbose_name_plural = 'Authorities'
-
+# NOT NECESSARY, USING CHOICES
+# class Authority(models.Model):
+#     name = models.CharField(choices=AUTHORITIES, max_length=64)
+#     base_uri = models.CharField(max_length=255)
+#
+#     def __str__(self):
+#         return str(self.name)
+#
+#     class Meta:
+#         managed = True
+#         db_table = 'authorities'
+#         verbose_name = 'Authority sources'
+#         verbose_name_plural = 'Authorities'
+#
 
 # product of hit validation
 class Link(models.Model):
@@ -89,12 +89,11 @@ class Link(models.Model):
     # contributor identifier
     src_id = models.CharField(max_length=24)
 
-    authority = models.ForeignKey(Authority, db_column='authority',
-        to_field='id', on_delete="models.CASCADE")
+    authority = models.CharField(max_length=12, choices=AUTHORITIES )
 
-    # authority place record identifier
-    authrecord_id = models.CharField(max_length=64)
-    match_type = models.CharField(max_length=12, choices=AUTHORITIES )
+    # authority place record identifier; could be uri
+    authrecord_id = models.CharField(max_length=255)
+    match_type = models.CharField(max_length=12, choices=MATCHTYPES )
     review_note = models.CharField(max_length=2044, blank=True, null=True)
     flag_geom = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now)
@@ -110,7 +109,7 @@ class Link(models.Model):
 # raw hits from reconciliation
 class Hit(models.Model):
     place_id = models.ForeignKey('main.Place', on_delete="models.CASCADE")
-    authority = models.ForeignKey(Authority, db_column="authority", to_field="id", on_delete="models.CASCADE")
+    authority = models.CharField(max_length=12, choices=AUTHORITIES )
 
     # authority place record identifier
     authrecord_id = models.CharField(max_length=64)
