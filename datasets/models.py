@@ -98,6 +98,7 @@ class Hit(models.Model):
     authority = models.CharField(max_length=12, choices=AUTHORITIES )
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
+    query_pass = models.CharField(max_length=12, choices=AUTHORITIES )
 
     # authority record identifier (could be uri)
     authrecord_id = models.CharField(max_length=255)

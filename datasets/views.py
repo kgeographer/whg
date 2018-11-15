@@ -39,6 +39,7 @@ def ds_recon(request, pk):
         context['authority'] = request.POST['recon']
         context['hits'] = '?? not wired yet'
         context['result'] = result.get()
+        # context['summary'] = result.get().summary
         # pprint(locals())
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 

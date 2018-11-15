@@ -66,9 +66,23 @@ def reverse(coords):
     fubar = [coords[1],coords[0]]
     return fubar
 
+def create_hit(hit):
+    print('creating hit:',hit)
+    # TODO: write result_obj as hit record
+    # task_id, authority, dataset, place_id, authrecord_id, json
+    # new = Hit.objects.create(
+    #     task_id = align_tgn.request.id,
+    #     authority = 'tgn',
+    #     dataset = ds.id,
+    #     place_id = query_obj['place_id'],
+    #     authrecord_id = hit['_id'],
+    #     query_pass = result_obj['pass']
+    #     json = result_obj,
+    # )
+
 def es_lookup(qobj):
     print('qobj',qobj)
-    count_single,count_multi,count_nameonly,count_misses = [0,0,0,0]
+    hit_count = 0
 
     search_name = fixName(qobj['prefname'])
 
@@ -84,8 +98,7 @@ def es_lookup(qobj):
     # pre-computed in sql
     # minmax = row['minmax']
 
-    # classy() maps Black place types to TGN place types
-    # placetypes = classy('tgn',qobj['placetypes'])
+    # must be aat_type(s)
     placetypes = qobj['placetypes']
 
     # geom and centroid are avalable
@@ -172,68 +185,58 @@ def es_lookup(qobj):
     }}
 
     result_obj = {
-        'place_id': qobj['place_id'], 'hits':[], 'missed':-1
+        'place_id': qobj['place_id'], 'hits':[],
+        'missed':-1, 'total_hits':-1
     }
 
     # pass1: query [name, type, parent]
     res1 = es.search(index="tgn", body = q1)
     hits1 = res1['hits']['hits']
-
-    # multiple hits
-    if len(hits1) > 1:
-        count_multi +=1
-        result_obj['hits1'].append(hits1)
-    # exactly 1 hit
-    elif len(hits1) == 1:
-        result_obj['hits1'].append(hits1)
-        count_single +=1
-        type_array = types(hits1[0])
-    # no hits on pass1; pass2 with only [name,parent]
+    # 1 or more hits
+    if len(hits1) > 0:
+        for hit in hits1:
+            hit_count +=1
+            hit['pass'] = 'pass1'
+            result_obj['hits'].append(hit)
+    # no hits -> pass2 with only [name,parent]
     elif len(hits1) == 0:
         res2 = es.search(index="tgn", body = q2)
         hits2 = res2['hits']['hits']
-        if len(hits2) > 1:
-            result_obj['hits2'].append(hits2)
-            count_multi +=1
-            #print(row['centroid'],location,str(hits2[0]['_source']['location']))
-            # hit_array = []
-            # fout_multi.write('\n'+header)
-            # for hit in hits2:
-            #     fout_multi.write( '\t'+hitRecord(hit,location) )
-        # exactly 1 hit
-        elif len(hits2) == 1:
-            count_single +=1
-            # strip out rivers b/c too many false positives when no type is sent
-            if any(x['placetype'] == "rivers" for x in hits2[0]['_source']['types']):
-                pass
-            else:
-                result_obj['hits2'].append(hits2)
-        # no hits on pass2
+        if len(hits2) > 0:
+            for hit in hits2:
+                if any(x['placetype'] == "rivers" for x in hits2[0]['_source']['types']):
+                    pass
+                else:
+                    hit_count +=1
+                    hit['pass'] = 'pass2'
+                    result_obj['hits'].append(hit)
         elif len(hits2) == 0:
             # now name only; may yield a few correct matches
             # because place type mapping is imperfect
-            # tests geometry (200km)
+            # tests geometry (200km) if exists
             if qobj['geom'] != None:
                 res3 = es.search(index="tgn", body = q3)
             else:
                 res3 = es.search(index="tgn", body = q4) # no geom
             hits3 = res3['hits']['hits']
             if len(hits3) > 0:
-                count_nameonly +=1
-                result_obj['hits3'].append(hits3)
+                for hit in hits3:
+                    hit_count +=1
+                    hit['pass'] = 'pass3'
+                    result_obj['hits'].append(hit)
             else:
                 # no hit at all, even on name only
                 result_obj['missed'] = qobj['place_id']
                 # TODO: make name search fuzzy?
-
+    result_obj['hit_count'] = hit_count
     return result_obj
 
 @task(name="align_tgn")
 def align_tgn(pk):
     ds = get_object_or_404(Dataset, id=pk)
-    hit_parade = []
+    hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
-    [count, count_hit, count_nohit] = [0,0,0]
+    [count, count_hit, count_nohit, total_hits] = [0,0,0,0]
     print('align_tgn():', ds)
     print('celery task id:', align_tgn.request.id)
 
@@ -253,37 +256,28 @@ def align_tgn(pk):
         # run es query on this record
         result_obj = es_lookup(query_obj)
 
-        if result_obj['missed'] > -1:
+        # if result_obj['missed'] > -1:
+        if result_obj['hit_count'] == 0:
             count_nohit +=1
             nohits.append(result_obj['missed'])
         else:
             count_hit +=1
+            total_hits += result_obj['hit_count']
             # TODO: write hit records from pass arrays
-            for hit in result_obj['hits1']:
-                create_hit(hit)
-            # hit_parade[place.id] = result_obj
-            # print('result_obj', place.id, result_obj)
-
-    # TODO: write result_obj as hit record
-    # task_id, authority, dataset, place_id, authrecord_id, json
-    # new = Hit.objects.create(
-    #     task_id = align_tgn.request.id,
-    #     authority = 'tgn',
-    #     dataset = ds.id,
-    #     place_id = query_obj['place_id'],
-    #     authrecord_id = result_obj['_id'],
-    #     json = result_obj,
-    # )
-    # print('new record: ', new)
+            for hit in result_obj['hits']:
+                hit_parade["hits"].append(hit)
+                print('creating hit:',hit)
+                # create_hit(hit)
 
     # TODO: return summary
     hit_parade['summary'] = {
         'count':count,
         'got-hits':count_hit,
-        'no-hits':{'count':count_nohit,'place_ids':nohits}
+        'total-hits': total_hits,
+        'no-hits': {'count': count_nohit, 'place_ids': nohits}
     }
-    # return hit_parade['summary']
-    return hit_parade
+    return hit_parade['summary']
+    # return hit_parade
 
 
 def read_delimited(infile, username):

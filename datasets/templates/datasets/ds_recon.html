@@ -57,12 +57,16 @@
     <p class="text-warning">{ TODO: progress bar }</p>
     <p><b>Authority</b>: {{ context.authority }}</p>
     <p><b>Task ID</b>: {{ context.task_id }}</p>
-    <p class="mb-3"><b>Result</b>: {{ context.result }}</p>
+    <p class="mb-3"><b>Result summary</b>:
+      {{ context.result }}    </p>
     <button type="submit" action="javascript:alert('load review app')" class="btn btn-primary">Review hits</button>
   </div>
   {% endif %}
 </div>
-
+<!--
+'count':count,
+'got-hits':count_hit,
+'total-hits': result_obj['total_hits'] -->
 <script type="text/javascript">
 </script>
 {% endblock %}
