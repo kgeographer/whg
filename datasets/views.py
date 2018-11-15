@@ -33,6 +33,7 @@ def ds_recon(request, pk):
         # result = fun.delay(ds)
         result = align_tgn.delay(ds.id)
 
+        context['task_id'] = result.id
         context['response'] = result.state
         context['dataset id'] = ds.label
         context['authority'] = request.POST['recon']

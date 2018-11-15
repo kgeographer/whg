@@ -21,7 +21,7 @@
         <label class="form-check-label" for="auth1">
           <input type="radio" class="form-check-input" id="auth1"
             name="recon" value="tgn" checked>Getty TGN (tgn)
-            <span class="ml-2 text-success">{ some status indicator }</span>
+            <span class="ml-2 text-success">{ TODO: task status }</span>
             <!-- <span class="ml-2 text-success">{{ context.response }}</span> -->
         </label>
       </div>
@@ -45,17 +45,20 @@
             name="recon" value="gn" disabled>GeoNames (gn)
             <span class="ml-2 text-success d-none"></span>
         </label>
-      </div> <br/>
+      </div>
+      {% if request.method == 'GET' %}
+      <br/>
       <button type="submit" class="btn btn-primary">Start</button>
+      {% endif %}
     </form>
   </div>
   {% if context.response %}
   <div class="col-sm-8">
-    <button type="submit" action="javascript:alert('load review app')" class="btn btn-primary">Review hits</button>
-    <p class="text-warning"><i>response</i>: { progress bar }</p>
+    <p class="text-warning">{ TODO: progress bar }</p>
     <p><b>Authority</b>: {{ context.authority }}</p>
-    <!-- <p><b>Hits</b>: {{ context.hits }}</p> -->
+    <p><b>Task ID</b>: {{ context.task_id }}</p>
     <p class="mb-3"><b>Result</b>: {{ context.result }}</p>
+    <button type="submit" action="javascript:alert('load review app')" class="btn btn-primary">Review hits</button>
   </div>
   {% endif %}
 </div>

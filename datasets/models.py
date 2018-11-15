@@ -66,21 +66,6 @@ def remove_file(**kwargs):
     instance = kwargs.get('instance')
     instance.file.delete(save=False)
 
-# NOT NECESSARY, USING CHOICES
-# class Authority(models.Model):
-#     name = models.CharField(choices=AUTHORITIES, max_length=64)
-#     base_uri = models.CharField(max_length=255)
-#
-#     def __str__(self):
-#         return str(self.name)
-#
-#     class Meta:
-#         managed = True
-#         db_table = 'authorities'
-#         verbose_name = 'Authority sources'
-#         verbose_name_plural = 'Authorities'
-#
-
 # product of hit validation
 class Link(models.Model):
     # WHG identifier
@@ -108,14 +93,17 @@ class Link(models.Model):
 
 # raw hits from reconciliation
 class Hit(models.Model):
-    place_id = models.ForeignKey('main.Place', on_delete="models.CASCADE")
+    # FK to celery_results_task_result.task_id; TODO: written yet?
+    task_id = models.CharField(max_length=50)
     authority = models.CharField(max_length=12, choices=AUTHORITIES )
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
 
-    # authority place record identifier
-    authrecord_id = models.CharField(max_length=64)
+    # authority record identifier (could be uri)
+    authrecord_id = models.CharField(max_length=255)
 
     # json response; parse later according to authority
-    result = JSONField(blank=True, null=True)
+    json = JSONField(blank=True, null=True)
 
     def __str__(self):
         return str(self.id)
