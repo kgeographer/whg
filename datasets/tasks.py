@@ -8,6 +8,7 @@ import sys, os, re, json, codecs, datetime, time, csv
 import random
 from pprint import pprint
 from .models import Dataset, Hit
+from main.models import Place
 
 ##
 import shapely.geometry
@@ -66,8 +67,8 @@ def reverse(coords):
     fubar = [coords[1],coords[0]]
     return fubar
 
-def create_hit(hit):
-    print('creating hit:',hit)
+# def create_hit(hit):
+    # print('create_hit()',hit)
     # TODO: write result_obj as hit record
     # task_id, authority, dataset, place_id, authrecord_id, json
     # new = Hit.objects.create(
@@ -266,8 +267,19 @@ def align_tgn(pk):
             # TODO: write hit records from pass arrays
             for hit in result_obj['hits']:
                 hit_parade["hits"].append(hit)
-                print('creating hit:',hit)
-                # create_hit(hit)
+                # print('creating hit:',hit)
+                # new = Hit.objects.create(
+                new = Hit(
+                    task_id = align_tgn.request.id,
+                    authority = 'tgn',
+                    dataset = ds,
+                    place_id = get_object_or_404(Place, id=query_obj['place_id']),
+                    # place_id = query_obj['place_id'],
+                    authrecord_id = hit['_id'],
+                    query_pass = hit['pass'],
+                    json = hit,
+                )
+                new.save()
 
     # TODO: return summary
     hit_parade['summary'] = {
