@@ -67,20 +67,7 @@ def reverse(coords):
     fubar = [coords[1],coords[0]]
     return fubar
 
-# def create_hit(hit):
-    # print('create_hit()',hit)
-    # TODO: write result_obj as hit record
-    # task_id, authority, dataset, place_id, authrecord_id, json
-    # new = Hit.objects.create(
-    #     task_id = align_tgn.request.id,
-    #     authority = 'tgn',
-    #     dataset = ds.id,
-    #     place_id = query_obj['place_id'],
-    #     authrecord_id = hit['_id'],
-    #     query_pass = result_obj['pass']
-    #     json = result_obj,
-    # )
-
+@task(name="es_lookup")
 def es_lookup(qobj):
     print('qobj',qobj)
     hit_count = 0
@@ -233,7 +220,7 @@ def es_lookup(qobj):
     return result_obj
 
 @task(name="align_tgn")
-def align_tgn(pk):
+def align_tgn(pk, *args, **kwargs):
     ds = get_object_or_404(Dataset, id=pk)
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
@@ -241,8 +228,8 @@ def align_tgn(pk):
     print('align_tgn():', ds)
     print('celery task id:', align_tgn.request.id)
 
-    # build query object and send
-    for place in ds.places.all()[:5]:
+    # build query object, send, save hits
+    for place in ds.places.all():
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
         altnames=[]; geoms=[]; types=[]; ccodes=[]
@@ -281,12 +268,14 @@ def align_tgn(pk):
                 )
                 new.save()
 
+    # ds.status = 'recon_tgn'
     # TODO: return summary
     hit_parade['summary'] = {
         'count':count,
         'got-hits':count_hit,
         'total-hits': total_hits,
-        'no-hits': {'count': count_nohit, 'place_ids': nohits}
+        'no-hits': {'count': count_nohit }
+        # 'no-hits': {'count': count_nohit, 'place_ids': nohits}
     }
     return hit_parade['summary']
     # return hit_parade

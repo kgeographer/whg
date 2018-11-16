@@ -9,7 +9,8 @@ from django.views.generic import (
     UpdateView,
     DeleteView )
 
-from .models import Dataset
+from .models import Dataset, Hit, Link
+from django_celery_results.models import TaskResult
 from main.models import *
 from .forms import DatasetModelForm
 from .tasks import read_delimited, align_tgn, read_lpf, add, mul, xsum
@@ -31,7 +32,7 @@ def ds_recon(request, pk):
 
         # run celery/redis task
         # result = fun.delay(ds)
-        result = align_tgn.delay(ds.id)
+        result = align_tgn.delay(ds.id, ds=ds.id)
 
         context['task_id'] = result.id
         context['response'] = result.state
@@ -44,6 +45,12 @@ def ds_recon(request, pk):
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds})
+
+def review(request, pk, tid):
+    print('request, pk, tid:',request, pk, tid)
+    ds = get_object_or_404(Dataset, id=pk)
+    hit_list = Hit.objects.all().filter(task_id=tid)
+    return render(request, 'datasets/review.html', {'ds':ds, 'hit_list': hit_list})
 
 # distinct from (redundant to?) api.views
 class DatasetCreateView(CreateView):
@@ -115,6 +122,13 @@ class DatasetListView(ListView):
 
     def get_queryset(self):
         return Dataset.objects.filter(owner = self.request.user)
+
+    def get_context_data(self, *args, **kwargs):
+         context = super(DatasetListView, self).get_context_data(*args, **kwargs)
+         context['results'] = TaskResult.objects.all()
+         print('self.kwargs, self.args',self.kwargs,self.args)
+         # context['results'] = TaskResult.objects.all().filter(task_args = '['+self.kwargs['id']+']')
+         return context
 
 class DatasetDetailView(DetailView):
     template_name = 'datasets/dataset_detail.html'

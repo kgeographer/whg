@@ -49,17 +49,20 @@ class Dataset(models.Model):
 
     def __str__(self):
         return '%d: %s' % (self.id, self.label)
-    # def __unicode__(self):
-    #     return '%d: %s' % (self.dataset_id, self.label)
+    def get_absolute_url(self):
+        # return f"/datasets/{self.id}"
+        # return reverse('datasets:ds_edit', kwargs={'pk': self.id})
+        return reverse('datasets:dataset-update', kwargs={'id': self.id})
+
+    @property
+    def tasks(self):
+        from django_celery_results.models import TaskResult
+        return TaskResult.objects.all().filter(task_args = '['+str(self.id)+']')
 
     class Meta:
         managed = True
         db_table = 'datasets'
 
-    def get_absolute_url(self):
-        # return f"/datasets/{self.id}"
-        # return reverse('datasets:ds_edit', kwargs={'pk': self.id})
-        return reverse('datasets:dataset-update', kwargs={'id': self.id})
 
 @receiver(pre_delete, sender=Dataset)
 def remove_file(**kwargs):

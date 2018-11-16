@@ -44,9 +44,15 @@
             <b>Uploaded</b>: {{ d.upload_date }}<br/>
              {% if d.mapbox_id %}
                <span class="ml-3"><a href="{% url 'maps_home' %}">Map</a></span>
+               <br/>
              {% endif %}
             <b>Status</b>: <span class="text-danger">{{ d.status }}</span>
           </p></div>
+          {% for t in d.tasks %}
+            <p>{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
+               <a href="{% url 'datasets:review' pk=d.id tid=t.task_id %}"><i>review</i></a>
+            </p>
+          {% endfor %}
           {% if d.status == "uploaded" %}
           <!-- NOT HERE
             <div id="recon" class="col-sm-5 float-right mb-2" style="background-color:cornsilk;">
