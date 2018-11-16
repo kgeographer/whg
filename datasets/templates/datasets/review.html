@@ -7,19 +7,70 @@
 {% block extra_head %}
 {% endblock %}
 {% block content %}
+<div class="container">
 <!-- incoming: ds, hit_list -->
-<div class="container flex">
-<h4 class="mb-3 mt-3">Review {{ ds.name }} ({{ ds.label }})</h4>
-<hr/>
-<div class="row">
-  <div class="col-sm-4">
-  </div>
-  <div class="col-sm-8">
-    {% for hit in hit_list %}
-      <p>{{ hit.json }}</p>
-    {% endfor %}
-  </div>
+<h4>{ dataset } -> { authority }</h4>
+<div class="pagination">
+  <span class="step-links">
+      {% if records.has_previous %}
+          <a href="?page=1">&laquo; first</a>&nbsp;&nbsp;
+          <a href="?page={{ records.previous_page_number }}">previous</a>
+      {% endif %}
+      <span class="current">
+          Record {{ records.number }} of {{ records.paginator.num_pages }}
+      </span>
+      {% if records.has_next %}
+          <a href="?page={{ records.next_page_number }}">next</a>&nbsp;&nbsp;
+          <a href="?page={{ records.paginator.num_pages }}">last &raquo;</a>
+      {% endif %}
+  </span>
 </div>
+
+{% for record in records %} <!-- there is only one; if last, do nothing -->
+  {% if records.has_next %}
+  <form id="form_related" method="POST" action="" >
+    {% else %}
+  <form id="form_related" method="POST" action="" >
+  {% endif %}
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <input type="hidden" name="placeid" value="{{ record.placeid }}" />
+
+  <div class="container flex">
+  <h4 class="mb-3 mt-3">Review {{ dataset_id }} ({{ task_id }})</h4>
+  <hr/>
+  <div class="row">
+    <div class="col-sm-4 col-record pt-3">
+      <div class="bg-secondary font-weight-bold pl-2 text-light"> Black atlas </div>
+      <div id="place-record" class="pt-2">
+        <div>
+          <span><h4 class="text-danger">{{ record.toponym }} </h4></span>
+          <span class="float-right">
+            <button type="submit" class="btn btn-secondary float-right">Save</button>
+          </span>
+        </div>
+        <div>{{ record }}</div>
+        <!-- <p><strong>Place type(s)</strong>: {{ record.placetypes }}</p>
+        <p><strong>Modern country</strong>: {{ record.country1 }} ({{ record.tgn_country }})</p>
+        <p><strong>Atlas min/max years</strong>: {{ record.minmax }}</p>
+        <p><strong>Atlas page(map)</strong>: {{ record.maps }}</p>
+        <p><strong>placeid</strong>: {{ record.placeid }}</p>
+        <p><strong>blackid</strong>: {{ record.blackid }}</p> -->
+      </div>
+      <div id="map">  map
+        <!-- {# leaflet_map "map" callback="map_init" #} -->
+      </div>
+    </div>
+    <div class="col-sm-8">
+      {% for hit in hit_list %}
+        <p>{{ hit.json }}</p>
+      {% endfor %}
+    </div>
+  </div>
+</form>
+{% endfor %} <!-- record in records -->
+
 <script type="text/javascript">
 </script>
+</div> <!-- .container -->
 {% endblock %}

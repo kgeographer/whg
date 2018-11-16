@@ -1,5 +1,6 @@
 # datasets.views CLASS-BASED
-
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.forms import formset_factory, modelformset_factory
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import (
@@ -16,6 +17,82 @@ from .forms import DatasetModelForm
 from .tasks import read_delimited, align_tgn, read_lpf, add, mul, xsum
 import codecs, tempfile, os
 from pprint import pprint
+
+
+# TODO: revise for generic case
+def review(request, pk, tid): # dataset pk, celery recon task_id
+    print('request, pk, tid',request, pk, tid)
+    ds = get_object_or_404(Dataset, id=pk)
+    # TODO: also filter by reviewed, per authority
+    record_list = Place.objects.order_by('title').filter(dataset=ds)
+    paginator = Paginator(record_list, 1)
+    page = request.GET.get('page')
+    records = paginator.get_page(page)
+    count = len(record_list)
+
+    # placeid = records[0].placeid
+    # blackid = records[0].blackid
+
+    hit_list = Hit.objects.all().filter(task_id=tid)
+    context = {
+        'dataset_id':pk, 'task_id': tid, 'hit_list':hit_list,
+        'records': records,
+        'page': page if request.method == 'GET' else str(int(page)-1)
+    }
+    # HitFormset = modelformset_factory(
+    #     Hit, fields = ['id','tgnid', 'toponym', 'parent_string','aat_types',
+    #         'geom','note','names' ],form=HitModelForm,extra=0)
+    # formset = HitFormset(request.POST or None, queryset=q)
+    # context['formset'] = formset
+
+    # record_list = BlackPlace.objects.order_by('placeid').filter(reviewed=False)
+    # paginator = Paginator(record_list, 1)
+    # page = request.GET.get('page')
+    # records = paginator.get_page(page)
+    # count = len(record_list)
+    # # next = str(int(page)+1)
+    # print('next:', next)
+    # context = {
+    #     'records': records,
+    #     'page': page if request.method == 'GET' else str(int(page)-1)
+    # }
+    # placeid = records[0].placeid
+    # blackid = records[0].blackid
+    #
+    # q = TGNHit.objects.filter(blackid=blackid)
+    # HitFormset = modelformset_factory(
+    #     TGNHit, fields = ['id','tgnid', 'toponym', 'parent_string','aat_types',
+    #         'geom','note','names' ],form=HitModelForm,extra=0)
+    # formset = HitFormset(request.POST or None, queryset=q)
+    # context['formset'] = formset
+    #
+    # if request.method == 'GET':
+    #     method = request.method
+    #     print('a GET')
+    # else:
+    #     if formset.is_valid():
+    #         print('formset is valid')
+    #         for x in range(len(formset)):
+    #             print('note before create link',formset[x].cleaned_data)
+    #             link = Link.objects.create(
+    #                 placeid = placeid,
+    #                 tgnid = formset[x].cleaned_data['tgnid'],
+    #                 match = formset[x].cleaned_data['match'],
+    #                 flag_geom = formset[x].cleaned_data['flag_geom'],
+    #                 review_note = formset[x].cleaned_data['review_note']
+    #             )
+    #             # flag black record as reviewed
+    #             matchee = get_object_or_404(BlackPlace, placeid = placeid)
+    #             matchee.reviewed = True
+    #             matchee.save()
+    #         # since 'reviewed' is filtered, it's always page 1
+    #         return redirect('/formset/?page='+page)
+    #     else:
+    #         print('formset is NOT valid')
+    #         print(formset.errors)
+    # pprint(locals())
+    # return render(request, 'validator/multihit.html', context=context)
+    return render(request, 'datasets/review.html', context=context)
 
 # initiate, monitor reconciliation service
 def ds_recon(request, pk):
@@ -46,11 +123,11 @@ def ds_recon(request, pk):
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds})
 
-def review(request, pk, tid):
+def review_list(request, pk, tid):
     print('request, pk, tid:',request, pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
     hit_list = Hit.objects.all().filter(task_id=tid)
-    return render(request, 'datasets/review.html', {'ds':ds, 'hit_list': hit_list})
+    return render(request, 'datasets/review_list.html', {'ds':ds, 'hit_list': hit_list})
 
 # distinct from (redundant to?) api.views
 class DatasetCreateView(CreateView):
