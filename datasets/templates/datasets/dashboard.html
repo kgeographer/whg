@@ -14,7 +14,7 @@
 
       {% for d in dataset_list %}
         <div class="dataset-box mb-2">
-          <h4>{{ d.name }} ({{ d.id }})
+          <h4>{{ d.name }}
             <!-- TODO: built in confirm using CBV -->
             <a onclick="return confirm('Are you sure?')"
               href="{% url 'datasets:dataset-delete' d.id %}" class=" float-right"
@@ -36,15 +36,17 @@
           </h4>
           <div class="row">
           <div id="ds_metadata" class="col-sm-6"><p>
-            <b>Label</b>: {{ d.label }} <br/>
+            <b>ID</b>: {{ d.id }}&nbsp;&nbsp;<b>Label</b>: {{ d.label }} <br/>
             <b>Description</b>: {{ d.description }} <br/>
               {% if d.file %}
                 <b>File</b>: <span class="text-danger">{{ d.file }}</span><br/>
               {% endif %}
             <b>Uploaded</b>: {{ d.upload_date }}<br/>
              {% if d.mapbox_id %}
-               <span class="ml-3"><a href="{% url 'maps_home' %}">Map</a></span>
+             {% autoescape on %}
+               <span><a href="{% url 'map_view' mid=d.mapbox_id|escape %}">Map</a></span>
                <br/>
+             {% endautoescape %}
              {% endif %}
             <b>Status</b>: <span class="text-danger">{{ d.status }}</span>
           </p></div>

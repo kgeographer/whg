@@ -17,6 +17,7 @@
         <input type="hidden" name="owner" value='{{ user.id }}'></input>
         {% if action == 'update' %}
           <input type="hidden" name="status" value='{{ form.status.value }}'></input>
+          <input type="hidden" name="header" value='{{ form.header.value }}'></input>
         {% elif action == 'create' %}
           <input type="hidden" name="status" value=''></input>
           <input type="hidden" name="delimiter" value=''></input>

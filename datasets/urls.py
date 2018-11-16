@@ -18,16 +18,15 @@ urlpatterns = [
 
 
     # insert file data to db
-    # path('insert/<int:pk>', views.ds_insert, name="ds_insert"),
     path('<int:pk>/insert/', views.ds_insert, name="ds_insert"),
 
     # select authority for reconciliation
     path('<int:pk>/recon/', views.ds_recon, name="ds_recon"), # form submit
+
     # review, validate hits
     path('<int:pk>/review/<str:tid>', views.review, name="review"),
 
     # list places
-    # path('datagrid/<str:label>', views.ds_grid, name='ds_grid'),
     path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
 
 
