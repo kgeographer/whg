@@ -1,7 +1,31 @@
-# dataasets.formset
+# datasets.formset
 
 from django import forms
-from main.models import Dataset
+from .models import Dataset, Hit
+
+
+MATCHTYPES = [
+    ('related','related'),
+    ('close_match','closeMatch'),
+    ('exact_match','exactMatch'),
+    ('none','no match'),]
+
+class HitModelForm(forms.ModelForm):
+    match = forms.CharField(initial='none',widget=forms.RadioSelect(choices=MATCHTYPES))
+    flag_geom = forms.BooleanField(initial=False, required=False)
+    review_note = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'rows':2,'cols': 80,'class':'textarea',
+        'placeholder':'got notes?'})
+    )
+    class Meta:
+        model = Hit
+        fields = ['task_id','authority','dataset','place_id',
+            'authrecord_id','json' ]
+        widgets = {
+            'id': forms.HiddenInput(),
+            'flag_geom': forms.CheckboxInput(),
+        }
+
 
 class DatasetModelForm(forms.ModelForm):
     class Meta:

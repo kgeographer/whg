@@ -13,7 +13,7 @@ from django.views.generic import (
 from .models import Dataset, Hit, Link
 from django_celery_results.models import TaskResult
 from main.models import *
-from .forms import DatasetModelForm
+from .forms import DatasetModelForm, HitModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
 import codecs, tempfile, os
 from pprint import pprint
@@ -23,6 +23,7 @@ from pprint import pprint
 def review(request, pk, tid): # dataset pk, celery recon task_id
     print('pk, tid:', pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
+    task = get_object_or_404(TaskResult, task_id=tid)
     # TODO: also filter by reviewed, per authority
 
     # dataset place records
@@ -32,31 +33,18 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     records = paginator.get_page(page)
     count = len(record_list)
 
-    # placeid = records[0].placeid
-    # blackid = records[0].blackid
-
-    # task_id = models.CharField(max_length=50)
-    # authority = models.CharField(max_length=12, choices=AUTHORITIES )
-    # dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    # place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
-    # query_pass = models.CharField(max_length=12, choices=AUTHORITIES )
-    #
-    # # authority record identifier (could be uri)
-    # authrecord_id = models.CharField(max_length=255)
-    #
-    # # json response; parse later according to authority
-    # json = JSONField(blank=True, null=True)
+    placeid = records[0].id
     # recon task hits
-    hit_list = Hit.objects.all().filter(task_id=tid)
+    hit_list = Hit.objects.all().filter(place_id=placeid)
     context = {
-        'ds_id':pk, 'ds_label': ds.label, 'task_id': tid, 
-        'hit_list':hit_list,
+        'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
+        'hit_list':hit_list, 'authority': task.task_name,
         'records': records,
         'page': page if request.method == 'GET' else str(int(page)-1)
     }
     HitFormset = modelformset_factory(
-        Hit, fields = ['task_id','authority', 'dataset', 'place_id','query_pass',
-            'authrecord_id','json' ],form=DatasetModelForm,extra=0)
+        Hit, fields = ['task_id','authority','dataset','place_id',
+            'authrecord_id','json'],form=HitModelForm,extra=0)
     formset = HitFormset(request.POST or None, queryset=hit_list)
     context['formset'] = formset
 

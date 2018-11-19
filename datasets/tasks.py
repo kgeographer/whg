@@ -260,14 +260,13 @@ def align_tgn(pk, *args, **kwargs):
                 # print('creating hit:',hit)
                 # new = Hit.objects.create(
                 new = Hit(
-                    task_id = align_tgn.request.id,
                     authority = 'tgn',
+                    authrecord_id = hit['_id'],
                     dataset = ds,
                     place_id = get_object_or_404(Place, id=query_obj['place_id']),
-                    # place_id = query_obj['place_id'],
-                    authrecord_id = hit['_id'],
-                    query_pass = hit['pass'],
-                    json = hit,
+                    task_id = align_tgn.request.id,
+                    # TODO: articulate hit here
+                    json = hit['_source'],
                 )
                 new.save()
 

@@ -1,6 +1,19 @@
-/* h3 {
-  font-family: Georgia, serif;
-} */
+
+.match_radio {background-color: #e0e0e0;}
+.match_radio li {display:inline; margin-left:5px;}
+.match_radio ul {list-style-type: none; float: right;}
+
+#review_detail {
+  height: 100%;
+  overflow-y: scroll;
+}
+.notefield {
+  /* background-color: cornsilk; */
+  height:100;
+  display: none;
+}
+.noteicon {margin-left: 4px;}
+.noteicon:hover {cursor: pointer;}
 
 .dataset-box {
   border: 1px solid gray;

@@ -10,7 +10,8 @@
 {% block content %}
 <div class="container">
 <!-- incoming: ds, hit_list -->
-<h4>{ dataset } -> { authority }</h4>
+<h4 class="mb-3 mt-3">
+  Review {{ ds_label }} -> {{ authority }} ({{ task_id|truncatechars:11 }})</h4>
 <div class="pagination">
   <span class="step-links">
       {% if records.has_previous %}
@@ -36,9 +37,8 @@
   {% csrf_token %}
   {{ formset.management_form }}
   <input type="hidden" name="placeid" value="{{ record.placeid }}" />
-
   <div class="container flex">
-  <h4 class="mb-3 mt-3">Review {{ ds_label }} (task: {{ task_id|truncatechars:11 }})</h4>
+
   <hr/>
   <div class="row">
     <div class="col-sm-4 col-record">
@@ -68,7 +68,7 @@
       <div id="review_detail">
         {% for form in formset %}
           <input type="hidden" name="tgnid" value='{{ form.tgnid.value }}'></input>
-          <div class="bg-warning pl-2 matchbar">
+          <div class="bg-warning pl-2 pr-2 matchbar">
             <span class="custom-control custom-radio match_radio">
               {{ form.match }}
               {% if form.geom != Null %}
@@ -82,12 +82,13 @@
           </div>
           {{ form.non_field_errors }}
           <div id="tgn_match" class="bg-light pl-2">
-              <p style="display:none;"><strong>tgnid</strong>: {{ form.id }}</p>
-              <p><strong>tgnid</strong>: {{ form.tgnid.value }} {{ form.id }}</p>
+              <!-- <p style="display:none;"><strong>tgnid</strong>: {{ form.json }}</p> -->
+              <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
               <div class="expandy"><p><strong>Names</strong>: {{ form.toponym.value }} ({{ form.names.value }})</p></div>
-              <p class="mt-2"><strong>Types</strong>: {{ form.aat_types.value }}</p>
-              <p><strong>Parents</strong>: {{ form.parent_string.value }}</p>
-              <div class="expandy"><p><strong>JSON</strong>: {{ form.json.value }}</p></div>
+              <!-- <p class="mt-2"><strong>Types</strong>: {{ form.json }}</p> -->
+              <!-- <p><strong>Parents</strong>: {{ form. }}</p> -->
+              <div class="expandy">
+                <p><strong>JSON</strong>: {{ form.json.value }}</p></div>
               <hr/>
           </div>
           <hr/>
