@@ -14,7 +14,7 @@ from .models import Dataset, Hit, Link
 from django_celery_results.models import TaskResult
 from main.models import *
 from .forms import DatasetModelForm
-from .tasks import read_delimited, align_tgn, read_lpf, add, mul, xsum
+from .tasks import read_delimited, align_tgn, read_lpf
 import codecs, tempfile, os
 from pprint import pprint
 
@@ -291,9 +291,13 @@ def ds_insert(request, pk ):
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'unk.'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
-        ccodes = r[header.index('ccodes')][2:-2].split('", "') if 'ccodes' in header else []
-        coords = [float(r[header.index('lon')]), float(r[header.index('lat')])]
-        close_match = r[header.index('close_match')][2:-2].split('", "') if 'close_match' in header else []
+        ccodes = r[header.index('ccodes')][2:-2].split('", "') \
+            if 'ccodes' in header else []
+        coords = [
+            float(r[header.index('lon')]),
+            float(r[header.index('lat')])] if 'lon' in header else []
+        close_match = r[header.index('close_match')][2:-2].split('", "') \
+            if 'close_match' in header else []
         exact_match = r[header.index('exact_match')][1:-1] \
             if 'exact_match' in header else []
         # nice to have
@@ -330,12 +334,13 @@ def ds_insert(request, pk ):
         ))
 
         # PlaceGeom()
-        objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
-            # src_id = src_id,
-            # dataset = dataset,
-            json={"type": "Point", "coordinates": coords,
-                "geowkt": 'POINT('+str(coords[0])+' '+str(coords[1])+')'}
-        ))
+        if 'lon' in header:
+            objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
+                # src_id = src_id,
+                # dataset = dataset,
+                json={"type": "Point", "coordinates": coords,
+                    "geowkt": 'POINT('+str(coords[0])+' '+str(coords[1])+')'}
+            ))
 
         # # PlaceLink()
         if len(list(filter(None,close_match))) > 0:

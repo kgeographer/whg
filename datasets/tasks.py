@@ -90,7 +90,8 @@ def es_lookup(qobj):
     placetypes = qobj['placetypes']
 
     # geom and centroid are avalable
-    location = qobj['geom']
+    if 'geom' in qobj.keys():
+        location = qobj['geom']
 
     # TODO: ensure name search on ANY(names.name)
     # TODO: handle variants
@@ -109,13 +110,13 @@ def es_lookup(qobj):
                 # TODO: ensure contributed types are AAT labels
                 ,{"match": {"types.placetype": placetypes[0]}}
               ]
-              ,"filter" : {
-                "geo_distance" : {
-                    "ignore_unmapped": "true",
-                    "distance" : "50km",
-                    "location.coordinates" : qobj['geom']['coordinates']
-                }
-            }
+            #   ,"filter" : {
+            #     "geo_distance" : {
+            #         "ignore_unmapped": "true",
+            #         "distance" : "50km",
+            #         "location.coordinates" : qobj['geom']['coordinates']
+            #     }
+            # }
           }
         }
       }
@@ -130,13 +131,13 @@ def es_lookup(qobj):
                 {"terms" : { "names.name" : altnames }}
                 ,{"match": {"parents": parent}}
               ]
-              , "filter" : {
-                "geo_distance" : {
-                    "ignore_unmapped": "true",
-                    "distance" : "50km",
-                    "location.coordinates" : qobj['geom']['coordinates']
-                }
-                }
+              # , "filter" : {
+              #   "geo_distance" : {
+              #       "ignore_unmapped": "true",
+              #       "distance" : "50km",
+              #       "location.coordinates" : qobj['geom']['coordinates']
+              #   }
+              #   }
           }
     }}
     # pass3a: name and distance
@@ -149,14 +150,14 @@ def es_lookup(qobj):
                   #}
                   "terms" : { "names.name" : altnames }
                 }
-                ,"filter" : {
-                    "geo_distance" : {
-                        "ignore_unmapped": "true",
-                        "distance" : "200km",
-                        # "location.coordinates" : qobj['geom']['coordinates'][0]
-                        "location.coordinates" : qobj['geom']['coordinates']
-                    }
-                }
+                # ,"filter" : {
+                #     "geo_distance" : {
+                #         "ignore_unmapped": "true",
+                #         "distance" : "200km",
+                #         # "location.coordinates" : qobj['geom']['coordinates'][0]
+                #         "location.coordinates" : qobj['geom']['coordinates']
+                #     }
+                # }
             }
     }}
     # pass3b: name only
@@ -202,7 +203,8 @@ def es_lookup(qobj):
             # now name only; may yield a few correct matches
             # because place type mapping is imperfect
             # tests geometry (200km) if exists
-            if qobj['geom'] != None:
+            if 'geom' not in qobj.keys():
+            # if qobj['geom'] != None:
                 res3 = es.search(index="tgn", body = q3)
             else:
                 res3 = es.search(index="tgn", body = q4) # no geom
@@ -238,7 +240,8 @@ def align_tgn(pk, *args, **kwargs):
         query_obj['altnames'] = altnames
         query_obj['countries'] = place.ccodes
         # TODO: handle multipoint, polygons(?)
-        query_obj['geom'] = place.geoms.first().json
+        # if place.geoms is not None:
+        #     query_obj['geom'] = place.geoms.first().json
         query_obj['placetypes'] = [place.types.first().json['label']]
 
         # run es query on this record
@@ -285,7 +288,8 @@ def read_delimited(infile, username):
     result = {'format':'delimited','errors':{}}
     # required fields
     # TODO: req. fields not null or blank
-    required = ['id', 'name', 'name_src', 'ccodes', 'lon', 'lat']
+    # required = ['id', 'name', 'name_src', 'ccodes', 'lon', 'lat']
+    required = ['id', 'name', 'name_src']
 
     # learn delimiter [',',';']
     dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
@@ -299,8 +303,8 @@ def read_delimited(infile, username):
     header = next(reader, None) #.split(dialect.delimiter)
     result['columns'] = header
 
-    if not len(set(header) & set(required)) == 6:
-        result['errors']['req'] = 'missing required column (id,name,name_src, ccodes,lon,lat)'
+    if not len(set(header) & set(required)) == 3:
+        result['errors']['req'] = 'missing a required column (id,name,name_src)'
         return result
     #print(header)
     rowcount = 1
@@ -317,18 +321,19 @@ def read_delimited(infile, username):
 
         # make geojson
         # TODO: test lon, lat makes valid geometry
-        if r[header.index('lon')] not in ('', None):
-            feature = {
-                'type':'Feature',
-                'geometry': {'type':'Point',
-                             'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
-                'properties': {'id':r[header.index('id')], 'name': r[header.index('name')]}
-            }
-            # props = set(header) - set(required)
-            # print('props',props)
-            # for p in props:
-            #     feature['properties'][p] = r[header.index(p)]
-            geometries.append(feature)
+        if 'lon' in header:
+            if r[header.index('lon')] not in ('', None):
+                feature = {
+                    'type':'Feature',
+                    'geometry': {'type':'Point',
+                                 'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
+                    'properties': {'id':r[header.index('id')], 'name': r[header.index('name')]}
+                }
+                # props = set(header) - set(required)
+                # print('props',props)
+                # for p in props:
+                #     feature['properties'][p] = r[header.index(p)]
+                geometries.append(feature)
 
     if len(result['errors'].keys()) == 0:
         # don't add geometries to result
@@ -343,16 +348,3 @@ def read_delimited(infile, username):
 
 def read_lpf(infile):
     return 'reached tasks.read_lpf()'
-
-@task(name="sum_two_numbers")
-def add(x, y):
-    return x + y
-
-@task(name="multiply_two_numbers")
-def mul(x, y):
-    total = x * (y * random.randint(3, 100))
-    return total
-
-@task(name="sum_list_numbers")
-def xsum(numbers):
-    return sum(numbers)

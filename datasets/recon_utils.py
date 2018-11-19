@@ -10,8 +10,8 @@ def bestParent(qobj, flag=False):
     #     return parents['ccodes'][qobj['countries'][0]]['gnlabel'] if len(qobj['countries'])>0 else str([''])
     if len(qobj['countries']) > 0:
         best = parents['ccodes'][qobj['countries'][0]]['tgnlabel']
-    elif len(row['region']) > 0:
-        best = parents['regions'][qobj['region']]['tgnlabel']
+    # elif len(row['region']) > 0:
+    #     best = parents['regions'][qobj['region']]['tgnlabel']
     else:
         best = 'World'
     return best

@@ -66,7 +66,7 @@ class PlaceType(models.Model):
     json = JSONField(blank=True, null=True)
 
     def __str__(self):
-        return self.label (self.json.source_label)
+        return self.json.label (self.json.src_label)
 
     class Meta:
         managed = True
