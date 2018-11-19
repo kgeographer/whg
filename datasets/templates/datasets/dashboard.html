@@ -52,8 +52,7 @@
           </p></div>
           {% for t in d.tasks %}
             <p>{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
-               <a href="{% url 'datasets:review-list' pk=d.id tid=t.task_id %}"><i>review list</i></a>
-               <a href="{% url 'datasets:review' pk=d.id tid=t.task_id %}"><i>review app</i></a>
+               <a href="{% url 'datasets:review' pk=d.id tid=t.task_id %}"><i>review</i></a>
             </p>
           {% endfor %}
           {% if d.status == "uploaded" %}
