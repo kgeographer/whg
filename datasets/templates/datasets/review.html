@@ -1,5 +1,6 @@
 <!-- datasets/review.html -->
 {% extends "main/base.html" %}
+{% load leaflet_tags %}
 {% load fontawesome %}
 {% load static %}
 
@@ -37,40 +38,164 @@
   <input type="hidden" name="placeid" value="{{ record.placeid }}" />
 
   <div class="container flex">
-  <h4 class="mb-3 mt-3">Review {{ dataset_id }} ({{ task_id }})</h4>
+  <h4 class="mb-3 mt-3">Review {{ ds_label }} (task: {{ task_id|truncatechars:11 }})</h4>
   <hr/>
   <div class="row">
-    <div class="col-sm-4 col-record pt-3">
-      <div class="bg-secondary font-weight-bold pl-2 text-light"> Black atlas </div>
-      <div id="place-record" class="pt-2">
+    <div class="col-sm-4 col-record">
+      <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
+      <div id="place-record">
         <div>
-          <span><h4 class="text-danger">{{ record.toponym }} </h4></span>
+          <span><h4 class="text-danger">{{ record.title }} </h4></span>
           <span class="float-right">
             <button type="submit" class="btn btn-secondary float-right">Save</button>
           </span>
         </div>
-        <div>{{ record }}</div>
-        <!-- <p><strong>Place type(s)</strong>: {{ record.placetypes }}</p>
-        <p><strong>Modern country</strong>: {{ record.country1 }} ({{ record.tgn_country }})</p>
-        <p><strong>Atlas min/max years</strong>: {{ record.minmax }}</p>
-        <p><strong>Atlas page(map)</strong>: {{ record.maps }}</p>
-        <p><strong>placeid</strong>: {{ record.placeid }}</p>
-        <p><strong>blackid</strong>: {{ record.blackid }}</p> -->
+        <p><strong>Name variants</strong>:
+          {% for name in record.names.all %}
+           <br/>{{ name.json.toponym }}
+          {% endfor %}</p>
+        <p><strong>Place type(s)</strong>:
+          {% for type in record.types.all %}
+            <br/>{{ type.json.label }} ({{ type.json.src_label }})
+        {% endfor %}</p>
+        <!-- TODO: full place record -->
       </div>
-      <div id="map">  map
-        <!-- {# leaflet_map "map" callback="map_init" #} -->
+      <div id="map">
+        {% leaflet_map "map" callback="map_init" %}
       </div>
     </div>
     <div class="col-sm-8">
-      {% for hit in hit_list %}
+      <div id="review_detail">
+        {% for form in formset %}
+          <input type="hidden" name="tgnid" value='{{ form.tgnid.value }}'></input>
+          <div class="bg-warning pl-2 matchbar">
+            <span class="custom-control custom-radio match_radio">
+              {{ form.match }}
+              {% if form.geom != Null %}
+                {{ form.geom.value|safe|json_script:form.tgnid.value }}
+                {{ form.flag_geom }} flag
+                <a class="geolink" id="{{ form.tgnid.value }}" href="javascript:{ zoomTo('tgn:'+{{ form.tgnid.value }}) }">geometry</a>
+              {% endif %}
+              <span class="noteicon">{% fontawesome_icon 'comment' color='#666666' %}</span>
+            </span>
+            <div class="notefield">{{ form.review_note}}</div>
+          </div>
+          {{ form.non_field_errors }}
+          <div id="tgn_match" class="bg-light pl-2">
+              <p style="display:none;"><strong>tgnid</strong>: {{ form.id }}</p>
+              <p><strong>tgnid</strong>: {{ form.tgnid.value }} {{ form.id }}</p>
+              <div class="expandy"><p><strong>Names</strong>: {{ form.toponym.value }} ({{ form.names.value }})</p></div>
+              <p class="mt-2"><strong>Types</strong>: {{ form.aat_types.value }}</p>
+              <p><strong>Parents</strong>: {{ form.parent_string.value }}</p>
+              <div class="expandy"><p><strong>JSON</strong>: {{ form.json.value }}</p></div>
+              <hr/>
+          </div>
+          <hr/>
+        {% endfor %}
+      </div> <!-- review_detail -->
+      <!-- {# for hit in hit_list #}
         <p>{{ hit.json }}</p>
-      {% endfor %}
+      {# endfor #} -->
     </div>
   </div>
 </form>
 {% endfor %} <!-- record in records -->
-
-<script type="text/javascript">
-</script>
 </div> <!-- .container -->
+<script type="text/javascript">
+    $(function(){
+      // defaults to string 'None' - no idea why
+      $('.textarea').html('')
+    })
+    // expose leaflet map for events, call it 'mappy'
+    window.addEventListener('map:init', function (e) {
+      window.mappy = e.detail.map
+    }, false);
+
+    $('.noteicon').on('click', function(){
+      $(this).parents(".matchbar").find(".notefield").toggle()
+      // console.log('clicked',$(this).parents(".matchbar").find(".notefield"))
+    })
+
+    $('.noteicon').hover(function(){
+      console.log('hovering')
+    })
+
+    $( ".geolink" ).hover(
+      function() {
+        let id = 'tgn:'+$(this)[0].id.toString()
+        feat = idToFeature[id]
+        feat.setStyle(
+          {radius: 10, fillColor: 'red'}
+        )
+      },
+      function() {
+        let id = 'tgn:'+$(this)[0].id.toString()
+        feat = idToFeature[id]
+        feat.setStyle(
+          {radius: 8, fillColor: '#ff7800'}
+        )
+      }
+    );
+
+    // closer look
+    function zoomTo(id) {
+      mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
+    }
+
+    // initialize, render map
+    function map_init (map, options) {
+      console.log('in map_init()')
+      geom = {"type":"FeatureCollecton","features":[]}
+
+      window.gelems = $('script').filter(function() {
+        return this.id.match(/[0-9]/) && this.text != '"null"';
+      });
+
+      for (i=0;i<gelems.length;i++){
+        let t_geom = JSON.parse(JSON.parse(gelems[i].text))
+        t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
+        geom['features'].push(t_geom)
+      }
+
+      function fill(dataset) {
+        if (dataset == 'tgn')
+          return "#ff7800"
+        else if (dataset == 'dbp')
+          return "#98E2FA"
+        else
+          return "#7AFF7A"
+      }
+
+      if (geom['features'].length > 0) {
+        console.log('geom: ',geom)
+        idToFeature = {} // for feature lookup
+        features = L.geoJSON(geom, {
+          pointToLayer: function (feature, latlng) {
+            matchid = feature.properties.dataset+':'+feature.properties.id
+            marker = L.circleMarker(latlng,
+              {
+                radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+                color: "#000", fillColor: fill(feature.properties.dataset)
+              }
+            ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+
+            idToFeature[matchid] = marker
+            return marker
+          }
+        }).addTo(map);
+
+        if (geom['features'].length > 1) {
+          map.fitBounds(features.getBounds().pad(1))
+        } else {
+          latlng = L.latLng(
+            geom['features'][0].coordinates[1],
+            geom['features'][0].coordinates[0])
+          map.setView(latlng, 4)
+        }
+
+      } else {
+        console.log('no geometries, no feature')
+      }
+    } // end map_init
+  </script>
 {% endblock %}
