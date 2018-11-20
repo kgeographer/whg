@@ -84,9 +84,11 @@
           <div id="tgn_match" class="bg-light pl-2">
               <!-- <p style="display:none;"><strong>tgnid</strong>: {{ form.json }}</p> -->
               <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
-              <div class="expandy"><p><strong>Names</strong>: {{ form.toponym.value }} ({{ form.names.value }})</p></div>
-              <!-- <p class="mt-2"><strong>Types</strong>: {{ form.json }}</p> -->
-              <!-- <p><strong>Parents</strong>: {{ form. }}</p> -->
+              <div class="expandy"><p><strong>Names</strong>:
+                {{ form.names }}</p></div>
+              <p class="mt-2"><strong>Types</strong>:
+                {{ form.types }}</p>
+              <p><strong>Parents</strong>: {{ parents }}</p>
               <div class="expandy">
                 <p><strong>JSON</strong>: {{ form.json.value }}</p></div>
               <hr/>

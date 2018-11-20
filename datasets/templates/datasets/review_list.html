@@ -16,8 +16,10 @@
   </div>
   <div class="col-sm-8">
     {% for hit in hit_list %}
+      <h5>{{ hit.json|get:"title" }}</h5>
       <p>{{ hit.json }}</p>
     {% endfor %}
+      <!-- |get:"_source" -->
   </div>
 </div>
 <script type="text/javascript">
