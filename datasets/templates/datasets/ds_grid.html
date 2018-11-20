@@ -9,7 +9,7 @@
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container flex">
-<h4 class="text-danger mt-3">{{ ds.name }} ({{ ds.label }})</h4>
+<h4 class="mt-3">{{ ds.name }} ({{ ds.label }})</h4>
 <div class="row">
   <div id="map_detail" class="col-sm-5 col-record pt-3">
     <div id="place_detail">
@@ -54,10 +54,13 @@
   }, false);
 
   function parsePlace(data) {
-    html='<div>'
+    html='<div><h5 class="text-danger"><b>'
+      +data['title']+'</b></h5>'
     for (var key in data){
-      html+='<p class="place-detail"><b>'+[key]+
-        '</b>: '+JSON.stringify(data[key])+'</p>';
+      if (['ccodes','names','types','links'].includes(key)) {
+        html+='<p class="place-detail"><b>'+[key]+
+          '</b>: '+JSON.stringify(data[key])+'</p>';
+      }
     }
     html += '</div>'
     return html
