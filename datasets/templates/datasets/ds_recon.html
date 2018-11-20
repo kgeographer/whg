@@ -59,7 +59,7 @@
     <p><b>Task ID</b>: {{ context.task_id }}</p>
     <p class="mb-3"><b>Result summary</b>:
       {{ context.result }}    </p>
-    <button type="submit" action="javascript:alert('load review app')" class="btn btn-primary">Review hits</button>
+    <button type="text" action="{% url 'datasets:review' pk=ds.id tid=context.task_id %}" class="btn btn-primary">Review hits</button>
   </div>
   {% endif %}
 </div>

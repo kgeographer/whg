@@ -266,6 +266,7 @@ def align_tgn(pk, *args, **kwargs):
                     place_id = get_object_or_404(Place, id=query_obj['place_id']),
                     task_id = align_tgn.request.id,
                     # TODO: articulate hit here
+                    # json = hit,
                     json = hit['_source'],
                 )
                 new.save()
