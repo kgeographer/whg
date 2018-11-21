@@ -20,7 +20,7 @@
     </div>
     <!-- <div id="map">{# leaflet_map "map" callback="map_init" #}</div> -->
   </div>
-  <div id="data_grid" class="col-sm-7 float-right pt-6">
+  <div id="data_grid" class="col-sm-7 pt-6">
     <table class="table table-striped">
         <thead>
             <th></th>
@@ -53,15 +53,21 @@
     window.mappy = e.detail.map
   }, false);
 
+  // TODO: better parsing here
   function parsePlace(data) {
+    window.data = data
     html='<div><h5 class="text-danger"><b>'
       +data['title']+'</b></h5>'
-    for (var key in data){
-      if (['ccodes','names','types','links'].includes(key)) {
-        html+='<p class="place-detail"><b>'+[key]+
-          '</b>: '+JSON.stringify(data[key])+'</p>';
-      }
-    }
+    html+='<p><b>Names</b>: '+ data.names[0].toponym +'</p>'
+    + '<p><b>Types</b>: '+ data.types[0].label +'</p>'
+    + '<p><b>Links</b>: '+ data['links'] +'</p>'
+    + '<p><b>Countries</b>: '+ data['ccodes'] +'</p>'
+    // for (var key in data){
+    //   if (['ccodes','names','types','links'].includes(key)) {
+    //     html+='<p class="place-detail"><b>'+[key]+
+    //       '</b>: '+JSON.stringify(data[key])+'</p>';
+    //   }
+    // }
     html += '</div>'
     return html
   }
@@ -78,6 +84,7 @@
     // initialize with detail for first place in list
     row = $("#data_grid table tbody")[0].rows[0]
     pid = parseInt(row.cells[2].textContent)
+    // populate place detail
     getPlace(pid)
   })
 

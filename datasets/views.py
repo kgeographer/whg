@@ -19,7 +19,7 @@ import codecs, tempfile, os
 from pprint import pprint
 
 
-# TODO: revise for generic case
+# initiate, monitor reconciliation service
 def review(request, pk, tid): # dataset pk, celery recon task_id
     print('pk, tid:', pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
@@ -77,33 +77,6 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     # pprint(locals())
     # return render(request, 'validator/multihit.html', context=context)
     return render(request, 'datasets/review.html', context=context)
-
-# initiate, monitor reconciliation service
-def review_list(request, pk, tid):
-    print('request, pk, tid:',request, pk, tid)
-    ds = get_object_or_404(Dataset, id=pk)
-    task = get_object_or_404(TaskResult, task_id=tid)
-
-    record_list = Place.objects.order_by('title').filter(dataset=ds)
-    paginator = Paginator(record_list, 1)
-    page = request.GET.get('page')
-    records = paginator.get_page(page)
-    count = len(record_list)
-
-    placeid = records[0].id
-    # recon task hits
-    # hit_list = Hit.objects.all().filter(place_id=placeid)
-    hit_list = Hit.objects.all().filter(place_id=2208)
-
-    context = {
-        'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
-        'hit_list':hit_list, 'authority': task.task_name,
-        'records': records,
-        'page': page if request.method == 'GET' else str(int(page)-1)
-    }
-    # print('hit_list',hit_list)
-    return render(request, 'datasets/review_list.html', context=context)
-
 
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)

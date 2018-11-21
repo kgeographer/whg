@@ -24,7 +24,7 @@ urlpatterns = [
     path('<int:pk>/recon/', views.ds_recon, name="ds_recon"), # form submit
 
     # review, validate hits
-    path('<int:pk>/review-list/<str:tid>', views.review_list, name="review-list"),
+    # path('<int:pk>/review-list/<str:tid>', views.review_list, name="review-list"),
     path('<int:pk>/review/<str:tid>', views.review, name="review"),
 
     # list places
