@@ -74,7 +74,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
         else:
             print('formset is NOT valid')
             print(formset.errors)
-    pprint(locals())
+    # pprint(locals())
     # return render(request, 'validator/multihit.html', context=context)
     return render(request, 'datasets/review.html', context=context)
 

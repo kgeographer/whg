@@ -71,10 +71,11 @@
           <div class="bg-warning pl-2 pr-2 matchbar">
             <span class="custom-control custom-radio match_radio">
               {{ form.match }}
-              {% if form.geom != Null %}
-                {{ form.geom.value|safe|json_script:form.tgnid.value }}
+              {% if form.json.value|get:"location" != Null %}
+                {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}
+                <!-- {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }} -->
                 {{ form.flag_geom }} flag
-                <a class="geolink" id="{{ form.tgnid.value }}" href="javascript:{ zoomTo('tgn:'+{{ form.tgnid.value }}) }">geometry</a>
+                <a class="geolink" id="{{ form.authrecord_id.value }}" href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">geometry</a>
               {% endif %}
               <span class="noteicon">{% fontawesome_icon 'comment' color='#666666' %}</span>
             </span>
@@ -82,23 +83,20 @@
           </div>
           {{ form.non_field_errors }}
           <div id="tgn_match" class="bg-light pl-2">
-              <!-- <p style="display:none;"><strong>tgnid</strong>: {{ form.json }}</p> -->
               <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
-              <div class="expandy"><p><strong>Names</strong>:
-                {{ form.names }}</p></div>
-              <p class="mt-2"><strong>Types</strong>:
-                {{ form.types }}</p>
-              <p><strong>Parents</strong>: {{ parents }}</p>
-              <div class="expandy">
-                <p><strong>JSON</strong>: {{ form.json.value }}</p></div>
-              <hr/>
+                <p><strong>Names</strong>:
+                  {% for n in form.json.value|get:"names" %}
+                    {{ n.name|add:"; " }}
+                  {% endfor %}
+                </p>
+                <p class="mt-2"><strong>Types</strong>:
+                  {% for t in form.json.value|get:"types" %}
+                    {{ t.placetype|add:"; " }}
+                  {% endfor %}</p>
+              <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
           </div>
-          <hr/>
         {% endfor %}
-      </div> <!-- review_detail -->
-      <!-- {# for hit in hit_list #}
-        <p>{{ hit.json }}</p>
-      {# endfor #} -->
+      </div>
     </div>
   </div>
 </form>
@@ -145,17 +143,24 @@
       mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
     }
 
+    function cleanJson(text) {
+      z=text.replace(/'/g,'\\"')
+      y=z.replace(/point/,'Point')
+      return JSON.parse(JSON.parse(y))
+    }
+
     // initialize, render map
     function map_init (map, options) {
       console.log('in map_init()')
-      geom = {"type":"FeatureCollecton","features":[]}
+      window.geom = {"type":"FeatureCollecton","features":[]}
 
       window.gelems = $('script').filter(function() {
         return this.id.match(/[0-9]/) && this.text != '"null"';
       });
 
       for (i=0;i<gelems.length;i++){
-        let t_geom = JSON.parse(JSON.parse(gelems[i].text))
+        let t_geom = cleanJson(gelems[i].text)
+        // let t_geom = JSON.parse(JSON.parse(gelems[i].text))
         t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
         geom['features'].push(t_geom)
       }
