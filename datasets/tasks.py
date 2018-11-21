@@ -303,6 +303,7 @@ def read_delimited(infile, username):
     header = next(reader, None) #.split(dialect.delimiter)
     result['columns'] = header
 
+    # TODO: specify which is missing
     if not len(set(header) & set(required)) == 3:
         result['errors']['req'] = 'missing a required column (id,name,name_src)'
         return result
@@ -329,6 +330,7 @@ def read_delimited(infile, username):
                                  'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
                     'properties': {'id':r[header.index('id')], 'name': r[header.index('name')]}
                 }
+                # TODO: add properties to geojson feature?
                 # props = set(header) - set(required)
                 # print('props',props)
                 # for p in props:

@@ -15,8 +15,8 @@
       {% for d in dataset_list %}
         <div class="dataset-box mb-2">
           <h4>{{ d.name }}
-            <!-- TODO: built in confirm using CBV -->
-            <a onclick="return confirm('Are you sure?')"
+            <!-- onclick="return confirm('Are you sure?')" -->
+            <a
               href="{% url 'datasets:dataset-delete' d.id %}" class=" float-right"
               title="Delete dataset" rel="tooltip">
               {% fontawesome_icon 'trash' color='#336699' %}</a>

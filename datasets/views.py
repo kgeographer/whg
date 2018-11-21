@@ -106,7 +106,7 @@ def ds_recon(request, pk):
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds})
 
-# distinct from (redundant to?) api.views
+# upload file, verify format
 class DatasetCreateView(CreateView):
     form_class = DatasetModelForm
     template_name = 'datasets/dataset_create.html'
@@ -123,7 +123,6 @@ class DatasetCreateView(CreateView):
             tempf, tempfn = tempfile.mkstemp()
             try:
                 for chunk in form.cleaned_data['file'].chunks():
-                # for chunk in request.FILES['file'].chunks():
                     os.write(tempf, chunk)
             except:
                 raise Exception("Problem with the input file %s" % request.FILES['file'])
@@ -231,13 +230,13 @@ def ds_grid(request, label):
 
 # insert LP-compatible records from csv file to database
 def ds_insert(request, pk ):
-    # retrieve just-added record then db insert
+    # retrieve just-added file, insert to db
     import os, csv, codecs,json
     dataset = get_object_or_404(Dataset, id=pk)
-    context = {'status': 'inserting'}
+    context = {'status': 'inserting'} #??
 
     infile = dataset.file.open(mode="r")
-    # already know delimiter
+    # should already know delimiter
     dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
     reader = csv.reader(infile, dialect)
     infile.seek(0)
@@ -248,34 +247,33 @@ def ds_insert(request, pk ):
         "PlaceLink":[], "PlaceRelated":[], "PlaceDescription":[],
         "PlaceDepiction":[]}
 
-    # id*, name*, name_src*, type^, variants[], ccodes[]^, lon^, lat^, geom_src, close_match[]^, exact_match[]^, description, depiction
-    #
+    # CSV * = req; ^ = desired
+    # id*, name*, name_src*, type^, variants[], parent^, ccodes[]^, lon^, lat^,
+    # geom_src, close_match[]^, exact_match[]^, description, depiction
+
     # TODO: what if simultaneous inserts?
     countrows=0
     countlinked = 0
     countlinks = 0
     # for r in reader:
     for i, r in zip(range(200), reader):
-        # ABANDONED place.placeid ## poll Place.objects.placeid.max()
-        # nextpid = (Place.objects.all().aggregate(models.Max('id'))['id__max'] or 0) + 1
-            # if Place.objects.all().count() > 0 else 10000001
-
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
         title = r[header.index('name')]
         name_src = r[header.index('name_src')]
         # encouraged for reconciliation
-        type = r[header.index('type')] if 'type' in header else 'unk.'
+        type = r[header.index('type')] if 'type' in header else 'not specified'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
+        parent = r[header.index('parent')] if 'parent' in header else ''
         ccodes = r[header.index('ccodes')][2:-2].split('", "') \
             if 'ccodes' in header else []
         coords = [
             float(r[header.index('lon')]),
             float(r[header.index('lat')])] if 'lon' in header else []
-        close_match = r[header.index('close_match')][2:-2].split('", "') \
+        close_match = r[header.index('close_match')].split('", "') \
             if 'close_match' in header else []
-        exact_match = r[header.index('exact_match')][1:-1] \
+        exact_match = r[header.index('exact_match')].split('", "') \
             if 'exact_match' in header else []
         # nice to have
         description = r[header.index('description')] \
@@ -311,6 +309,7 @@ def ds_insert(request, pk ):
         ))
 
         # PlaceGeom()
+        # TODO: test geometry type or force geojson
         if 'lon' in header:
             objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
                 # src_id = src_id,
@@ -331,12 +330,20 @@ def ds_insert(request, pk ):
                     json={"type":"closeMatch", "identifier":m}
                 ))
 
+        # PlaceRelated()
+        if 'parent' in header:
+            objs['PlaceRelated'].append(PlaceRelated(place_id=newpl,
+                json={
+                    "relation_type": "gvp:broaderPartitive",
+                    "relation_to": "",
+                    "label": parent
+                }
+            ))
+
         #
         # # PlaceWhen()
         # objs['PlaceWhen'].append(PlaceWhen())
         #
-        # # PlaceRelated()
-        # objs['PlaceRelated'].append(PlaceRelated())
         #
         # # PlaceDescription()
         # objs['PlaceDescription'].append(PlaceDescription())
@@ -351,13 +358,14 @@ def ds_insert(request, pk ):
     PlaceType.objects.bulk_create(objs['PlaceType'])
     PlaceGeom.objects.bulk_create(objs['PlaceGeom'])
     PlaceLink.objects.bulk_create(objs['PlaceLink'])
+    PlaceRelated.objects.bulk_create(objs['PlaceRelated'])
 
     context['status'] = 'inserted'
     print('rows,linked,links:',countrows,countlinked,countlinks)
     dataset.numrows = countrows
     dataset.numlinked = countlinked
     dataset.total_links = countlinks
-    # dataset.header = header
+    dataset.header = header
     dataset.status = 'inserted'
     dataset.save()
     print('record:', dataset.__dict__)

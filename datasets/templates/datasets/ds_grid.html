@@ -11,22 +11,22 @@
 <div class="container flex">
 <h4 class="mt-3">{{ ds.name }} ({{ ds.label }})</h4>
 <div class="row">
-  <div id="map_detail" class="col-sm-5 col-record pt-3">
+  <div id="map_detail" class="col-sm-4 col-record pt-3">
     <div id="place_detail">
       <p>
-        Display editable place record detail here:<br/>
-        names, geometries, types, links, relations, descriptions, depictions
+        place record detail here, inserted by JavaScript
       </p>
     </div>
     <!-- <div id="map">{# leaflet_map "map" callback="map_init" #}</div> -->
   </div>
-  <div id="data_grid" class="col-sm-7 pt-6">
+  <div id="data_grid" class="col-sm-8 pt-6">
     <table class="table table-striped">
         <thead>
             <th></th>
             <th>name</th>
             <th>place_id</th>
             <th>src_id</th>
+            <!-- <th>parent</th> -->
             <th>ccode(s)</th>
             <!-- <th>lon, lat</th> -->
         </thead>
@@ -38,6 +38,7 @@
               <td>{{ place.title }}</td>
               <td>{{ place.id }}</td>
               <td>{{ place.src_id }}</td>
+              <!-- <td>{{ place.related }}</td> -->
               <td>{{ place.ccodes }}</td>
               <!-- <td>{{ place.placegeom_set.all }}</td> -->
             </tr>
@@ -56,12 +57,40 @@
   // TODO: better parsing here
   function parsePlace(data) {
     window.data = data
+    console.log(data.links[0])
     html='<div><h5 class="text-danger"><b>'
       +data['title']+'</b></h5>'
     html+='<p><b>Names</b>: '+ data.names[0].toponym +'</p>'
-    + '<p><b>Types</b>: '+ data.types[0].label +'</p>'
-    + '<p><b>Links</b>: '+ data['links'] +'</p>'
-    + '<p><b>Countries</b>: '+ data['ccodes'] +'</p>'
+    + '<p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
+
+    if (data.related.length > 0) {
+      if (data.related[0].relation_type == 'gvp:broaderPartitive'){
+        html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
+      }
+      else {
+        html+='<p><b>Related</b>: '+ data.related[0].label +'</p>'
+      }
+    }
+
+    html_close = '<p class="mb-0"><b>closeMatches</b>: </p>'
+    html_exact = '<p class="mb-0"><b>exactMatches</b>: </p>'
+    close_count = exact_count = 0
+    for (l in data.links) {
+      if (data.links[l].type == 'closeMatch') {
+        close_count += 1
+        html_close+='<p>'+ data.links[l].identifier +'</p>'
+      }
+      else if (data.links[l].type == 'exactMatch') {
+        exact_count += 1
+        html_exact+='<p>'+ data.links[l].identifier +'</p>'
+      }
+    }
+    if (close_count > 0) html += html_close
+    if (exact_count > 0) html += html_exact
+
+    if (data.ccodes.length > 0) {
+      html+='<p><b>Countries</b>: '+ data.ccodes +'</p>'
+    }
     // for (var key in data){
     //   if (['ccodes','names','types','links'].includes(key)) {
     //     html+='<p class="place-detail"><b>'+[key]+
