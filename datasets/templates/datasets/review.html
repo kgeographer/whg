@@ -9,98 +9,97 @@
 {% endblock %}
 {% block content %}
 <div class="container">
-<!-- incoming: ds, hit_list -->
-<h4 class="mb-3 mt-3">
-  Review {{ ds_label }} -> {{ authority }} ({{ task_id|truncatechars:11 }})</h4>
-<div class="pagination">
-  <span class="step-links">
-      {% if records.has_previous %}
-          <a href="?page=1">&laquo; first</a>&nbsp;&nbsp;
-          <a href="?page={{ records.previous_page_number }}">previous</a>
-      {% endif %}
-      <span class="current">
-          Record {{ records.number }} of {{ records.paginator.num_pages }}
-      </span>
-      {% if records.has_next %}
-          <a href="?page={{ records.next_page_number }}">next</a>&nbsp;&nbsp;
-          <a href="?page={{ records.paginator.num_pages }}">last &raquo;</a>
-      {% endif %}
-  </span>
-</div>
-
-{% for record in records %} <!-- there is only one; if last, do nothing -->
-  {% if records.has_next %}
-  <form id="form_related" method="POST" action="" >
-    {% else %}
-  <form id="form_related" method="POST" action="" >
-  {% endif %}
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <input type="hidden" name="placeid" value="{{ record.placeid }}" />
-  <div class="container flex">
-
-  <hr/>
-  <div class="row">
-    <div class="col-sm-4 col-record">
-      <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
-      <div id="place-record">
-        <div>
-          <span><h4 class="text-danger">{{ record.title }} </h4></span>
-          <span class="float-right">
-            <button type="submit" class="btn btn-secondary float-right">Save</button>
-          </span>
-        </div>
-        <p><strong>Name variants</strong>:
-          {% for name in record.names.all %}
-           <br/>{{ name.json.toponym }}
-          {% endfor %}</p>
-        <p><strong>Place type(s)</strong>:
-          {% for type in record.types.all %}
-            <br/>{{ type.json.label }} ({{ type.json.src_label }})
-        {% endfor %}</p>
-        <!-- TODO: full place record -->
-      </div>
-      <div id="map">
-        {% leaflet_map "map" callback="map_init" %}
-      </div>
-    </div>
-    <div class="col-sm-8">
-      <div id="review_detail">
-        {% for form in formset %}
-          <input type="hidden" name="tgnid" value='{{ form.tgnid.value }}'></input>
-          <div class="bg-warning pl-2 pr-2 matchbar">
-            <span class="custom-control custom-radio match_radio">
-              {{ form.match }}
-              {% if form.json.value|get:"location" != Null %}
-                {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}
-                <!-- {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }} -->
-                {{ form.flag_geom }} flag
-                <a class="geolink" id="{{ form.authrecord_id.value }}" href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">geometry</a>
-              {% endif %}
-              <span class="noteicon">{% fontawesome_icon 'comment' color='#666666' %}</span>
-            </span>
-            <div class="notefield">{{ form.review_note}}</div>
-          </div>
-          {{ form.non_field_errors }}
-          <div id="tgn_match" class="bg-light pl-2">
-              <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
-                <p><strong>Names</strong>:
-                  {% for n in form.json.value|get:"names" %}
-                    {{ n.name|add:"; " }}
-                  {% endfor %}
-                </p>
-                <p class="mt-2"><strong>Types</strong>:
-                  {% for t in form.json.value|get:"types" %}
-                    {{ t.placetype|add:"; " }}
-                  {% endfor %}</p>
-              <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
+  <!-- incoming: ds, hit_list -->
+  <h4 class="mb-3 mt-3">
+    Review {{ ds_label }} -> {{ authority }} ({{ task_id|truncatechars:11 }})</h4>
+  <div class="pagination">
+    <span class="step-links">
+        {% if records.has_previous %}
+            <a href="?page=1">&laquo; first</a>&nbsp;&nbsp;
+            <a href="?page={{ records.previous_page_number }}">previous</a>
+        {% endif %}
+        <span class="current">
+            Record {{ records.number }} of {{ records.paginator.num_pages }}
+        </span>
+        {% if records.has_next %}
+            <a href="?page={{ records.next_page_number }}">next</a>&nbsp;&nbsp;
+            <a href="?page={{ records.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
   </div>
-</form>
-{% endfor %} <!-- record in records -->
+  {% for record in records %} <!-- there is only one; if last, do nothing -->
+    {% if records.has_next %}
+    <form id="form_related" method="POST" action="" >
+      {% else %}
+    <form id="form_related" method="POST" action="" >
+    {% endif %}
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <input type="hidden" name="placeid" value="{{ record.placeid }}" />
+    <div class="container flex">
+      <hr/>
+      <div class="row">
+        <div id="review_record" class="col-sm-4">
+          <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
+          <div id="place-record">
+            <div>
+              <span><h4 class="text-danger">{{ record.title }} </h4></span>
+              <span class="float-right">
+                <button type="submit" class="btn btn-secondary float-right">Save</button>
+              </span>
+            </div>
+            <p><strong>Name variants</strong>:
+              {% for name in record.names.all %}
+               <br/>{{ name.json.toponym }}
+              {% endfor %}</p>
+            <p><strong>Place type(s)</strong>:
+              {% for type in record.types.all %}
+                <br/>{{ type.json.label }} ({{ type.json.src_label }})
+            {% endfor %}</p>
+            <!-- TODO: full place record -->
+          </div>
+          <div id="map">
+            {% leaflet_map "map" callback="map_init" %}
+          </div>
+        </div>
+        <div>
+          <div id="review_list">
+            {% for form in formset %}
+              <input type="hidden" name="tgnid" value='{{ form.tgnid.value }}'></input>
+              <div class="bg-warning pl-2 pr-2 matchbar">
+                <span class="custom-control custom-radio match_radio">
+                  {{ form.match }}
+                  {% if form.json.value|get:"location" != Null %}
+                    {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}
+                    <!-- {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }} -->
+                    {{ form.flag_geom }} flag
+                    <a class="geolink" id="{{ form.authrecord_id.value }}" href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">geometry</a>
+                  {% endif %}
+                  <span class="noteicon">{% fontawesome_icon 'comment' color='#666666' %}</span>
+                </span>
+                <div class="notefield">{{ form.review_note}}</div>
+              </div>
+              {{ form.non_field_errors }}
+              <div id="tgn_match" class="bg-light pl-2">
+                  <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
+                    <p><strong>Names</strong>:
+                      {% for n in form.json.value|get:"names" %}
+                        {{ n.name|add:"; " }}
+                      {% endfor %}
+                    </p>
+                    <p class="mt-2"><strong>Types</strong>:
+                      {% for t in form.json.value|get:"types" %}
+                        {{ t.placetype|add:"; " }}
+                      {% endfor %}</p>
+                  <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div> <!-- .row -->
+    </div> <!-- container flex -->
+    </form>
+  {% endfor %} <!-- record in records -->
 </div> <!-- .container -->
 <script type="text/javascript">
     $(function(){
@@ -151,7 +150,7 @@
 
     // initialize, render map
     function map_init (map, options) {
-      console.log('in map_init()')
+      // console.log('in map_init()')
       window.geom = {"type":"FeatureCollecton","features":[]}
 
       window.gelems = $('script').filter(function() {
@@ -175,7 +174,7 @@
       }
 
       if (geom['features'].length > 0) {
-        console.log('geom: ',geom)
+        // console.log('geom: ',geom)
         idToFeature = {} // for feature lookup
         features = L.geoJSON(geom, {
           pointToLayer: function (feature, latlng) {

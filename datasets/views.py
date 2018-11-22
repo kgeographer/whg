@@ -174,7 +174,7 @@ class DatasetListView(ListView):
     paginate_by = 4
 
     def get_queryset(self):
-        return Dataset.objects.filter(owner = self.request.user)
+        return Dataset.objects.filter(owner = self.request.user).order_by('-upload_date')
 
     def get_context_data(self, *args, **kwargs):
          context = super(DatasetListView, self).get_context_data(*args, **kwargs)

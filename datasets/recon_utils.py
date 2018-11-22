@@ -1,17 +1,22 @@
-import codecs, json
+import codecs, json, datetime
 fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
-parents = json.loads(fin.read())
+parent_hash = json.loads(fin.read())
 fin.close()
 
+def elapsed(delta):
+    minutes, seconds = divmod(delta.seconds, 60)
+    return '{:02}:{:02}'.format(int(minutes), int(seconds))
+
 def bestParent(qobj, flag=False):
-    # TODO: refactor parents.json for regions
-    global parents
-    # if flag == True:
-    #     return parents['ccodes'][qobj['countries'][0]]['gnlabel'] if len(qobj['countries'])>0 else str([''])
+    # TODO: region only applicable for black, right?
+    global parent_hash
+
     if len(qobj['countries']) > 0:
-        best = parents['ccodes'][qobj['countries'][0]]['tgnlabel']
-    # elif len(row['region']) > 0:
-    #     best = parents['regions'][qobj['region']]['tgnlabel']
+        best = parent_hash['ccodes'][qobj['countries'][0]]['tgnlabel']
+    elif len(qobj['parents']) > 0:
+        best = qobj['parents'][0]
+    elif len(qobj['regions']) > 0:
+        best = parent_hash['regions'][qobj['region']]['tgnlabel']
     else:
         best = 'World'
     return best

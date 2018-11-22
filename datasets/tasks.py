@@ -13,7 +13,7 @@ from main.models import Place
 ##
 import shapely.geometry
 from geopy import distance
-from .recon_utils import roundy, fixName, classy, bestParent
+from .recon_utils import roundy, fixName, classy, bestParent, elapsed
 from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 ##
@@ -94,7 +94,7 @@ def es_lookup(qobj):
         location = qobj['geom']
 
     # TODO: ensure name search on ANY(names.name)
-    # TODO: handle variants
+    # TODO: parse a variants column in csv
     # pass1: name, type, parent
     q1 = {
         "query": {
@@ -227,18 +227,29 @@ def align_tgn(pk, *args, **kwargs):
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
     [count, count_hit, count_nohit, total_hits] = [0,0,0,0]
-    print('align_tgn():', ds)
-    print('celery task id:', align_tgn.request.id)
-
+    # print('align_tgn():', ds)
+    # print('celery task id:', align_tgn.request.id)
+    start = datetime.datetime.now()
     # build query object, send, save hits
     for place in ds.places.all():
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
-        altnames=[]; geoms=[]; types=[]; ccodes=[]
+        altnames=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
         for name in place.names.all():
             altnames.append(name.toponym)
         query_obj['altnames'] = altnames
         query_obj['countries'] = place.ccodes
+
+        # if (data.related[0].relation_type == 'gvp:broaderPartitive'){
+        #     html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
+        #     }
+
+        for rel in place.related.all():
+            if rel.relation_type == 'gvp:broaderPartitive':
+                parents.append(rel.label)
+        # just first parent for now
+        query_obj['parents'] = parents
+
         # TODO: handle multipoint, polygons(?)
         # if place.geoms is not None:
         #     query_obj['geom'] = place.geoms.first().json
@@ -271,15 +282,18 @@ def align_tgn(pk, *args, **kwargs):
                 )
                 new.save()
 
+    end = datetime.datetime.now()
     # ds.status = 'recon_tgn'
     # TODO: return summary
     hit_parade['summary'] = {
         'count':count,
         'got-hits':count_hit,
         'total-hits': total_hits,
-        'no-hits': {'count': count_nohit }
+        'no-hits': {'count': count_nohit },
+        'elapsed': elapsed(end-start)
         # 'no-hits': {'count': count_nohit, 'place_ids': nohits}
     }
+    print("hit_parade['summary']",hit_parade['summary'])
     return hit_parade['summary']
     # return hit_parade
 

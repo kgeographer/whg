@@ -4,26 +4,20 @@ body, html {
   height:100%;
 }
 
-#data_grid {
-  /* background-color: #2ecc71; */
-  text-align: center;
+#grid_list, #review_list, #dataset_list {
   height:100%;
   position: absolute;
-  float:right !important;
-  /* top: 0px;
-  bottom: 0; */
-  right: 0;
-  /* width: 75%; */
   overflow-y: scroll;
 }
+
+#grid_detail, #review_record,  {
+  height:100%;
+}
+
 .match_radio {background-color: #e0e0e0;}
 .match_radio li {display:inline; margin-left:5px;}
 .match_radio ul {list-style-type: none; float: right;}
 
-#review_detail {
-  height: 100%;
-  overflow-y: scroll;
-}
 .notefield {
   /* background-color: cornsilk; */
   height:100;
