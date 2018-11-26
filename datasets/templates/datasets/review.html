@@ -11,7 +11,7 @@
 <div class="container">
   <!-- incoming: ds, hit_list -->
   <h4 class="mb-3 mt-3">
-    Review {{ ds_label }} -> {{ authority }} ({{ task_id|truncatechars:11 }})</h4>
+    {{ ds_label }} -> {{ authority }} ({{ task_id|truncatechars:11 }})</h4>
   <div class="pagination">
     <span class="step-links">
         {% if records.has_previous %}

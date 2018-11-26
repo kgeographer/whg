@@ -255,8 +255,8 @@ def ds_insert(request, pk ):
     countrows=0
     countlinked = 0
     countlinks = 0
-    # for r in reader:
-    for i, r in zip(range(200), reader):
+    for r in reader:
+    # for i, r in zip(range(200), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
@@ -271,9 +271,9 @@ def ds_insert(request, pk ):
         coords = [
             float(r[header.index('lon')]),
             float(r[header.index('lat')])] if 'lon' in header else []
-        close_match = r[header.index('close_match')].split('", "') \
+        close_match = r[header.index('close_match')][1:-1].split('", "') \
             if 'close_match' in header else []
-        exact_match = r[header.index('exact_match')].split('", "') \
+        exact_match = r[header.index('exact_match')][1:-1].split('", "') \
             if 'exact_match' in header else []
         # nice to have
         description = r[header.index('description')] \

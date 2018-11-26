@@ -2,12 +2,17 @@
 
 {% block content %}
 
-
 <div class="container">
-  <form action='' method='POST'>{% csrf_token %}
-      <h4>Do you really want to delete the dataset "{{ object.label }}"?</h4>
-      <p><input type='submit' value='Yes' />  <a href='/dashboard'>Cancel</a></p>
-  </form>
+  <div class="row justify-content-center">
+    <div class="col-md-4 mt-5">
+      <form action='' method='POST'>{% csrf_token %}
+          <h4>Do you really want to delete the dataset "{{ object.label }}"...</h4>
+          <p>All its records and associated reconciliation "hits?"</p>
+          <p class="mt-4"><input type='submit' value='Yes' />  <a href='/dashboard'>Cancel</a></p>
+      </form>
+    </div>
+  </div>
 </div>
 
+</div>
 {% endblock %}
