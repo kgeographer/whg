@@ -68,8 +68,10 @@ def reverse(coords):
     return fubar
 
 @task(name="es_lookup")
-def es_lookup(qobj):
+def es_lookup(qobj, *args, **kwargs):
     print('qobj',qobj)
+    bbox = kwargs['bbox']
+
     hit_count = 0
 
     search_name = fixName(qobj['prefname'])
@@ -89,87 +91,89 @@ def es_lookup(qobj):
     # must be aat_type(s)
     placetypes = qobj['placetypes']
 
-    # geom and centroid are avalable
+    # not implemented yet
+    # TODO prioritize title name
+    title_search = {"multi_match": {
+        "query": search_name,
+        "fields": ["title", "names.name"]}
+    }
+
+    # geom and centroid are available
     if 'geom' in qobj.keys():
         location = qobj['geom']
 
+        filter_dist_50 = {"geo_distance" : {
+            "ignore_unmapped": "true",
+            "distance" : "50km",
+            "location.coordinates" : qobj['geom']['coordinates']
+        }}
+        filter_dist_200 = {"geo_distance" : {
+            "ignore_unmapped": "true",
+            "distance" : "200km",
+            "location.coordinates" : qobj['geom']['coordinates']
+        }}
+    # "filter" : {
+    #     "geo_bounding_box" : {
+    #         "pin.location" : {
+    #             "top_left" : {
+    #                 "lat" : 40.73,
+    #                 "lon" : -74.1
+    #             },
+    #             "bottom_right" : {
+    #                 "lat" : 40.01,
+    #                 "lon" : -71.12
+    #             }
+    #         }
+    #     }
+    # }
     # TODO: ensure name search on ANY(names.name)
     # TODO: parse a variants column in csv
-    # pass1: name, type, parent
+    # TODO; refactor the whole query generation thing
+    # pass1: name, type, parent, distance?
     q1 = {
         "query": {
           "bool": {
               "must": [
-                #{"multi_match": {
-                    #"query": search_name,
-                    #"fields": ["title", "names.name"]}
-                #}
                 {"terms" : { "names.name" : altnames }}
                 # is name in parsed TGN parent string?
                 ,{"match": {"parents": parent}}
-                # TODO: ensure contributed types are AAT labels
+                # TODO: ensure placetypes are AAT labels
                 ,{"match": {"types.placetype": placetypes[0]}}
+              ],
+              "filter": [
               ]
-            #   ,"filter" : {
-            #     "geo_distance" : {
-            #         "ignore_unmapped": "true",
-            #         "distance" : "50km",
-            #         "location.coordinates" : qobj['geom']['coordinates']
-            #     }
-            # }
           }
         }
       }
-    # pass2: name, parent
+    # pass2: name, parent, distance?
     q2 = {  "query": {
             "bool": {
               "must": [
-                #{"multi_match": {
-                    #"query": search_name,
-                    #"fields": ["title", "names.name"]}
-                #},
                 {"terms" : { "names.name" : altnames }}
                 ,{"match": {"parents": parent}}
+              ],
+              "filter": [
               ]
-              # , "filter" : {
-              #   "geo_distance" : {
-              #       "ignore_unmapped": "true",
-              #       "distance" : "50km",
-              #       "location.coordinates" : qobj['geom']['coordinates']
-              #   }
-              #   }
           }
     }}
-    # pass3a: name and distance
+    # pass3a: name, distance?
     q3 = {  "query": {
             "bool": {
-                "must": {
-                    #"multi_match": {
-                      #"query": search_name,
-                      #"fields": ["title", "names.name"]
-                  #}
-                  "terms" : { "names.name" : altnames }
-                }
-                # ,"filter" : {
-                #     "geo_distance" : {
-                #         "ignore_unmapped": "true",
-                #         "distance" : "200km",
-                #         # "location.coordinates" : qobj['geom']['coordinates'][0]
-                #         "location.coordinates" : qobj['geom']['coordinates']
-                #     }
-                # }
+                "must": [
+                    {"terms" : { "names.name" : altnames }
+                }],
+                "filter": [
+                ]
             }
     }}
     # pass3b: name only
     q4 = { "query": {
-        "bool": {
-            "must": {
+            "bool": {
+            "must": [{
                 "terms" : { "names.name" : altnames }
-                #"multi_match": {
-                  #"query": search_name,
-                  #"fields": ["title", "names.name"]
-              #}
-            }
+            }],
+            "filter": [
+            ]
         }
     }}
 
@@ -224,14 +228,15 @@ def es_lookup(qobj):
 @task(name="align_tgn")
 def align_tgn(pk, *args, **kwargs):
     ds = get_object_or_404(Dataset, id=pk)
+    bbox = kwargs['bbox']
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
     [count, count_hit, count_nohit, total_hits] = [0,0,0,0]
-    # print('align_tgn():', ds)
     # print('celery task id:', align_tgn.request.id)
     start = datetime.datetime.now()
     # build query object, send, save hits
-    for place in ds.places.all():
+    for place in ds.places.all()[:10]:
+    # for place in ds.places.all():
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
         altnames=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
@@ -256,7 +261,7 @@ def align_tgn(pk, *args, **kwargs):
         query_obj['placetypes'] = [place.types.first().json['label']]
 
         # run es query on this record
-        result_obj = es_lookup(query_obj)
+        result_obj = es_lookup(query_obj,bbox=bbox)
 
         # if result_obj['missed'] > -1:
         if result_obj['hit_count'] == 0:

@@ -88,20 +88,21 @@ def ds_recon(request, pk):
         print('request:',request)
     elif request.method == 'POST' and request.POST:
         fun = eval('align_'+request.POST['recon'])
-        # pprint(request.POST)
+        # TODO: let this vary per authority?
 
         # run celery/redis task
         # result = fun.delay(ds)
-        result = align_tgn.delay(ds.id, ds=ds.id)
+        result = align_tgn.delay(ds.id, ds=ds.id, bbox=request.POST['bbox'])
 
         context['task_id'] = result.id
         context['response'] = result.state
         context['dataset id'] = ds.label
         context['authority'] = request.POST['recon']
+        context['bbox'] = request.POST['bbox']
         context['hits'] = '?? not wired yet'
         context['result'] = result.get()
         # context['summary'] = result.get().summary
-        # pprint(locals())
+        pprint(locals())
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds})

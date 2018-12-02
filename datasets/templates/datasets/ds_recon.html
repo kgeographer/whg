@@ -46,6 +46,21 @@
             <span class="ml-2 text-success d-none"></span>
         </label>
       </div>
+      <div class="mt-3">
+        <i>Geographic constraint?</i>
+        <select name="bbox" class="custom-select">
+          <option value="0">None</option>
+          <option value="eh">Eastern Hemisphere</option>
+          <option value="wh">Western Hemisphere</option>
+          <option value="af">Africa</option>
+          <option value="eu">Europe</option>
+          <option value="la">Latin America</option>
+          <option value="us">US & Canada</option>
+          <option value="ca">Central Asia</option>
+          <option value="ea">East Asia</option>
+          <option value="sa">South Asia</option>
+        </select>
+      </div>
       {% if request.method == 'GET' %}
       <br/>
       <button type="submit" class="btn btn-primary">Start</button>
