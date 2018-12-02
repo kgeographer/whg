@@ -59,7 +59,8 @@
     <p><b>Task ID</b>: {{ context.task_id }}</p>
     <p class="mb-3"><b>Result summary</b>:
       {{ context.result }}    </p>
-    <button type="text" action="{% url 'datasets:review' pk=ds.id tid=context.task_id %}" class="btn btn-primary">Review hits</button>
+    <a href="{% url 'datasets:review' pk=ds.pk tid=context.task_id %}">
+      <input class="btn btn-primary" type="text" value="Review Hits"/></a>
   </div>
   {% endif %}
 </div>

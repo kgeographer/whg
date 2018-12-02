@@ -11,8 +11,9 @@
 <div class="container">
   <!-- incoming: ds, hit_list -->
   <h4 class="mb-3 mt-3">
-    {{ ds_label }} -> {{ authority }} ({{ task_id|truncatechars:11 }})</h4>
-  <div class="pagination">
+    {{ authority }} (<span class="text-danger">{{ ds_label }}</span>)
+    <span class="half float-right">task id: {{ task_id }}</span></h4>
+  <div class="pagination d-flex justify-content-center">
     <span class="step-links">
         {% if records.has_previous %}
             <a href="?page=1">&laquo; first</a>&nbsp;&nbsp;
@@ -36,10 +37,10 @@
     {% csrf_token %}
     {{ formset.management_form }}
     <input type="hidden" name="placeid" value="{{ record.placeid }}" />
-    <div class="container flex">
+    <div class="container">
       <hr/>
       <div class="row">
-        <div id="review_record" class="col-sm-4">
+        <div id="review_record" class="col-sm-4 pl-0">
           <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
           <div id="place-record">
             <div>
@@ -62,11 +63,10 @@
             {% leaflet_map "map" callback="map_init" %}
           </div>
         </div>
-        <div>
-          <div id="review_list">
+        <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
               <input type="hidden" name="tgnid" value='{{ form.tgnid.value }}'></input>
-              <div class="bg-warning pl-2 pr-2 matchbar">
+              <div class="pl-2 pr-2 matchbar">
                 <span class="custom-control custom-radio match_radio">
                   {{ form.match }}
                   {% if form.json.value|get:"location" != Null %}
@@ -95,7 +95,6 @@
               </div>
             {% endfor %}
           </div>
-        </div>
       </div> <!-- .row -->
     </div> <!-- container flex -->
     </form>

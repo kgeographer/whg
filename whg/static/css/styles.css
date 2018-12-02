@@ -1,23 +1,32 @@
 body, html {
   margin: 0;
-  overflow: hidden;
-  height:100%;
+  padding: 0;
+  /* overflow: hidden; */
+  height: 100%;
+}
+@media (min-width: 768px) {
+    #sidebar {
+        position: fixed;
+        /* top: 0;
+        bottom: 0; */
+    }
 }
 
-#grid_list, #review_list, #dataset_list {
-  height:100%;
-  position: absolute;
-  overflow-y: scroll;
+#grid_detail {
+  /* background-color: #fff7e6; */
 }
 
-#grid_detail, #review_record,  {
-  height:100%;
+.half { font-size: .6em; font-style: italic; margin-top:.6em;}
+.pagination {
+  background-color: oldlace;
 }
-
 .match_radio {background-color: #e0e0e0;}
 .match_radio li {display:inline; margin-left:5px;}
 .match_radio ul {list-style-type: none; float: right;}
 
+.matchbar {
+  background-color: #f5d089;
+}
 .notefield {
   /* background-color: cornsilk; */
   height:100;
@@ -81,6 +90,8 @@ body, html {
 
 tr.place-row {
   cursor: pointer;
+  line-height: .75rem;
+  font-size: .9em;
 }
 span.edit-row {
   cursor: pointer;
