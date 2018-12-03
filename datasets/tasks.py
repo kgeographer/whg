@@ -9,7 +9,7 @@ import random
 from pprint import pprint
 from .models import Dataset, Hit
 from main.models import Place
-
+from .regions import regions
 ##
 import shapely.geometry
 from geopy import distance
@@ -67,9 +67,33 @@ def reverse(coords):
     fubar = [coords[1],coords[0]]
     return fubar
 
+    # "filter" : {
+    #     "geo_bounding_box" : {
+    #         "pin.location" : {
+    #             "top_left" : {
+    #                 "lat" : 40.73,
+    #                 "lon" : -74.1
+    #             },
+    #             "bottom_right" : {
+    #                 "lat" : 40.01,
+    #                 "lon" : -71.12
+    #             }
+    #         }
+    #     }
+    # }
+
+def get_bbox_filter(area):
+    bbox = regions[area]
+    filter = {
+        "geo_bounding_box" : {
+            "location.coordinates" : bbox
+        }
+    }
+    return filter
+
 @task(name="es_lookup")
 def es_lookup(qobj, *args, **kwargs):
-    print('qobj',qobj)
+    # print('qobj',qobj)
     bbox = kwargs['bbox']
 
     hit_count = 0
@@ -130,24 +154,21 @@ def es_lookup(qobj, *args, **kwargs):
     # TODO: parse a variants column in csv
     # TODO; refactor the whole query generation thing
     # pass1: name, type, parent, distance?
-    q1 = {
-        "query": {
-          "bool": {
-              "must": [
+    q1 = {"query": { "bool": {
+            "must": [
                 {"terms" : { "names.name" : altnames }}
                 # is name in parsed TGN parent string?
                 ,{"match": {"parents": parent}}
                 # TODO: ensure placetypes are AAT labels
                 ,{"match": {"types.placetype": placetypes[0]}}
               ],
-              "filter": [
-              ]
+            "filter": [
+            ]
           }
         }
       }
     # pass2: name, parent, distance?
-    q2 = {  "query": {
-            "bool": {
+    q2 = {"query": { "bool": {
               "must": [
                 {"terms" : { "names.name" : altnames }}
                 ,{"match": {"parents": parent}}
@@ -157,18 +178,16 @@ def es_lookup(qobj, *args, **kwargs):
           }
     }}
     # pass3a: name, distance?
-    q3 = {  "query": {
-            "bool": {
-                "must": [
-                    {"terms" : { "names.name" : altnames }
-                }],
-                "filter": [
-                ]
-            }
+    q3 = {"query": { "bool": {
+            "must": [
+                {"terms" : { "names.name" : altnames }
+            }],
+            "filter": [
+            ]
+        }
     }}
     # pass3b: name only
-    q4 = { "query": {
-            "bool": {
+    q4 = { "query": { "bool": {
             "must": [{
                 "terms" : { "names.name" : altnames }
             }],
@@ -176,6 +195,12 @@ def es_lookup(qobj, *args, **kwargs):
             ]
         }
     }}
+
+    if bbox != 0: # bbox=area abbrev.
+        q1['query']['bool']['filter'].append(get_bbox_filter(bbox))
+        q2['query']['bool']['filter'].append(get_bbox_filter(bbox))
+        q3['query']['bool']['filter'].append(get_bbox_filter(bbox))
+        q4['query']['bool']['filter'].append(get_bbox_filter(bbox))
 
     result_obj = {
         'place_id': qobj['place_id'], 'hits':[],
@@ -235,8 +260,8 @@ def align_tgn(pk, *args, **kwargs):
     # print('celery task id:', align_tgn.request.id)
     start = datetime.datetime.now()
     # build query object, send, save hits
-    for place in ds.places.all()[:10]:
-    # for place in ds.places.all():
+    # for place in ds.places.all()[:50]:
+    for place in ds.places.all():
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
         altnames=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
@@ -250,8 +275,8 @@ def align_tgn(pk, *args, **kwargs):
         #     }
 
         for rel in place.related.all():
-            if rel.relation_type == 'gvp:broaderPartitive':
-                parents.append(rel.label)
+            if rel.json['relation_type'] == 'gvp:broaderPartitive':
+                parents.append(rel.json['label'])
         # just first parent for now
         query_obj['parents'] = parents
 

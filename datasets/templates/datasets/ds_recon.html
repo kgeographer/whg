@@ -51,14 +51,14 @@
         <select name="bbox" class="custom-select">
           <option value="0">None</option>
           <option value="eh">Eastern Hemisphere</option>
+          <option disabled value="af">- Africa</option>
+          <option disabled value="eu">- Europe</option>
+          <option disabled value="ca">- Central Asia</option>
+          <option disabled value="ea">- East Asia</option>
+          <option disabled value="sa">- South Asia</option>
           <option value="wh">Western Hemisphere</option>
-          <option value="af">Africa</option>
-          <option value="eu">Europe</option>
-          <option value="la">Latin America</option>
-          <option value="us">US & Canada</option>
-          <option value="ca">Central Asia</option>
-          <option value="ea">East Asia</option>
-          <option value="sa">South Asia</option>
+          <option disabled value="la">- Latin America</option>
+          <option disabled value="us">- US & Canada</option>
         </select>
       </div>
       {% if request.method == 'GET' %}
