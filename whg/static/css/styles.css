@@ -15,6 +15,17 @@ body, html {
 #grid_detail {
   /* background-color: #fff7e6; */
 }
+#geo_constraint {
+  /* background-color: #eeeee0; */
+}
+#recon ul {
+  list-style: none;
+  padding-left: 0;
+  /* margin-top: 12px; */
+}
+#recon_result, #dummy_column {
+  background-color: #eee;
+}
 
 .half { font-size: .6em; font-style: italic; margin-top:.6em;}
 .pagination {
@@ -36,11 +47,12 @@ body, html {
 .noteicon:hover {cursor: pointer;}
 
 .dataset-box {
-  border: 1px solid gray;
+  border: 1px solid #ccc;
   min-height: 100px;
   background-color: #eeeee0;
   padding:12px;
   border-radius: 16px;
+  box-shadow: 3px 3px #eee;
 }
 .dataset-detail {
   background-color: ghostwhite;
@@ -53,11 +65,6 @@ body, html {
   display:block;
   float:left;
 }
-#recon ul {
-  list-style: none;
-  padding-left: 0;
-  /* margin-top: 12px; */
-}
 .recon-done {
   font-style: italic;
   color: grey;
@@ -67,6 +74,8 @@ body, html {
   background-color: #eeeee0;
   padding:12px;
   border-radius: 16px;
+  border-radius: 16px;
+  box-shadow: 3px 3px #eee;
 }
 .form-check-input {
   margin-top: .2rem;

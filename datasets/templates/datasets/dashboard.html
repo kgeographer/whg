@@ -35,49 +35,40 @@
             {% endif %}
           </h4>
           <div class="row">
-          <div id="ds_metadata" class="col-sm-6"><p>
-            <b>ID</b>: {{ d.id }}&nbsp;&nbsp;<b>Label</b>: {{ d.label }} <br/>
-            <b>Description</b>: {{ d.description }} <br/>
-              {% if d.file %}
-                <b>File</b>: <span class="text-danger">{{ d.file }}</span><br/>
-              {% endif %}
-            <b>Uploaded</b>: {{ d.upload_date }}<br/>
-             {% if d.mapbox_id %}
-             {% autoescape on %}
-               <span><a href="{% url 'map_view' mid=d.mapbox_id|escape %}">Map</a></span>
-               <br/>
-             {% endautoescape %}
-             {% endif %}
-            <b>Status</b>: <span class="text-danger">{{ d.status }}</span>
-          </p></div>
-          {% for t in d.tasks %}
-            <p>{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
-               <a href="{% url 'datasets:review' pk=d.id tid=t.task_id %}"><i>review</i></a>
-               <!-- <a href="{# url 'datasets:review-list' pk=d.id tid=t.task_id #}"><i>review</i></a> -->
+            <div id="ds_metadata" class="col-sm-6"><p>
+              <b>ID</b>: {{ d.id }}&nbsp;&nbsp;<b>Label</b>: {{ d.label }} <br/>
+              <b>Description</b>: {{ d.description }} <br/>
+                {% if d.file %}
+                  <b>File</b>: <span class="text-danger">{{ d.file }}</span><br/>
+                {% endif %}
+              <b>Uploaded</b>: {{ d.upload_date }}<br/>
+               {% if d.mapbox_id %}
+               {% autoescape on %}
+                 <span><a href="{% url 'map_view' mid=d.mapbox_id|escape %}">Map</a></span>
+                 <br/>
+               {% endautoescape %}
+               {% endif %}
+              <b>Status</b>: <span class="text-danger">{{ d.status }}</span>
             </p>
-          {% endfor %}
-          {% if d.status == "uploaded" %}
-          <!-- NOT HERE
-            <div id="recon" class="col-sm-5 float-right mb-2" style="background-color:cornsilk;">
-            <span><b>Reconciliation services</b></span>&nbsp;
-              {% fontawesome_icon 'question-circle' color='#336699' %}<br/>
-            <ul>
-              <li><input type="checkbox"> Getty TGN</input></li>
-              <li><input type="checkbox"> DBpedia</input></li>
-              <li><input type="checkbox"> Wikidata</input></li>
-              <li><input type="checkbox"> GeoNames</input></li>
-            </ul>
-          </div> -->
-          {% endif %}
+            </div>
+            <div id="ds_tasks" class="col-sm-5">
+              <p class="font-weight-bold mb-1">Reconciliation tasks</p>
+              {% for t in d.tasks %}
+                <p class="mb-0 small">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
+                   <a href="{% url 'datasets:review' pk=d.id tid=t.task_id %}"><i>review</i></a>
+                   <!-- <a href="{# url 'datasets:review-list' pk=d.id tid=t.task_id #}"><i>review</i></a> -->
+                </p>
+              {% endfor %}
+            </div>
           </div>
-         {% if d.status == "inserted" or d.status == "ready" %}
-           <div class="row dataset-detail">
-             <p>
-               <b>{{ d.numrows }}</b> rows; <b>{{ d.numlinked }}</b> have total of <b>{{ d.total_links }}</b> match links; <b>{{ d.numrows|sub:d.numlinked }}</b> have none<br/>
-               <b>Columns</b>: {{ d.header }} <br/>
-             </p>
-           </div>
-         {% endif %}
+          {% if d.status == "inserted" or d.status == "ready" %}
+          <div class="row dataset-detail">
+           <p>
+             <b>{{ d.numrows }}</b> rows; <b>{{ d.numlinked }}</b> have total of <b>{{ d.total_links }}</b> match links; <b>{{ d.numrows|sub:d.numlinked }}</b> have none<br/>
+             <b>Columns</b>: {{ d.header }} <br/>
+           </p>
+          </div>
+          {% endif %}
         </div>
       {% endfor %}
       </div>

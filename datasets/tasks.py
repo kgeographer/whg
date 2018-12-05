@@ -67,34 +67,41 @@ def reverse(coords):
     fubar = [coords[1],coords[0]]
     return fubar
 
-    # "filter" : {
-    #     "geo_bounding_box" : {
-    #         "pin.location" : {
-    #             "top_left" : {
-    #                 "lat" : 40.73,
-    #                 "lon" : -74.1
-    #             },
-    #             "bottom_right" : {
-    #                 "lat" : 40.01,
-    #                 "lon" : -71.12
-    #             }
-    #         }
-    #     }
-    # }
+# ES geo_bounding_box filter
+# {
+#   "top_left" : {"lat" : 40.73, "lon" : -74.1},
+#   "bottom_right" : {"lat" : 40.01,"lon" : -71.12}
+# }
 
-def get_bbox_filter(area):
-    bbox = regions[area]
-    filter = {
-        "geo_bounding_box" : {
-            "location.coordinates" : bbox
+# ES geo_polygon filter
+# {
+# "points" : [
+#     [-70, 40],
+#     [-80, 30],
+#     [-90, 20]
+# ]
+# }
+
+def get_bbox_filter(region):
+    bounds = regions[region]
+    if region.startswith('u_'):
+        filter = {
+            "geo_polygon" : {
+                "location.coordinates" : bounds
+            }
         }
-    }
+    else:
+        filter = {
+            "geo_bounding_box" : {
+                "location.coordinates" : bounds
+            }
+        }
     return filter
 
 @task(name="es_lookup")
 def es_lookup(qobj, *args, **kwargs):
     # print('qobj',qobj)
-    bbox = kwargs['bbox']
+    region = kwargs['region']
 
     hit_count = 0
 
@@ -106,7 +113,7 @@ def es_lookup(qobj, *args, **kwargs):
     # bestParent() coalesces mod. country and region; countries.json
     parent = bestParent(qobj)
 
-    # province if there
+    # province, if there
     # province = qobj['province']
 
     # pre-computed in sql
@@ -115,58 +122,29 @@ def es_lookup(qobj, *args, **kwargs):
     # must be aat_type(s)
     placetypes = qobj['placetypes']
 
-    # not implemented yet
-    # TODO prioritize title name
-    title_search = {"multi_match": {
-        "query": search_name,
-        "fields": ["title", "names.name"]}
-    }
-
-    # geom and centroid are available
-    if 'geom' in qobj.keys():
-        location = qobj['geom']
-
-        filter_dist_50 = {"geo_distance" : {
-            "ignore_unmapped": "true",
-            "distance" : "50km",
-            "location.coordinates" : qobj['geom']['coordinates']
-        }}
-        filter_dist_200 = {"geo_distance" : {
-            "ignore_unmapped": "true",
-            "distance" : "200km",
-            "location.coordinates" : qobj['geom']['coordinates']
-        }}
-    # "filter" : {
-    #     "geo_bounding_box" : {
-    #         "pin.location" : {
-    #             "top_left" : {
-    #                 "lat" : 40.73,
-    #                 "lon" : -74.1
-    #             },
-    #             "bottom_right" : {
-    #                 "lat" : 40.01,
-    #                 "lon" : -71.12
-    #             }
-    #         }
-    #     }
+    # TODO insert to query/ies & prioritize?
+    # title_search = {"multi_match": {
+    #     "query": search_name,
+    #     "fields": ["title", "names.name"]}
     # }
+
+    # TODO: refactor the whole query generation thing
     # TODO: ensure name search on ANY(names.name)
     # TODO: parse a variants column in csv
-    # TODO; refactor the whole query generation thing
-    # pass1: name, type, parent, distance?
+
+    # pass1: name, type, distance?
     q1 = {"query": { "bool": {
             "must": [
                 {"terms" : { "names.name" : altnames }}
                 # is name in parsed TGN parent string?
-                ,{"match": {"parents": parent}}
+                # ,{"match": {"parents": parent}}
                 # TODO: ensure placetypes are AAT labels
                 ,{"match": {"types.placetype": placetypes[0]}}
               ],
             "filter": [
             ]
           }
-        }
-      }
+    }}
     # pass2: name, parent, distance?
     q2 = {"query": { "bool": {
               "must": [
@@ -177,6 +155,7 @@ def es_lookup(qobj, *args, **kwargs):
               ]
           }
     }}
+    # TODO: 3 & 4 are the same
     # pass3a: name, distance?
     q3 = {"query": { "bool": {
             "must": [
@@ -196,11 +175,31 @@ def es_lookup(qobj, *args, **kwargs):
         }
     }}
 
-    if bbox != 0: # bbox=area abbrev.
-        q1['query']['bool']['filter'].append(get_bbox_filter(bbox))
-        q2['query']['bool']['filter'].append(get_bbox_filter(bbox))
-        q3['query']['bool']['filter'].append(get_bbox_filter(bbox))
-        q4['query']['bool']['filter'].append(get_bbox_filter(bbox))
+    if region != 0: # bbox=area abbrev.
+        q1['query']['bool']['filter'].append(get_bbox_filter(region))
+        q2['query']['bool']['filter'].append(get_bbox_filter(region))
+        q3['query']['bool']['filter'].append(get_bbox_filter(region))
+        q4['query']['bool']['filter'].append(get_bbox_filter(region))
+
+    # geom/centroid is available
+    if 'geom' in qobj.keys():
+        location = qobj['geom']
+
+        filter_dist_50 = {"geo_distance" : {
+            "ignore_unmapped": "true",
+            "distance" : "50km",
+            "location.coordinates" : qobj['geom']['coordinates']
+        }}
+        filter_dist_200 = {"geo_distance" : {
+            "ignore_unmapped": "true",
+            "distance" : "200km",
+            "location.coordinates" : qobj['geom']['coordinates']
+        }}
+
+        q1['query']['bool']['filter'].append(filter_dist_50)
+        q2['query']['bool']['filter'].append(filter_dist_50)
+        q3['query']['bool']['filter'].append(filter_dist_200)
+        q4['query']['bool']['filter'].append(filter_dist_200)
 
     result_obj = {
         'place_id': qobj['place_id'], 'hits':[],
@@ -253,61 +252,63 @@ def es_lookup(qobj, *args, **kwargs):
 @task(name="align_tgn")
 def align_tgn(pk, *args, **kwargs):
     ds = get_object_or_404(Dataset, id=pk)
-    bbox = kwargs['bbox']
+    region = kwargs['region']
+    # TODO: system for region creation
+    # ccodes = kwargs['ccodes']
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
     [count, count_hit, count_nohit, total_hits] = [0,0,0,0]
     # print('celery task id:', align_tgn.request.id)
     start = datetime.datetime.now()
+
     # build query object, send, save hits
     # for place in ds.places.all()[:50]:
     for place in ds.places.all():
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
         altnames=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
+
+        query_obj['countries'] = place.ccodes
+        query_obj['placetypes'] = [place.types.first().json['label']]
+
+        # names
         for name in place.names.all():
             altnames.append(name.toponym)
         query_obj['altnames'] = altnames
-        query_obj['countries'] = place.ccodes
 
-        # if (data.related[0].relation_type == 'gvp:broaderPartitive'){
-        #     html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
-        #     }
-
+        #parents
         for rel in place.related.all():
             if rel.json['relation_type'] == 'gvp:broaderPartitive':
                 parents.append(rel.json['label'])
-        # just first parent for now
         query_obj['parents'] = parents
 
+        print('query_obj:', query_obj)
         # TODO: handle multipoint, polygons(?)
         # if place.geoms is not None:
         #     query_obj['geom'] = place.geoms.first().json
-        query_obj['placetypes'] = [place.types.first().json['label']]
 
-        # run es query on this record
-        result_obj = es_lookup(query_obj,bbox=bbox)
+        # run es query on query_obj
+        # regions.regions
+        result_obj = es_lookup(query_obj, region=region)
 
-        # if result_obj['missed'] > -1:
         if result_obj['hit_count'] == 0:
             count_nohit +=1
             nohits.append(result_obj['missed'])
         else:
             count_hit +=1
             total_hits += result_obj['hit_count']
-            # TODO: write hit records from pass arrays
+            # TODO: differentiate hits from passes
             for hit in result_obj['hits']:
                 hit_parade["hits"].append(hit)
                 # print('creating hit:',hit)
-                # new = Hit.objects.create(
                 new = Hit(
                     authority = 'tgn',
                     authrecord_id = hit['_id'],
                     dataset = ds,
                     place_id = get_object_or_404(Place, id=query_obj['place_id']),
                     task_id = align_tgn.request.id,
-                    # TODO: articulate hit here
-                    # json = hit,
+                    # TODO: articulate hit here?
+                    query_pass = hit['pass'],
                     json = hit['_source'],
                 )
                 new.save()

@@ -91,15 +91,19 @@ def ds_recon(request, pk):
         # TODO: let this vary per authority?
 
         # run celery/redis task
-        # result = fun.delay(ds)
-        result = align_tgn.delay(ds.id, ds=ds.id, bbox=request.POST['bbox'])
+        result = align_tgn.delay(
+            ds.id, ds=ds.id,
+            region=request.POST['region'],
+            # ccodes=request.POST['ccodes']
+        )
 
         context['task_id'] = result.id
         context['response'] = result.state
         context['dataset id'] = ds.label
         context['authority'] = request.POST['recon']
-        context['bbox'] = request.POST['bbox']
-        context['hits'] = '?? not wired yet'
+        context['region'] = request.POST['region']
+        # context['ccodes'] = request.POST['ccodes']
+        # context['hits'] = '?? not wired yet'
         context['result'] = result.get()
         # context['summary'] = result.get().summary
         pprint(locals())
