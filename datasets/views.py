@@ -116,7 +116,7 @@ class DatasetCreateView(CreateView):
     form_class = DatasetModelForm
     template_name = 'datasets/dataset_create.html'
     queryset = Dataset.objects.all()
-
+    #epirus:  id	name	name_src	variants	type	aat_type	ccodes	lon	lat	min	max
     def form_valid(self, form):
         context={}
         if form.is_valid():
@@ -271,7 +271,8 @@ def ds_insert(request, pk ):
         type = r[header.index('type')] if 'type' in header else 'not specified'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
         parent = r[header.index('parent')] if 'parent' in header else ''
-        ccodes = r[header.index('ccodes')][2:-2].split('", "') \
+        # ccodes = r[header.index('ccodes')][2:-2].split('", "') \
+        ccodes = r[header.index('ccodes')][2:-2].split('","') \
             if 'ccodes' in header else []
         coords = [
             float(r[header.index('lon')]),
@@ -286,6 +287,7 @@ def ds_insert(request, pk ):
         depiction = r[header.index('depiction')] \
             if 'depiction' in header else []
 
+        print('ccodes',ccodes)
         # build and save Place object
         newpl = Place(
             # placeid = nextpid,

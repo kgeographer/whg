@@ -83,6 +83,7 @@ def reverse(coords):
 # }
 
 def get_bbox_filter(region):
+    # print('regions[region]',regions[region])
     bounds = regions[region]
     if region.startswith('u_'):
         filter = {
@@ -205,7 +206,7 @@ def es_lookup(qobj, *args, **kwargs):
         'place_id': qobj['place_id'], 'hits':[],
         'missed':-1, 'total_hits':-1
     }
-
+    print('q1',q1)
     # pass1: query [name, type, parent]
     res1 = es.search(index="tgn", body = q1)
     hits1 = res1['hits']['hits']
@@ -368,7 +369,7 @@ def read_delimited(infile, username):
         # make geojson
         # TODO: test lon, lat makes valid geometry
         if 'lon' in header:
-            if r[header.index('lon')] not in ('', None):
+            if r[header.index('lon')] not in ('',0, None):
                 feature = {
                     'type':'Feature',
                     'geometry': {'type':'Point',
