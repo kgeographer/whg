@@ -1,4 +1,4 @@
-id	name	name_src	altnames	type	aat_type	ccodes	lon	lat	min	max
+id	name	name_src	variants	type	aat_type	ccodes	lon	lat	min	max
 1	Kōnstantinoupolē	ali-pasha	Κωνσταντινούπολη,Πόλη, Βασιλεύουoa, Constantinopoli	settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	28.94966	41.01384	1780	1820
 2	Prebeza	ali-pasha	Πρέβεζα,Prevesa	settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	20.7505	38.95617	1780	1820
 3	Argyrokastro	ali-pasha	Άργυρόκαστρο,Κάστρο, Άργυρούκαστρο, Ραγυρούκαστρο	province	provinces	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	20.13889	40.07583	1780	1820

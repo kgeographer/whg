@@ -36,6 +36,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     count = len(record_list)
 
     placeid = records[0].id
+    print('records[0]',dir(records[0]))
     # recon task hits
     hit_list = Hit.objects.all().filter(place_id=placeid)
     context = {
@@ -267,6 +268,7 @@ def ds_insert(request, pk ):
         src_id = r[header.index('id')]
         title = r[header.index('name')]
         name_src = r[header.index('name_src')]
+        variants = r[header.index('variants')]
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'not specified'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
@@ -301,14 +303,12 @@ def ds_insert(request, pk ):
         # build associated objects and add to arrays
 
         # PlaceName()
+        # TODO: variants array
         objs['PlaceName'].append(PlaceName(place_id=newpl,
-            # src_id = src_id,
-            # dataset = dataset,
             toponym = title,
             # TODO get citation label through name_src FK; here?
             json={"toponym": title, "citation": {"id":name_src,"label":""}}
         ))
-        # TODO: variants array
 
         # PlaceType()
         objs['PlaceType'].append(PlaceType(place_id=newpl,
@@ -317,7 +317,7 @@ def ds_insert(request, pk ):
 
         # PlaceGeom()
         # TODO: test geometry type or force geojson
-        if 'lon' in header:
+        if 'lon' in header and (coords[0] != 0 and coords[1] != 0):
             objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
                 # src_id = src_id,
                 # dataset = dataset,

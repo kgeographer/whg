@@ -109,7 +109,7 @@ def es_lookup(qobj, *args, **kwargs):
     search_name = fixName(qobj['prefname'])
 
     # array (includes title)
-    altnames = qobj['altnames']
+    variants = qobj['variants']
 
     # bestParent() coalesces mod. country and region; countries.json
     parent = bestParent(qobj)
@@ -136,7 +136,7 @@ def es_lookup(qobj, *args, **kwargs):
     # pass1: name, type, distance?
     q1 = {"query": { "bool": {
             "must": [
-                {"terms" : { "names.name" : altnames }}
+                {"terms" : { "names.name" : variants }}
                 # is name in parsed TGN parent string?
                 # ,{"match": {"parents": parent}}
                 # TODO: ensure placetypes are AAT labels
@@ -149,7 +149,7 @@ def es_lookup(qobj, *args, **kwargs):
     # pass2: name, parent, distance?
     q2 = {"query": { "bool": {
               "must": [
-                {"terms" : { "names.name" : altnames }}
+                {"terms" : { "names.name" : variants }}
                 ,{"match": {"parents": parent}}
               ],
               "filter": [
@@ -160,7 +160,7 @@ def es_lookup(qobj, *args, **kwargs):
     # pass3a: name, distance?
     q3 = {"query": { "bool": {
             "must": [
-                {"terms" : { "names.name" : altnames }
+                {"terms" : { "names.name" : variants }
             }],
             "filter": [
             ]
@@ -169,7 +169,7 @@ def es_lookup(qobj, *args, **kwargs):
     # pass3b: name only
     q4 = { "query": { "bool": {
             "must": [{
-                "terms" : { "names.name" : altnames }
+                "terms" : { "names.name" : variants }
             }],
             "filter": [
             ]
@@ -184,6 +184,7 @@ def es_lookup(qobj, *args, **kwargs):
 
     # geom/centroid is available
     if 'geom' in qobj.keys():
+        print('geom in qobj')
         location = qobj['geom']
 
         filter_dist_50 = {"geo_distance" : {
@@ -267,15 +268,15 @@ def align_tgn(pk, *args, **kwargs):
     for place in ds.places.all():
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
-        altnames=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
+        variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
 
         query_obj['countries'] = place.ccodes
         query_obj['placetypes'] = [place.types.first().json['label']]
 
         # names
         for name in place.names.all():
-            altnames.append(name.toponym)
-        query_obj['altnames'] = altnames
+            variants.append(name.toponym)
+        query_obj['variants'] = variants
 
         #parents
         for rel in place.related.all():
@@ -285,8 +286,8 @@ def align_tgn(pk, *args, **kwargs):
 
         print('query_obj:', query_obj)
         # TODO: handle multipoint, polygons(?)
-        # if place.geoms is not None:
-        #     query_obj['geom'] = place.geoms.first().json
+        if len(place.geoms.all()) > 0:
+            query_obj['geom'] = place.geoms.first().json
 
         # run es query on query_obj
         # regions.regions
