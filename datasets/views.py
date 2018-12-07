@@ -15,7 +15,7 @@ from django_celery_results.models import TaskResult
 from main.models import *
 from .forms import DatasetModelForm, HitModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
-import codecs, tempfile, os
+import codecs, tempfile, os, re
 from pprint import pprint
 
 
@@ -230,7 +230,7 @@ class DatasetDeleteView(DeleteView):
 def ds_grid(request, label):
     print('request, pk',request, label)
     ds = get_object_or_404(Dataset, label=label)
-    place_list = Place.objects.filter(dataset=label).order_by('title')
+    place_list = Place.objects.filter(dataset=label).order_by('id')
 
     return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
@@ -266,9 +266,11 @@ def ds_insert(request, pk ):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
-        title = r[header.index('name')]
+        title = r[header.index('title')]
+        # for PlaceName insertion, strip anything in parens
+        name = re.sub(' \(.*?\)', '', title)
         name_src = r[header.index('name_src')]
-        variants = r[header.index('variants')]
+        variants = r[header.index('variants')].split(', ')
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'not specified'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
@@ -278,18 +280,21 @@ def ds_insert(request, pk ):
             if 'ccodes' in header else []
         coords = [
             float(r[header.index('lon')]),
-            float(r[header.index('lat')])] if 'lon' in header else []
+            float(r[header.index('lat')]) ] if 'lon' in header else []
         close_match = r[header.index('close_match')][1:-1].split('", "') \
             if 'close_match' in header else []
         exact_match = r[header.index('exact_match')][1:-1].split('", "') \
             if 'exact_match' in header else []
         # nice to have
+        minmax = [
+            r[header.index('min')],
+            r[header.index('max')] ] if 'min' in header else []
         description = r[header.index('description')] \
             if 'description' in header else []
         depiction = r[header.index('depiction')] \
             if 'depiction' in header else []
 
-        print('ccodes',ccodes)
+        print('variants:',variants)
         # build and save Place object
         newpl = Place(
             # placeid = nextpid,
@@ -303,12 +308,19 @@ def ds_insert(request, pk ):
         # build associated objects and add to arrays
 
         # PlaceName()
-        # TODO: variants array
         objs['PlaceName'].append(PlaceName(place_id=newpl,
-            toponym = title,
+            toponym = name,
             # TODO get citation label through name_src FK; here?
-            json={"toponym": title, "citation": {"id":name_src,"label":""}}
+            json={"toponym": name, "citation": {"id":name_src,"label":""}}
         ))
+
+        # variants if any
+        if len(variants) > 0:
+            for v in variants:
+                objs['PlaceName'].append(PlaceName(place_id=newpl,
+                    toponym = v,
+                    json={"toponym": v, "citation": {"id":name_src,"label":""}}
+                ))
 
         # PlaceType()
         objs['PlaceType'].append(PlaceType(place_id=newpl,
@@ -347,10 +359,15 @@ def ds_insert(request, pk ):
                 }
             ))
 
-        #
-        # # PlaceWhen()
-        # objs['PlaceWhen'].append(PlaceWhen())
-        #
+        # PlaceWhen()
+        # timespans[{start{}, end{}}], periods[{name,id}], label, duration
+        if 'min' in header:
+            objs['PlaceWhen'].append(PlaceWhen(place_id=newpl,
+                json={
+                    "timespans": [{"start":{"earliest":minmax[0]}, "end":{"latest":minmax[1]}}]
+                }
+            ))
+
         #
         # # PlaceDescription()
         # objs['PlaceDescription'].append(PlaceDescription())
@@ -364,6 +381,7 @@ def ds_insert(request, pk ):
     PlaceName.objects.bulk_create(objs['PlaceName'])
     PlaceType.objects.bulk_create(objs['PlaceType'])
     PlaceGeom.objects.bulk_create(objs['PlaceGeom'])
+    PlaceWhen.objects.bulk_create(objs['PlaceWhen'])
     PlaceLink.objects.bulk_create(objs['PlaceLink'])
     PlaceRelated.objects.bulk_create(objs['PlaceRelated'])
 

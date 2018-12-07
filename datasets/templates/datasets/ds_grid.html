@@ -10,7 +10,7 @@
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container">
-  <h4 class="mt-3">{{ ds.name }} [{{ ds.label }}]</h4>
+  <h4 class="mt-3">{{ ds.name }} <span class="small text-muted">[#{{ ds.label }}]</span></h4>
   <hr/>
   <div class="container">
     <div class="row">
@@ -23,9 +23,9 @@
         <table class="table table-striped">
           <thead>
               <!-- <th></th> -->
-              <th>name</th>
-              <th>place_id</th>
-              <th>src_id</th>
+              <th>title</th>
+              <th>whg id</th>
+              <th>source id</th>
               <th>ccode(s)</th>
           </thead>
           <tbody>
@@ -55,10 +55,14 @@
   function parsePlace(data) {
     window.data = data
     // console.log(data.links[0])
-    html='<div><h5 class="text-danger"><b>'
+    html='<div><h5 class="text-danger mb-4"><b>'
       +data['title']+'</b></h5>'
-    html+='<p><b>Names</b>: '+ data.names[0].toponym +'</p>'
-    + '<p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
+    html+='<p><b>Variants</b>: '
+    for (n in data.names) {
+      html+= data.names[n].toponym !=''?data.names[n].toponym+'; ': ''
+    }
+    // html+='<p><b>Names</b>: '+ data.names[0].toponym +'</p>'
+    html+='</p><p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
 
     if (data.related.length > 0) {
       if (data.related[0].relation_type == 'gvp:broaderPartitive'){
@@ -69,6 +73,9 @@
       }
     }
 
+    if (data.geoms.length > 0){
+      html+='<p><b>Geometry</b>: ' + data.geoms[0].geowkt + '</p>'
+    }
     html_close = '<p class="mb-0"><b>closeMatches</b>: </p>'
     html_exact = '<p class="mb-0"><b>exactMatches</b>: </p>'
     close_count = exact_count = 0

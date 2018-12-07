@@ -335,8 +335,8 @@ def read_delimited(infile, username):
     result = {'format':'delimited','errors':{}}
     # required fields
     # TODO: req. fields not null or blank
-    # required = ['id', 'name', 'name_src', 'ccodes', 'lon', 'lat']
-    required = ['id', 'name', 'name_src']
+    # required = ['id', 'title', 'name_src', 'ccodes', 'lon', 'lat']
+    required = ['id', 'title', 'name_src']
 
     # learn delimiter [',',';']
     dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
@@ -354,6 +354,15 @@ def read_delimited(infile, username):
     if not len(set(header) & set(required)) == 3:
         result['errors']['req'] = 'missing a required column (id,name,name_src)'
         return result
+    if ('min' in header and 'max' not in header) \
+        or ('max' in header and 'min' not in header):
+        result['errors']['req'] = 'if a min, must be a max - and vice versa'
+        return result
+    if ('lon' in header and 'lat' not in header) \
+        or ('lat' in header and 'lon' not in header):
+        result['errors']['req'] = 'if a lon, must be a lat - and vice versa'
+        return result
+
     #print(header)
     rowcount = 1
     geometries = []
@@ -367,15 +376,17 @@ def read_delimited(infile, username):
             else:
                 result['errors']['rowlength'] = [rowcount]
 
-        # make geojson
-        # TODO: test lon, lat makes valid geometry
+
+        # TODO: write geojson? make map? so many questions
         if 'lon' in header:
-            if r[header.index('lon')] not in ('',0, None):
+            print('type(lon): ', type('lon'))
+            if (r[header.index('lon')] not in ('',None)) and \
+                (r[header.index('lat')] not in ('',None)):
                 feature = {
                     'type':'Feature',
                     'geometry': {'type':'Point',
                                  'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
-                    'properties': {'id':r[header.index('id')], 'name': r[header.index('name')]}
+                    'properties': {'id':r[header.index('id')], 'name': r[header.index('title')]}
                 }
                 # TODO: add properties to geojson feature?
                 # props = set(header) - set(required)
