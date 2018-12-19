@@ -1,6 +1,7 @@
 # datasets.views CLASS-BASED
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.forms import formset_factory, modelformset_factory
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import (
@@ -18,6 +19,12 @@ from .tasks import read_delimited, align_tgn, read_lpf
 import codecs, tempfile, os, re
 from pprint import pprint
 
+def task_delete(request,tid):
+    hits = Hit.objects.all().filter(task_id=tid)
+    tr = get_object_or_404(TaskResult, task_id=tid)
+    hits.delete()
+    tr.delete()
+    return HttpResponseRedirect(reverse('dashboard'))
 
 # initiate, monitor reconciliation service
 def review(request, pk, tid): # dataset pk, celery recon task_id
@@ -38,7 +45,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     placeid = records[0].id
     print('records[0]',dir(records[0]))
     # recon task hits
-    hit_list = Hit.objects.all().filter(place_id=placeid)
+    hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid)
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list':hit_list, 'authority': task.task_name,
