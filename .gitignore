@@ -3,6 +3,7 @@ _notes/
 _older/
 
 nohup.out
+dump.rdb
 
 ### Django ###
 *.log

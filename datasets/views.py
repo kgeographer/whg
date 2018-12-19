@@ -270,7 +270,7 @@ def ds_insert(request, pk ):
         # for PlaceName insertion, strip anything in parens
         name = re.sub(' \(.*?\)', '', title)
         name_src = r[header.index('name_src')]
-        variants = r[header.index('variants')].split(', ')
+        variants = r[header.index('variants')].split(', ') if 'variants' in header else []
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'not specified'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''

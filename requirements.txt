@@ -44,7 +44,6 @@ rdflib==4.2.2
 selenium==3.11.0
 Shapely==1.6.4.post2
 six==1.11.0
-sparklines==0.4.1
 SPARQLWrapper==1.8.0
 urllib3==1.23
 vine==1.1.4
