@@ -102,12 +102,14 @@ class Hit(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
     query_pass = models.CharField(max_length=12, choices=AUTHORITIES )
+    src_id = models.CharField(max_length=50)
 
     # authority record identifier (could be uri)
     authrecord_id = models.CharField(max_length=255)
 
     # json response; parse later according to authority
     json = JSONField(blank=True, null=True)
+    geom = JSONField(blank=True, null=True)
 
     def __str__(self):
         return str(self.id)

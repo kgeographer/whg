@@ -898,7 +898,7 @@ id	title	name_src	variants	type	aat_type	ccodes	lon	lat	min	max
 897	Τατάρ (Tatar)	ali-pasha	Τατάρι	settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820
 898	Τέρνοβα (Ternoba)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	21.003472	39.555341	1780	1820
 899	Τζάρα (Tzara)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	21.343519	39.808597	1780	1820
-900	Τζελτικτζη (Tzeltiktzē)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]			1780	1820
+900	Τζελτικτζη (Tzeltiktzē)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820
 901	Τζενεράδες (Tzenerades)	ali-pasha	Ντζενεράδες	settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820
 902	Τζέρια (Tzeria)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	21.325655	39.463474	1780	1820
 903	Τζίγκορο (Tzinkoro)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820
@@ -2024,7 +2024,7 @@ id	title	name_src	variants	type	aat_type	ccodes	lon	lat	min	max
 2023	Άλία (Alia)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	13.716667	37.783333	1780	1820
 2024	Αλιάκμονας (Aliakmonas)	ali-pasha	οικισμός	settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	21.430278	40.317778	1780	1820
 2025	Άλιτζερίνοι (Alitzerinoi)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820
-2026	Αμάραντος (Amarantos)	ali-pasha	Άμάραντον	settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	4408836.55	733043.97	1780	1820
+2026	Αμάραντος (Amarantos)	ali-pasha	Άμάραντον	settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820
 2027	Άμαρλάρ Λαρίσης (Amarlar Larisēs)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820
 2028	Άμβρακία (Ambrakia)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	21.178	38.752	1780	1820
 2029	Άμμότοπος (Ammotopos)	ali-pasha		settlement	inhabited places	["GR","AL","TR","MK","BG","IT","AT","RU","RO"]	0	0	1780	1820

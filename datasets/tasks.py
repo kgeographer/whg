@@ -75,11 +75,7 @@ def reverse(coords):
 
 # ES geo_polygon filter
 # {
-# "points" : [
-#     [-70, 40],
-#     [-80, 30],
-#     [-90, 20]
-# ]
+#   "points" : [ [-70, 40], [-80, 30], [-90, 20] ]
 # }
 
 def get_bbox_filter(region):
@@ -87,15 +83,11 @@ def get_bbox_filter(region):
     bounds = regions[region]
     if region.startswith('u_'):
         filter = {
-            "geo_polygon" : {
-                "location.coordinates" : bounds
-            }
+            "geo_polygon" : {"location.coordinates" : bounds}
         }
     else:
         filter = {
-            "geo_bounding_box" : {
-                "location.coordinates" : bounds
-            }
+            "geo_bounding_box" : {"location.coordinates" : bounds}
         }
     return filter
 
@@ -176,6 +168,7 @@ def es_lookup(qobj, *args, **kwargs):
         }
     }}
 
+    # add filter
     if region != 0: # bbox=area abbrev.
         q1['query']['bool']['filter'].append(get_bbox_filter(region))
         q2['query']['bool']['filter'].append(get_bbox_filter(region))
@@ -187,9 +180,9 @@ def es_lookup(qobj, *args, **kwargs):
         print('geom in qobj')
         location = qobj['geom']
 
-        filter_dist_50 = {"geo_distance" : {
+        filter_dist_100 = {"geo_distance" : {
             "ignore_unmapped": "true",
-            "distance" : "50km",
+            "distance" : "100km",
             "location.coordinates" : qobj['geom']['coordinates']
         }}
         filter_dist_200 = {"geo_distance" : {
@@ -198,8 +191,8 @@ def es_lookup(qobj, *args, **kwargs):
             "location.coordinates" : qobj['geom']['coordinates']
         }}
 
-        q1['query']['bool']['filter'].append(filter_dist_50)
-        q2['query']['bool']['filter'].append(filter_dist_50)
+        q1['query']['bool']['filter'].append(filter_dist_200)
+        q2['query']['bool']['filter'].append(filter_dist_200)
         q3['query']['bool']['filter'].append(filter_dist_200)
         q4['query']['bool']['filter'].append(filter_dist_200)
 
@@ -259,6 +252,7 @@ def align_tgn(pk, *args, **kwargs):
     # ccodes = kwargs['ccodes']
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
+    features = []
     [count, count_hit, count_nohit, total_hits] = [0,0,0,0]
     # print('celery task id:', align_tgn.request.id)
     start = datetime.datetime.now()
@@ -284,10 +278,11 @@ def align_tgn(pk, *args, **kwargs):
                 parents.append(rel.json['label'])
         query_obj['parents'] = parents
 
-        print('query_obj:', query_obj)
         # TODO: handle multipoint, polygons(?)
         if len(place.geoms.all()) > 0:
             query_obj['geom'] = place.geoms.first().json
+
+        print('query_obj:', query_obj)
 
         # run es query on query_obj
         # regions.regions
@@ -303,6 +298,7 @@ def align_tgn(pk, *args, **kwargs):
             for hit in result_obj['hits']:
                 hit_parade["hits"].append(hit)
                 # print('creating hit:',hit)
+                loc = hit['_source']['location'] if 'location' in hit['_source'].keys() else None
                 new = Hit(
                     authority = 'tgn',
                     authrecord_id = hit['_id'],
@@ -312,12 +308,14 @@ def align_tgn(pk, *args, **kwargs):
                     # TODO: articulate hit here?
                     query_pass = hit['pass'],
                     json = hit['_source'],
+                    src_id = query_obj['src_id'],
+                    geom = loc,
                 )
                 new.save()
-
     end = datetime.datetime.now()
     # ds.status = 'recon_tgn'
     # TODO: return summary
+    print('features:',features)
     hit_parade['summary'] = {
         'count':count,
         'got-hits':count_hit,

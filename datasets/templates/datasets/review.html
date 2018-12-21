@@ -49,9 +49,10 @@
                 <button type="submit" class="btn btn-secondary float-right">Save</button>
               </span>
             </div>
+            <p><strong>Source id</strong>: {{ record.src_id }}</p>
             <p><strong>Name variants</strong>:
               {% for name in record.names.all %}
-               <br/>{{ name.json.toponym }}
+               {{ name.json.toponym }};
               {% endfor %}</p>
             <p><strong>Place type(s)</strong>:
               {% for type in record.types.all %}
@@ -92,6 +93,7 @@
                         {{ t.placetype|add:"; " }}
                       {% endfor %}</p>
                   <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
+                  <p><strong>Note</strong>: {{ form.json.value|get:"note" }}</p>
               </div>
             {% endfor %}
           </div>
@@ -156,6 +158,7 @@
         return this.id.match(/[0-9]/) && this.text != '"null"';
       });
 
+      // TODO: location returned in TGN hit needs cleaning
       for (i=0;i<gelems.length;i++){
         let t_geom = cleanJson(gelems[i].text)
         // let t_geom = JSON.parse(JSON.parse(gelems[i].text))
