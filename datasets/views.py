@@ -28,7 +28,7 @@ def task_delete(request,tid):
 
 # initiate, monitor reconciliation service
 def review(request, pk, tid): # dataset pk, celery recon task_id
-    print('pk, tid:', pk, tid)
+    # print('pk, tid:', pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
     # TODO: also filter by reviewed, per authority
@@ -43,7 +43,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     count = len(record_list)
 
     placeid = records[0].id
-    print('records[0]',dir(records[0]))
+    # print('records[0]',dir(records[0]))
     # recon task hits
     hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid)
     context = {
@@ -54,34 +54,42 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     }
     HitFormset = modelformset_factory(
         Hit, fields = ['task_id','authority','dataset','place_id',
-            'authrecord_id','json'], form=HitModelForm, extra=0)
+            'authrecord_id','json','geom'], form=HitModelForm, extra=0)
     formset = HitFormset(request.POST or None, queryset=hit_list)
+    # formset = HitFormset(request.POST, queryset=hit_list)
     context['formset'] = formset
-
-    if request.method == 'GET':
-        method = request.method
+    print('context',context)
+    # print('formset',formset)
+    method = request.method
+    # required & not being sent
+    # [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label), 'place_id', 'authrecord_id', 'id'}]
+    if method == 'GET':
         print('a GET')
     else:
+        print('a ',method)
+        # print('formset data:',formset.data)
         if formset.is_valid():
             print('formset is valid')
-            for x in range(len(formset)):
-                print('note before create link',formset[x].cleaned_data)
-                link = Link.objects.create(
-                    placeid = placeid,
-                    tgnid = formset[x].cleaned_data['tgnid'],
-                    match = formset[x].cleaned_data['match'],
-                    flag_geom = formset[x].cleaned_data['flag_geom'],
-                    review_note = formset[x].cleaned_data['review_note']
-                )
-                # flag black record as reviewed
-                matchee = get_object_or_404(BlackPlace, placeid = placeid)
-                matchee.reviewed = True
-                matchee.save()
-            # since 'reviewed' is filtered, it's always page 1
-            return redirect('/formset/?page='+page)
+            print('cleaned_data:',formset.cleaned_data)
+        #     for x in range(len(formset)):
+        #         print('cleaned_data:',formset[x].cleaned_data)
+        #         # link = Link.objects.create(
+        #         #     placeid = placeid,
+        #         #     tgnid = formset[x].cleaned_data['tgnid'],
+        #         #     match = formset[x].cleaned_data['match'],
+        #         #     flag_geom = formset[x].cleaned_data['flag_geom'],
+        #         #     review_note = formset[x].cleaned_data['review_note']
+        #         # )
+        #         # # flag black record as reviewed
+        #         # matchee = get_object_or_404(BlackPlace, placeid = placeid)
+        #         # matchee.reviewed = True
+        #         # matchee.save()
+        #     # since 'reviewed' is filtered, it's always page 1
+        #     return redirect('/formset/?page='+page)
         else:
             print('formset is NOT valid')
-            print(formset.errors)
+            print('formset data:',formset.data)
+            print('errors:',formset.errors)
     # pprint(locals())
     # return render(request, 'validator/multihit.html', context=context)
     return render(request, 'datasets/review.html', context=context)

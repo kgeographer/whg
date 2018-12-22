@@ -19,13 +19,15 @@ class HitModelForm(forms.ModelForm):
     )
     class Meta:
         model = Hit
+        # all Hit model fields
         fields = ['task_id','authority','dataset','place_id',
-            'authrecord_id','json' ]
+            'query_pass','src_id','authrecord_id','json','geom' ]
         widgets = {
             'id': forms.HiddenInput(),
             'flag_geom': forms.CheckboxInput(),
         }
-
+# [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label),
+# 'place_id', 'authrecord_id', 'id'}]
 
 class DatasetModelForm(forms.ModelForm):
     class Meta:

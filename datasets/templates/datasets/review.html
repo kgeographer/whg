@@ -36,11 +36,14 @@
     {% endif %}
     {% csrf_token %}
     {{ formset.management_form }}
-    <input type="hidden" name="placeid" value="{{ record.placeid }}" />
     <div class="container">
       <hr/>
       <div class="row">
         <div id="review_record" class="col-sm-4 pl-0">
+          <input type="text" name="task_id" value="{{ task_id }}" />
+          <input type="text" name="authority" value="{{ authority }}" />
+          <input type="text" name="dataset" value="{{ ds_label }}" />
+          <input type="text" name="place_id" value="{{ record.id }}" />
           <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
           <div id="place-record">
             <div>
@@ -66,23 +69,25 @@
         </div>
         <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
-              <input type="hidden" name="tgnid" value='{{ form.tgnid.value }}'></input>
+            <!-- [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label),
+              'place_id', 'authrecord_id', 'id'}] -->
+              <input type="text" name="authrecord_id" value='{{ form.authrecord_id.value }}'></input>
               <div class="pl-2 pr-2 matchbar">
                 <span class="custom-control custom-radio match_radio">
                   {{ form.match }}
                   {% if form.json.value|get:"location" != Null %}
                     {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}
-                    <!-- {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }} -->
                     {{ form.flag_geom }} flag
                     <a class="geolink" id="{{ form.authrecord_id.value }}" href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">geometry</a>
                   {% endif %}
                   <span class="noteicon">{% fontawesome_icon 'comment' color='#666666' %}</span>
                 </span>
                 <div class="notefield">{{ form.review_note}}</div>
+                <input type="text" name="geom" value='{{ form.json.value|get:"location" }}'></input>
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
-                  <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
+                  <p><strong>tgnid</strong>: {{ form.authrecord_id.value }} {{ form.id }</p>
                     <p><strong>Names</strong>:
                       {% for n in form.json.value|get:"names" %}
                         {{ n.name|add:"; " }}

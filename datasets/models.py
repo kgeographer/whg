@@ -95,12 +95,13 @@ class Link(models.Model):
         db_table = 'links'
 
 # raw hits from reconciliation
+# [{'place_id', 'task_id', 'authority', 'dataset', 'authrecord_id', 'id'}]
 class Hit(models.Model):
+    place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
     # FK to celery_results_task_result.task_id; TODO: written yet?
     task_id = models.CharField(max_length=50)
     authority = models.CharField(max_length=12, choices=AUTHORITIES )
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
     query_pass = models.CharField(max_length=12, choices=AUTHORITIES )
     src_id = models.CharField(max_length=50)
 
