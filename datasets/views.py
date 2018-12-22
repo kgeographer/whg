@@ -16,7 +16,7 @@ from django_celery_results.models import TaskResult
 from main.models import *
 from .forms import DatasetModelForm, HitModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
-import codecs, tempfile, os, re
+import codecs, tempfile, os, re, ipdb, sys
 from pprint import pprint
 
 def task_delete(request,tid):
@@ -38,7 +38,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     record_list = Place.objects.order_by('title').filter(pk__in=hitplaces)
     # record_list = Place.objects.order_by('title').filter(dataset=ds)
     paginator = Paginator(record_list, 1)
-    page = request.GET.get('page')
+    page = 1 if not request.GET.get('page') else request.GET.get('page')
     records = paginator.get_page(page)
     count = len(record_list)
 
@@ -52,46 +52,51 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
         'records': records,
         'page': page if request.method == 'GET' else str(int(page)-1)
     }
+    # Hit model fields = ['task_id','authority','dataset','place_id',
+    #     'query_pass','src_id','authrecord_id','json','geom' ]
     HitFormset = modelformset_factory(
-        Hit, fields = ['task_id','authority','dataset','place_id',
-            'authrecord_id','json','geom'], form=HitModelForm, extra=0)
+        Hit, fields = ['id','authrecord_id','json'], form=HitModelForm, extra=0)
     formset = HitFormset(request.POST or None, queryset=hit_list)
     # formset = HitFormset(request.POST, queryset=hit_list)
     context['formset'] = formset
-    print('context',context)
+    print('context:',context)
     # print('formset',formset)
     method = request.method
     # required & not being sent
     # [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label), 'place_id', 'authrecord_id', 'id'}]
     if method == 'GET':
         print('a GET')
+        return render(request, 'datasets/review.html', context=context)
     else:
         print('a ',method)
         # print('formset data:',formset.data)
         if formset.is_valid():
             print('formset is valid')
             print('cleaned_data:',formset.cleaned_data)
-        #     for x in range(len(formset)):
-        #         print('cleaned_data:',formset[x].cleaned_data)
-        #         # link = Link.objects.create(
-        #         #     placeid = placeid,
-        #         #     tgnid = formset[x].cleaned_data['tgnid'],
-        #         #     match = formset[x].cleaned_data['match'],
-        #         #     flag_geom = formset[x].cleaned_data['flag_geom'],
-        #         #     review_note = formset[x].cleaned_data['review_note']
-        #         # )
-        #         # # flag black record as reviewed
-        #         # matchee = get_object_or_404(BlackPlace, placeid = placeid)
-        #         # matchee.reviewed = True
-        #         # matchee.save()
-        #     # since 'reviewed' is filtered, it's always page 1
-        #     return redirect('/formset/?page='+page)
+            # for x in range(len(formset)):
+                # link = Link.objects.create(
+                #     placeid = placeid,
+                #     tgnid = formset[x].cleaned_data['tgnid'],
+                #     match = formset[x].cleaned_data['match'],
+                #     flag_geom = formset[x].cleaned_data['flag_geom'],
+                #     review_note = formset[x].cleaned_data['review_note']
+                # )
+                # # flag black record as reviewed
+                # matchee = get_object_or_404(BlackPlace, placeid = placeid)
+                # matchee.reviewed = True
+                # matchee.save()
+            # since 'reviewed' is filtered, it's always page 1
+            # return render(request, 'datasets/review.html', context=context)
+            # NEED: datasets/68/review/32289879-01a6-4e69-827d-0f7246ca62e3?page=4
+            # GOT: http://localhost:8000/datasets/68review/32289879-01a6-4e69-827d-0f7246ca62e3?page=3
+            return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)+1))
         else:
             print('formset is NOT valid')
             print('formset data:',formset.data)
             print('errors:',formset.errors)
+            # ipdb.set_trace()
+            # return redirect('datasets/dashboard.html', permanent=True)
     # pprint(locals())
-    # return render(request, 'validator/multihit.html', context=context)
     return render(request, 'datasets/review.html', context=context)
 
 def ds_recon(request, pk):

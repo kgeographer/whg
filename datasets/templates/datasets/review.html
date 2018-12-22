@@ -40,10 +40,10 @@
       <hr/>
       <div class="row">
         <div id="review_record" class="col-sm-4 pl-0">
-          <input type="text" name="task_id" value="{{ task_id }}" />
-          <input type="text" name="authority" value="{{ authority }}" />
-          <input type="text" name="dataset" value="{{ ds_label }}" />
-          <input type="text" name="place_id" value="{{ record.id }}" />
+          <!-- <input type="hidden" name="task_id" value="{{ task_id }}" />
+          <input type="hidden" name="authority" value="{{ authority }}" />
+          <input type="hidden" name="dataset" value="{{ ds_label }}" />
+          <input type="hidden" name="place_id" value="{{ record.id }}" /> -->
           <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
           <div id="place-record">
             <div>
@@ -71,7 +71,7 @@
             {% for form in formset %}
             <!-- [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label),
               'place_id', 'authrecord_id', 'id'}] -->
-              <input type="text" name="authrecord_id" value='{{ form.authrecord_id.value }}'></input>
+              <input type="text" form="form_related" name="id" value='{{ form.id.value }}' />
               <div class="pl-2 pr-2 matchbar">
                 <span class="custom-control custom-radio match_radio">
                   {{ form.match }}
@@ -83,11 +83,10 @@
                   <span class="noteicon">{% fontawesome_icon 'comment' color='#666666' %}</span>
                 </span>
                 <div class="notefield">{{ form.review_note}}</div>
-                <input type="text" name="geom" value='{{ form.json.value|get:"location" }}'></input>
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
-                  <p><strong>tgnid</strong>: {{ form.authrecord_id.value }} {{ form.id }</p>
+                  <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
                     <p><strong>Names</strong>:
                       {% for n in form.json.value|get:"names" %}
                         {{ n.name|add:"; " }}
@@ -99,6 +98,8 @@
                       {% endfor %}</p>
                   <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
                   <p><strong>Note</strong>: {{ form.json.value|get:"note" }}</p>
+                  <!-- hidden by modelform, fed back on POST-->
+                  {{ form.id }} {{ form.authrecord_id }} {{ form.json }}
               </div>
             {% endfor %}
           </div>

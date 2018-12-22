@@ -20,7 +20,7 @@ class Place(models.Model):
     ccodes = ArrayField(models.CharField(max_length=2))
 
     def __str__(self):
-        return str(self.id) + '_' + self.title
+        return str(self.id)
 
     class Meta:
         managed = True
