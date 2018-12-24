@@ -40,19 +40,17 @@
       <hr/>
       <div class="row">
         <div id="review_record" class="col-sm-4 pl-0">
-          <!-- <input type="hidden" name="task_id" value="{{ task_id }}" />
-          <input type="hidden" name="authority" value="{{ authority }}" />
-          <input type="hidden" name="dataset" value="{{ ds_label }}" />
-          <input type="hidden" name="place_id" value="{{ record.id }}" /> -->
           <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
           <div id="place-record">
             <div>
+              <input type="hidden" name="place_id" value="{{ record.id }}" />
               <span><h4 class="text-danger">{{ record.title }} </h4></span>
               <span class="float-right">
                 <button type="submit" class="btn btn-secondary float-right">Save</button>
               </span>
             </div>
             <p><strong>Source id</strong>: {{ record.src_id }}</p>
+            <p><strong>WHG id</strong>: {{ record.id }} </p>
             <p><strong>Name variants</strong>:
               {% for name in record.names.all %}
                {{ name.json.toponym }};
@@ -69,9 +67,6 @@
         </div>
         <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
-            <!-- [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label),
-              'place_id', 'authrecord_id', 'id'}] -->
-              <input type="text" form="form_related" name="id" value='{{ form.id.value }}' />
               <div class="pl-2 pr-2 matchbar">
                 <span class="custom-control custom-radio match_radio">
                   {{ form.match }}
@@ -98,6 +93,7 @@
                       {% endfor %}</p>
                   <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
                   <p><strong>Note</strong>: {{ form.json.value|get:"note" }}</p>
+                  <!-- <input type="hidden" name="place_id" value="{{ record.id }}" /> -->
                   <!-- hidden by modelform, fed back on POST-->
                   {{ form.id }} {{ form.authrecord_id }} {{ form.json }}
               </div>

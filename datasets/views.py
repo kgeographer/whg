@@ -11,9 +11,10 @@ from django.views.generic import (
     UpdateView,
     DeleteView )
 
-from .models import Dataset, Hit, Link
+from .models import Dataset, Hit
 from django_celery_results.models import TaskResult
 from main.models import *
+from .choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
 import codecs, tempfile, os, re, ipdb, sys
@@ -26,6 +27,10 @@ def task_delete(request,tid):
     tr.delete()
     return HttpResponseRedirect(reverse('dashboard'))
 
+def link_uri(auth,id):
+    baseuri = AUTHORITY_BASEURI[auth]
+    uri = baseuri + id
+    return uri
 # initiate, monitor reconciliation service
 def review(request, pk, tid): # dataset pk, celery recon task_id
     # print('pk, tid:', pk, tid)
@@ -43,6 +48,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     count = len(record_list)
 
     placeid = records[0].id
+    place = get_object_or_404(Place, id=placeid)
     # print('records[0]',dir(records[0]))
     # recon task hits
     hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid)
@@ -72,23 +78,28 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
         # print('formset data:',formset.data)
         if formset.is_valid():
             print('formset is valid')
-            print('cleaned_data:',formset.cleaned_data)
-            # for x in range(len(formset)):
-                # link = Link.objects.create(
-                #     placeid = placeid,
-                #     tgnid = formset[x].cleaned_data['tgnid'],
-                #     match = formset[x].cleaned_data['match'],
-                #     flag_geom = formset[x].cleaned_data['flag_geom'],
-                #     review_note = formset[x].cleaned_data['review_note']
-                # )
+            # print('cleaned_data:',formset.cleaned_data)
+            hits = formset.cleaned_data
+            for x in range(len(hits)):
+                if hits[x]['match'] != 'none':
+                    link = PlaceLink.objects.create(
+                        place_id = place,
+                        task_id = tid,
+                        # dataset = ds,
+                        json = {
+                            "type":hits[x]['match'],
+                            "identifier":link_uri(task.task_name, hits[x]['authrecord_id'])
+                        },
+                        review_note =  hits[x]['review_note'],
+                    )
+                    # TODO: flag record as reviewed
+                    print('place_id',placeid,
+                        'authrecord_id',hits[x]['authrecord_id'],
+                        'hit id',hits[x]['id'])
                 # # flag black record as reviewed
                 # matchee = get_object_or_404(BlackPlace, placeid = placeid)
                 # matchee.reviewed = True
                 # matchee.save()
-            # since 'reviewed' is filtered, it's always page 1
-            # return render(request, 'datasets/review.html', context=context)
-            # NEED: datasets/68/review/32289879-01a6-4e69-827d-0f7246ca62e3?page=4
-            # GOT: http://localhost:8000/datasets/68review/32289879-01a6-4e69-827d-0f7246ca62e3?page=3
             return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)+1))
         else:
             print('formset is NOT valid')

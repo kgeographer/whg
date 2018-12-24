@@ -6,9 +6,14 @@
   <div class="row justify-content-center">
     <div class="col-md-4 mt-5">
       <form action='' method='POST'>{% csrf_token %}
-          <h4>Do you really want to delete the dataset "{{ object.label }}"...</h4>
-          <p>All its records and associated reconciliation "hits?"</p>
-          <p class="mt-4"><input type='submit' value='Yes' />  <a href='/dashboard'>Cancel</a></p>
+          <h3 class="text-danger">CAREFUL!!</h3>
+          <p>This will destroy all records related to the dataset "{{ object.label }}" including:</p>
+          <ul>
+            <li>associated reconciliation "hits"</li>
+            <li>links and geometry attributes produced by the reconciliation review step</li>
+          </ul>
+          <p>You might want to perform an update to the dataset instead (coming soon)</p>
+          <p class="mt-4"><input type='submit' value='Destroy' />  <a href='/dashboard'>Cancel</a></p>
       </form>
     </div>
   </div>

@@ -70,29 +70,29 @@ def remove_file(**kwargs):
     instance.file.delete(save=False)
 
 # product of hit validation
-class Link(models.Model):
-    # WHG identifier
-    place_id = models.ForeignKey('main.Place', on_delete="models.CASCADE")
-
-    # contributor identifier
-    src_id = models.CharField(max_length=24)
-
-    authority = models.CharField(max_length=12, choices=AUTHORITIES )
-
-    # authority place record identifier; could be uri
-    authrecord_id = models.CharField(max_length=255)
-    match_type = models.CharField(max_length=12, choices=MATCHTYPES )
-    review_note = models.CharField(max_length=2044, blank=True, null=True)
-    flag_geom = models.BooleanField(default=False)
-    created = models.DateTimeField(default=timezone.now)
-    modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        managed = True
-        db_table = 'links'
+# class Link(models.Model):
+#     # WHG identifier
+#     place_id = models.ForeignKey('main.Place', on_delete="models.CASCADE")
+#
+#     # contributor identifier
+#     src_id = models.CharField(max_length=24)
+#
+#     authority = models.CharField(max_length=12, choices=AUTHORITIES )
+#
+#     # authority place record identifier; could be uri
+#     authrecord_id = models.CharField(max_length=255)
+#     match_type = models.CharField(max_length=12, choices=MATCHTYPES )
+#     review_note = models.CharField(max_length=2044, blank=True, null=True)
+#     flag_geom = models.BooleanField(default=False)
+#     created = models.DateTimeField(default=timezone.now)
+#     modified = models.DateTimeField(default=timezone.now)
+#
+#     def __str__(self):
+#         return str(self.id)
+#
+#     class Meta:
+#         managed = True
+#         db_table = 'links'
 
 # raw hits from reconciliation
 # [{'place_id', 'task_id', 'authority', 'dataset', 'authrecord_id', 'id'}]

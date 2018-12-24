@@ -21,16 +21,20 @@ class HitModelForm(forms.ModelForm):
     )
     # authrecord_id = forms.CharField(max_length=255, required=False)
     id = forms.CharField(max_length=255, required=False)
+    # place_id = forms.CharField(max_length=255, required=False)
 
     class Meta:
         model = Hit
-        fields = ['id','authrecord_id','json']
+        fields = ['id','authrecord_id','json',
+            # 'place_id'
+        ]
         # all Hit model fields
         # fields = ['task_id','authority','dataset','place_id',
         #     'query_pass','src_id','authrecord_id','json','geom' ]
         widgets = {
             'id': forms.HiddenInput(),
             'authrecord_id': forms.HiddenInput(),
+            # 'place_id': forms.HiddenInput(),
             'json': forms.HiddenInput(),
             'flag_geom': forms.CheckboxInput(),
         }
