@@ -31,13 +31,14 @@ class Place(models.Model):
 
 class Source(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    src_id = models.CharField(max_length=24)    # contributor's id
+    # TODO: force unique...turn into slug or integer
+    src_id = models.CharField(max_length=30, unique=True)    # contributor's id
     uri = models.URLField(null=True, blank=True)
     label = models.CharField(max_length=255)    # short, e.g. title, author
     citation = models.CharField(max_length=500, null=True, blank=True)
 
     def __str__(self):
-        return self.label
+        return self.src_id
 
     class Meta:
         managed = True
@@ -76,8 +77,8 @@ class PlaceType(models.Model):
 class PlaceGeom(models.Model):
     place_id = models.ForeignKey(Place,related_name='geoms',
         default=-1, on_delete=models.CASCADE)
-    geom_src = models.ForeignKey(Source, null=True,
-        on_delete=models.SET_NULL)
+    geom_src = models.ForeignKey(Source, null=True, db_column='geom_src',
+        to_field='src_id', on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
 
     class Meta:

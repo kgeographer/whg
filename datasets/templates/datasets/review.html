@@ -81,8 +81,9 @@
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
-                  <p><strong>tgnid</strong>: {{ form.authrecord_id.value }}</p>
-                    <p><strong>Names</strong>:
+                  <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}</p>
+                  <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
+                    <p><strong>Variants</strong>:
                       {% for n in form.json.value|get:"names" %}
                         {{ n.name|add:"; " }}
                       {% endfor %}

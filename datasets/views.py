@@ -31,6 +31,61 @@ def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
     uri = baseuri + id
     return uri
+# 'json': {
+#     'note': '...',
+#     'names': [
+#       {'lang': 'fr', 'name': 'Nouvelle Écosse', 'display': 7},
+#       {'lang': 'la', 'name': 'Nova Scotia', 'display': 1},
+#       {'lang': None, 'name': 'Nova Scotia, Province of', 'display': 2}],
+#       'tgnid': '7005802',
+#       'title': 'Nova Scotia',
+#       'types': [
+#         {'id': 300000774, 'display': 1, 'placetype': 'provinces'},
+#         {'id': 300008804, 'display': 3, 'placetype': 'peninsulas'},
+#       'parents': 'Canada, North and Central America, World',
+#       'location': {'type': 'point', 'coordinates': [-63, 45]}},
+#       'match': 'close_match',
+#       'flag_geom': False,
+#       'review_note': 'look right',
+#       'id': <Hit: 175224>}
+def augmenter(placeid, auth, hitjson):   # task.task_name, hits[x]['json']
+    place = get_object_or_404(Place, id=placeid)
+    print('augmenter params:',type(place), auth, hitjson)
+    if auth == 'align_tgn':
+        source = get_object_or_404(Source, src_id="getty_tgn")
+        if 'location' in hitjson.keys():
+            print('location:',hitjson['location'])
+            geom = PlaceGeom.objects.create(
+                json = hitjson['location'],
+                geom_src = source,
+                place_id = place
+            )
+        # TODO: bulk_create??
+        if len(hitjson['names']) > 0:
+            for name in hitjson['names']:
+                # toponym,lang,citation,when
+                place_name = PlaceName.objects.create(
+                    toponym = name['name'] + ('' if name['lang'] == None else '@'+name['lang']) ,
+                    json = {
+                        "toponym": name['name'] + ('' if name['lang'] == None else '@'+name['lang']),
+                        "citation": {"id": "tgn:"+hitjson['tgnid'], "label": "Getty TGN"}
+                    },
+                    place_id = place
+                )
+        if hitjson['note'] != '':
+            # @id,value,lang
+            descrip = PlaceDescription.objects.create(
+                json = {
+                    "@id": 'tgn:'+hitjson['tgnid'],
+                    "value": hitjson['note'],
+                    "lang": "en"
+                },
+                place_id = place
+            )
+    else:
+        return
+
+
 # initiate, monitor reconciliation service
 def review(request, pk, tid): # dataset pk, celery recon task_id
     # print('pk, tid:', pk, tid)
@@ -77,9 +132,8 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
         print('a ',method)
         # print('formset data:',formset.data)
         if formset.is_valid():
-            print('formset is valid')
-            # print('cleaned_data:',formset.cleaned_data)
             hits = formset.cleaned_data
+            print('formset is valid, cleaned_data:',hits)
             for x in range(len(hits)):
                 if hits[x]['match'] != 'none':
                     link = PlaceLink.objects.create(
@@ -92,6 +146,12 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
                         },
                         review_note =  hits[x]['review_note'],
                     )
+
+                    # TODO: add associated records as req., per hits[x]['json']
+                    # task.task_name = [align_tgn|align_dbp|align_gn|align_wd]
+                    augmenter(placeid, task.task_name, hits[x]['json'])
+
+
                     # TODO: flag record as reviewed
                     print('place_id',placeid,
                         'authrecord_id',hits[x]['authrecord_id'],
