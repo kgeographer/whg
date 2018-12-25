@@ -310,6 +310,7 @@ def align_tgn(pk, *args, **kwargs):
                     json = hit['_source'],
                     src_id = query_obj['src_id'],
                     geom = loc,
+                    reviewed = False,
                 )
                 new.save()
     end = datetime.datetime.now()

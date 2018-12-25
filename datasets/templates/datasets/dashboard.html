@@ -56,9 +56,9 @@
               {% for t in d.tasks %}
                 <p class="mb-0 small">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
                    <a href="{% url 'datasets:review' pk=d.id tid=t.task_id %}"><i>review</i></a>&nbsp;
+                   <!-- TODO: confirm, select which to delete -->
                    <a href="{% url 'datasets:task-delete' tid=t.task_id %}">
                      {% fontawesome_icon 'trash' color='#336699' %}</a>
-                   <!-- <a href="{# url 'datasets:review-list' pk=d.id tid=t.task_id #}"><i>review</i></a> -->
                 </p>
               {% endfor %}
             </div>

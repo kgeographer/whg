@@ -20,11 +20,18 @@ from .tasks import read_delimited, align_tgn, read_lpf
 import codecs, tempfile, os, re, ipdb, sys
 from pprint import pprint
 
-def task_delete(request,tid):
+def task_delete(request,tid,scope='all'):
     hits = Hit.objects.all().filter(task_id=tid)
     tr = get_object_or_404(TaskResult, task_id=tid)
     hits.delete()
     tr.delete()
+    if scope == 'all':
+        placelinks = PlaceLink.objects.all().filter(task_id=tid)
+        placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
+        placenames = PlaceName.objects.all().filter(task_id=tid)
+        placelinks.delete()
+        placegeoms.delete()
+        placenames.delete()
     return HttpResponseRedirect(reverse('dashboard'))
 
 def link_uri(auth,id):
@@ -48,7 +55,8 @@ def link_uri(auth,id):
 #       'flag_geom': False,
 #       'review_note': 'look right',
 #       'id': <Hit: 175224>}
-def augmenter(placeid, auth, hitjson):   # task.task_name, hits[x]['json']
+
+def augmenter(placeid, auth, hitjson):   # <- task.task_name, hits[x]['json']
     place = get_object_or_404(Place, id=placeid)
     print('augmenter params:',type(place), auth, hitjson)
     if auth == 'align_tgn':
@@ -93,8 +101,8 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     task = get_object_or_404(TaskResult, task_id=tid)
     # TODO: also filter by reviewed, per authority
 
-    # filter place records for those with hits on this task
-    hitplaces = Hit.objects.values('place_id').filter(task_id=tid)
+    # filter place records for those with unreviewed hits on this task
+    hitplaces = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False)
     record_list = Place.objects.order_by('title').filter(pk__in=hitplaces)
     # record_list = Place.objects.order_by('title').filter(dataset=ds)
     paginator = Paginator(record_list, 1)
@@ -136,6 +144,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
             print('formset is valid, cleaned_data:',hits)
             for x in range(len(hits)):
                 if hits[x]['match'] != 'none':
+                    hit = hits[x]['id']
                     link = PlaceLink.objects.create(
                         place_id = place,
                         task_id = tid,
@@ -155,11 +164,11 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
                     # TODO: flag record as reviewed
                     print('place_id',placeid,
                         'authrecord_id',hits[x]['authrecord_id'],
-                        'hit id',hits[x]['id'])
-                # # flag black record as reviewed
-                # matchee = get_object_or_404(BlackPlace, placeid = placeid)
-                # matchee.reviewed = True
-                # matchee.save()
+                        'hit.id',hit.id, type(hit.id))
+                    # flag hit record as reviewed
+                    matchee = get_object_or_404(Hit, id=hit.id)
+                    matchee.reviewed = True
+                    matchee.save()
             return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)+1))
         else:
             print('formset is NOT valid')
@@ -265,6 +274,7 @@ class DatasetCreateView(CreateView):
         context['action'] = 'create'
         return context
 
+# list in dashboard
 class DatasetListView(ListView):
     model = Dataset
     template_name = 'datasets/dashboard.html'
@@ -280,6 +290,7 @@ class DatasetListView(ListView):
          # context['results'] = TaskResult.objects.all().filter(task_args = '['+self.kwargs['id']+']')
          return context
 
+# "edit metadata"
 class DatasetDetailView(DetailView):
     template_name = 'datasets/dataset_detail.html'
 

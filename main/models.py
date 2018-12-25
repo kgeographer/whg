@@ -11,12 +11,10 @@ import json
 
 class Place(models.Model):
     # let id be auto-maintained, as Django decrees/prefers
-    # placeid = models.IntegerField(unique=True, db_index=True)
     title = models.CharField(max_length=255)
     src_id = models.CharField(max_length=24)
     dataset = models.ForeignKey(Dataset, db_column='dataset',
         to_field='label', related_name='places', on_delete=models.CASCADE)
-    # ccode = models.CharField(max_length=2)
     ccodes = ArrayField(models.CharField(max_length=2))
 
     def __str__(self):
@@ -43,6 +41,7 @@ class Source(models.Model):
     class Meta:
         managed = True
         db_table = 'sources'
+
 
 class PlaceName(models.Model):
     # {toponym, lang, citation{}, when{}}
