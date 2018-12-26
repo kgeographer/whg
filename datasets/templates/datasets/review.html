@@ -37,8 +37,7 @@
     {% csrf_token %}
     {{ formset.management_form }}
     <div class="container">
-      <hr/>
-      <div class="row">
+      <div class="row mt-2">
         <div id="review_record" class="col-sm-4 pl-0">
           <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
           <div id="place-record">
@@ -67,7 +66,7 @@
         </div>
         <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
-              <div class="pl-2 pr-2 matchbar">
+              <div class="pl-2 pr-2 mb-2 matchbar">
                 <span class="custom-control custom-radio match_radio">
                   {{ form.match }}
                   {% if form.json.value|get:"location" != Null %}

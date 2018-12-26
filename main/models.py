@@ -47,6 +47,7 @@ class PlaceName(models.Model):
     # {toponym, lang, citation{}, when{}}
     place_id = models.ForeignKey(Place, related_name='names',
         default=-1, on_delete=models.CASCADE)
+    task_id = models.CharField(max_length=100)
     toponym = models.CharField(max_length=200)
     name_src = models.ForeignKey(Source, null=True, on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
@@ -76,6 +77,7 @@ class PlaceType(models.Model):
 class PlaceGeom(models.Model):
     place_id = models.ForeignKey(Place,related_name='geoms',
         default=-1, on_delete=models.CASCADE)
+    task_id = models.CharField(max_length=100)
     geom_src = models.ForeignKey(Source, null=True, db_column='geom_src',
         to_field='src_id', on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
@@ -125,6 +127,7 @@ class PlaceRelated(models.Model):
 class PlaceDescription(models.Model):
     place_id = models.ForeignKey(Place,related_name='descriptions',
         default=-1, on_delete=models.CASCADE)
+    task_id = models.CharField(max_length=100)
     json = JSONField(blank=True, null=True)
     # id, value, lang
 

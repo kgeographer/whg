@@ -259,7 +259,7 @@ def align_tgn(pk, *args, **kwargs):
 
     # build query object, send, save hits
     # for place in ds.places.all()[:50]:
-    for place in ds.places.all():
+    for place in ds.places.all()[:10]:
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
         variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]

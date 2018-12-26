@@ -20,20 +20,6 @@ from .tasks import read_delimited, align_tgn, read_lpf
 import codecs, tempfile, os, re, ipdb, sys
 from pprint import pprint
 
-def task_delete(request,tid,scope='all'):
-    hits = Hit.objects.all().filter(task_id=tid)
-    tr = get_object_or_404(TaskResult, task_id=tid)
-    hits.delete()
-    tr.delete()
-    if scope == 'all':
-        placelinks = PlaceLink.objects.all().filter(task_id=tid)
-        placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
-        placenames = PlaceName.objects.all().filter(task_id=tid)
-        placelinks.delete()
-        placegeoms.delete()
-        placenames.delete()
-    return HttpResponseRedirect(reverse('dashboard'))
-
 def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
     uri = baseuri + id
@@ -56,7 +42,7 @@ def link_uri(auth,id):
 #       'review_note': 'look right',
 #       'id': <Hit: 175224>}
 
-def augmenter(placeid, auth, hitjson):   # <- task.task_name, hits[x]['json']
+def augmenter(placeid, auth, tid, hitjson):   # <- task.task_name, task.id, hits[x]['json']
     place = get_object_or_404(Place, id=placeid)
     print('augmenter params:',type(place), auth, hitjson)
     if auth == 'align_tgn':
@@ -66,7 +52,8 @@ def augmenter(placeid, auth, hitjson):   # <- task.task_name, hits[x]['json']
             geom = PlaceGeom.objects.create(
                 json = hitjson['location'],
                 geom_src = source,
-                place_id = place
+                place_id = place,
+                task_id = tid
             )
         # TODO: bulk_create??
         if len(hitjson['names']) > 0:
@@ -78,7 +65,8 @@ def augmenter(placeid, auth, hitjson):   # <- task.task_name, hits[x]['json']
                         "toponym": name['name'] + ('' if name['lang'] == None else '@'+name['lang']),
                         "citation": {"id": "tgn:"+hitjson['tgnid'], "label": "Getty TGN"}
                     },
-                    place_id = place
+                    place_id = place,
+                    task_id = tid
                 )
         if hitjson['note'] != '':
             # @id,value,lang
@@ -88,13 +76,13 @@ def augmenter(placeid, auth, hitjson):   # <- task.task_name, hits[x]['json']
                     "value": hitjson['note'],
                     "lang": "en"
                 },
-                place_id = place
+                place_id = place,
+                task_id = tid
             )
     else:
         return
 
-
-# initiate, monitor reconciliation service
+# present reconciliation hits for review, execute augmenter() for valid ones
 def review(request, pk, tid): # dataset pk, celery recon task_id
     # print('pk, tid:', pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
@@ -143,8 +131,8 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
             hits = formset.cleaned_data
             print('formset is valid, cleaned_data:',hits)
             for x in range(len(hits)):
+                hit = hits[x]['id']
                 if hits[x]['match'] != 'none':
-                    hit = hits[x]['id']
                     link = PlaceLink.objects.create(
                         place_id = place,
                         task_id = tid,
@@ -158,18 +146,19 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
 
                     # TODO: add associated records as req., per hits[x]['json']
                     # task.task_name = [align_tgn|align_dbp|align_gn|align_wd]
-                    augmenter(placeid, task.task_name, hits[x]['json'])
+                    augmenter(placeid, task.task_name, tid, hits[x]['json'])
 
 
                     # TODO: flag record as reviewed
                     print('place_id',placeid,
                         'authrecord_id',hits[x]['authrecord_id'],
                         'hit.id',hit.id, type(hit.id))
-                    # flag hit record as reviewed
-                    matchee = get_object_or_404(Hit, id=hit.id)
-                    matchee.reviewed = True
-                    matchee.save()
-            return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)+1))
+                # flag hit record as reviewed
+                matchee = get_object_or_404(Hit, id=hit.id)
+                matchee.reviewed = True
+                matchee.save()
+            return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)))
+            # return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)+1))
         else:
             print('formset is NOT valid')
             print('formset data:',formset.data)
@@ -179,6 +168,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     # pprint(locals())
     return render(request, 'datasets/review.html', context=context)
 
+# initiate, monitor align_tgn Celery task
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
     # print('request, method:',request, request.method)
@@ -211,6 +201,20 @@ def ds_recon(request, pk):
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds})
+
+def task_delete(request,tid,scope='all'):
+    hits = Hit.objects.all().filter(task_id=tid)
+    tr = get_object_or_404(TaskResult, task_id=tid)
+    hits.delete()
+    tr.delete()
+    if scope == 'all':
+        placelinks = PlaceLink.objects.all().filter(task_id=tid)
+        placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
+        placenames = PlaceName.objects.all().filter(task_id=tid)
+        placelinks.delete()
+        placegeoms.delete()
+        placenames.delete()
+    return HttpResponseRedirect(reverse('dashboard'))
 
 # upload file, verify format
 class DatasetCreateView(CreateView):
@@ -363,8 +367,8 @@ def ds_insert(request, pk ):
     countrows=0
     countlinked = 0
     countlinks = 0
-    for r in reader:
-    # for i, r in zip(range(200), reader):
+    # for r in reader:
+    for i, r in zip(range(200), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]

@@ -73,7 +73,8 @@
     }
 
     if (data.geoms.length > 0){
-      html+='<p><b>Geometry</b>: ' + data.geoms[0].geowkt + '</p>'
+      html+='<p><b>Geometry</b>: ' + data.geoms[0].coordinates + ' ('+data.geoms[0].geom_src+')</p>'
+      // html+='<p><b>Geometry</b>: ' + data.geoms[0].geowkt + '</p>'
     }
     html_close = '<p class="mb-0"><b>closeMatches</b>: </p>'
     html_exact = '<p class="mb-0"><b>exactMatches</b>: </p>'
