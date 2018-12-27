@@ -15,7 +15,7 @@ from .models import Dataset, Hit
 from django_celery_results.models import TaskResult
 from main.models import *
 from .choices import AUTHORITY_BASEURI
-from .forms import DatasetModelForm, HitModelForm
+from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
 import codecs, tempfile, os, re, ipdb, sys
 from pprint import pprint
@@ -24,23 +24,6 @@ def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
     uri = baseuri + id
     return uri
-# 'json': {
-#     'note': '...',
-#     'names': [
-#       {'lang': 'fr', 'name': 'Nouvelle Écosse', 'display': 7},
-#       {'lang': 'la', 'name': 'Nova Scotia', 'display': 1},
-#       {'lang': None, 'name': 'Nova Scotia, Province of', 'display': 2}],
-#       'tgnid': '7005802',
-#       'title': 'Nova Scotia',
-#       'types': [
-#         {'id': 300000774, 'display': 1, 'placetype': 'provinces'},
-#         {'id': 300008804, 'display': 3, 'placetype': 'peninsulas'},
-#       'parents': 'Canada, North and Central America, World',
-#       'location': {'type': 'point', 'coordinates': [-63, 45]}},
-#       'match': 'close_match',
-#       'flag_geom': False,
-#       'review_note': 'look right',
-#       'id': <Hit: 175224>}
 
 def augmenter(placeid, auth, tid, hitjson):   # <- task.task_name, task.id, hits[x]['json']
     place = get_object_or_404(Place, id=placeid)
@@ -214,9 +197,11 @@ def task_delete(request,tid,scope='all'):
         placelinks = PlaceLink.objects.all().filter(task_id=tid)
         placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
         placenames = PlaceName.objects.all().filter(task_id=tid)
+        placedescriptions = PlaceDescriptions.objects.all().filter(task_id=tid)
         placelinks.delete()
         placegeoms.delete()
         placenames.delete()
+        placedescriptions.delete()
     return HttpResponseRedirect(reverse('dashboard'))
 
 # upload file, verify format
@@ -298,9 +283,14 @@ class DatasetListView(ListView):
 
 # class DatasetDetailView(DetailView):
 class DatasetDetailView(UpdateView):
-    form_class = DatasetModelForm
+    form_class = DatasetDetailModelForm
     template_name = 'datasets/dataset_detail.html'
-    success_url = '/dashboard'
+    # success_url = id_+'/detail'
+
+    def get_success_url(self):
+        id_ = self.kwargs.get("id")
+        return '/datasets/'+str(id_)+'/detail'
+        # pass
 
     def form_valid(self, form):
         context={}

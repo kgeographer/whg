@@ -8,8 +8,9 @@
   <!-- on click toggle .hidden, .form-value; make submit button visible -->
   <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
     {% csrf_token %}
+    <input type="hidden" name="id" value='{{ form.id }}'></input>
   <h4>Dataset Detail:
-    <!-- <span class="edit small">{# fontawesome_icon 'edit' color='#336699' #}</span> -->
+    <span class="edit small"><a href="#">{% fontawesome_icon 'edit' color='#336699' %}</a></span>
     <span class="form-value text-danger"> {{ object.name }}</span>
     <span class="hidden">{{ form.name }}
   </h4>
@@ -27,6 +28,10 @@
       {% if object.format == "delimited" %}
         <p><b>Sources file</b>:</p>
       {% endif %}
+      {% if object.mapbox_id %}
+        <p class="form-value"><b>MapBox ID</b>: {{ object.mapbox_id }}</p>
+        <p class="hidden editing"><b>MapBox ID</b>: {{ form.mapbox_id }}</p>
+      {% endif %}
       <p><b>Status</b>: {{ object.status }}</p>
       <p><b>Columns</b>: <br/>{{ object.header }}</p>
       <hr/>
@@ -40,9 +45,10 @@
       <input class="btn btn-primary hidden" type="submit" value="Save" />
   </div>
   <div id="ds_recon" class="col-sm-6">
-    <h5 class="text-secondary">Reconciliation Tasks</h5>
+    <h5 class="text-secondary">Reconciliation Tasks <span><a href="{% url 'datasets:ds_recon' object.id %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></span>
+    </h5>
     {% for t in tasks %}
-      <p class="mb-0">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
+      <p class="mb-0 mt-2">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
          <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}"><i>review</i></a>&nbsp;
          <!-- TODO: confirm, select which to delete -->
          <a href="{% url 'datasets:task-delete' tid=t.task_id %}">

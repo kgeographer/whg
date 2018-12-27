@@ -41,6 +41,18 @@ class HitModelForm(forms.ModelForm):
 # [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label),
 # 'place_id', 'authrecord_id', 'id'}]
 
+class DatasetDetailModelForm(forms.ModelForm):
+    class Meta:
+        model = Dataset
+        fields = ('id','name','description','mapbox_id')
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'rows':1,'cols': 60,'class':'textarea','placeholder':'brief description'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(DatasetDetailModelForm, self).__init__(*args, **kwargs)
+
 class DatasetModelForm(forms.ModelForm):
     class Meta:
         model = Dataset
