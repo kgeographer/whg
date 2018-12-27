@@ -5,11 +5,19 @@
 {% load fontawesome %}
 {% load mathfilters %}
 <div class="container ds-detail">
-  <h4>Dataset Detail: <span class="text-danger">{{ object.name }}</span> </h4>
+  <!-- on click toggle .hidden, .form-value; make submit button visible -->
+  <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
+    {% csrf_token %}
+  <h4>Dataset Detail:
+    <!-- <span class="edit small">{# fontawesome_icon 'edit' color='#336699' #}</span> -->
+    <span class="form-value text-danger"> {{ object.name }}</span>
+    <span class="hidden">{{ form.name }}
+  </h4>
   <hr/>
   <div class="row">
     <div id="ds_details" class="col-sm-6">
-      <p><b>Description</b>: {{ object.description }}</p>
+      <p class="hidden editing"><b>Description</b>: {{ form.description }}</p>
+      <p class="form-value editing"><b>Description</b>: {{ object.description }}</p>
       <p><b>Slug (id)</b>: {{ object.label }} ({{ object.id }})
       <p><b>File</b>: {{ object.file }}</p>
       <p><b>Date</b>: {{ object.upload_date }}</p>
@@ -29,6 +37,7 @@
         {{ num_links }}, <span class="text-white bg-danger">&nbsp;{{ links_added }}&nbsp;</span></p>
       <p><b>Geometries</b>: {{ num_geoms }}, <span class="text-white bg-danger">&nbsp;{{ geoms_added }}&nbsp;</span></p>
       <p><b>Descriptions</b>: {{ num_descriptions }}, <span class="text-white bg-danger">&nbsp;{{ descriptions_added }}&nbsp;</span></p>
+      <input class="btn btn-primary hidden" type="submit" value="Save" />
   </div>
   <div id="ds_recon" class="col-sm-6">
     <h5 class="text-secondary">Reconciliation Tasks</h5>
@@ -41,5 +50,14 @@
       </p>
     {% endfor %}
   </div>
+  </form>
 </div>
+<script type="text/javascript">
+  $(".edit").click(function() {
+    $(".hidden").toggle()
+    $(".form-value").addClass("hidden")
+    // $(".btn").toggleClass('hidden btn')
+    console.log ('clicked')
+  })
+</script>
 {% endblock %}

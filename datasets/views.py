@@ -296,8 +296,21 @@ class DatasetListView(ListView):
          print('DatasetListView context:',context)
          return context
 
-class DatasetDetailView(DetailView):
+# class DatasetDetailView(DetailView):
+class DatasetDetailView(UpdateView):
+    form_class = DatasetModelForm
     template_name = 'datasets/dataset_detail.html'
+    success_url = '/dashboard'
+
+    def form_valid(self, form):
+        context={}
+        if form.is_valid():
+            print('form is valid')
+            print('cleaned_data: before ->', form.cleaned_data)
+        else:
+            print('form not valid', form.errors)
+            context['errors'] = form.errors
+        return super().form_valid(form)
 
     def get_object(self):
         print('kwargs:',self.kwargs)
