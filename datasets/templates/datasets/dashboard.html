@@ -16,16 +16,16 @@
         <div class="dataset-box mb-2">
           <h4>{{ d.name }}
             <!-- onclick="return confirm('Are you sure?')" -->
-            <a
-              href="{% url 'datasets:dataset-delete' d.id %}" class=" float-right"
+            <a href="{% url 'datasets:dataset-delete' d.id %}" class=" float-right"
               title="Delete dataset" rel="tooltip">
               {% fontawesome_icon 'trash' color='#336699' %}</a>
-            <a
-            href="{{ d.get_absolute_url }}" title="Edit metadata" rel="tooltip"
+            <a href="{{ d.get_absolute_url }}" title="Edit metadata" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a>
             {% if d.status == 'uploaded' or d.status == 'inserted' %}
             <a href="{% url 'datasets:ds_grid' d.label %}" title="View/edit table" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'table' color='#336699' %}</a>
+            <a href="{% url 'datasets:dataset-detail' d.id %}" title="Detail" rel="tooltip"
+            class="float-right mr-3">{% fontawesome_icon 'cog' color='#336699' %}</a>
             <a href="{% url 'datasets:ds_recon' d.id %}" title="Reconciler" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'link' color='#336699' %}</a>
             {% endif %}

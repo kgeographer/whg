@@ -15,6 +15,11 @@ body, html {
 #grid_detail {
   /* background-color: #fff7e6; */
 }
+#ds_recon {
+  background-color: ghostwhite;
+}
+.ds-detail p { margin-bottom: .3rem;}
+
 #geo_constraint {
   /* background-color: #eeeee0; */
 }

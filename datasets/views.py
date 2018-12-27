@@ -68,7 +68,7 @@ def augmenter(placeid, auth, tid, hitjson):   # <- task.task_name, task.id, hits
                     place_id = place,
                     task_id = tid
                 )
-        if hitjson['note'] != '':
+        if hitjson['note'] != None:
             # @id,value,lang
             descrip = PlaceDescription.objects.create(
                 json = {
@@ -296,16 +296,9 @@ class DatasetListView(ListView):
          print('DatasetListView context:',context)
          return context
 
-
 class DatasetDetailView(DetailView):
     template_name = 'datasets/dataset_detail.html'
 
-    # def get_object(self):
-        # print('kwargs',self.kwargs)
-        # id_ = self.kwargs.get("id")
-        # ds = get_object_or_404(Dataset, id=id_)
-        # label_ = ds.label
-        # return ds
     def get_object(self):
         print('kwargs:',self.kwargs)
         id_ = self.kwargs.get("id")
@@ -317,12 +310,39 @@ class DatasetDetailView(DetailView):
         ds = get_object_or_404(Dataset, id=id_)
         print('ds',ds.label)
         placeset = Place.objects.filter(dataset=ds.label)
-        context['count_links'] = PlaceLink.objects.filter(place_id_id__in = placeset).count()
+        context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
+
+        # original, subject to augmentation
+        context['num_links'] = PlaceLink.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        context['num_names'] = PlaceName.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        context['num_geoms'] = PlaceGeom.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        context['num_descriptions'] = PlaceDescription.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        # others
+        context['num_types'] = PlaceType.objects.filter(
+                place_id_id__in = placeset).count()
+        context['num_when'] = PlaceWhen.objects.filter(
+                place_id_id__in = placeset).count()
+        context['num_related'] = PlaceRelated.objects.filter(
+                place_id_id__in = placeset).count()
+        context['num_depictions'] = PlaceDepiction.objects.filter(
+                place_id_id__in = placeset).count()
+
+        # augmentations (has task_id)
+        context['links_added'] = PlaceLink.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+        context['names_added'] = PlaceName.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+        context['geoms_added'] = PlaceGeom.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+        context['descriptions_added'] = PlaceDescription.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+
         print('detail context',context)
         return context
-
-ds='alcedo200'
-Dataset.objects.raw('SELECT * FROM datasets WHERE label = %s', [ds])
 
 # "edit metadata"
 class DatasetUpdateView(UpdateView):

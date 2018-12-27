@@ -1,20 +1,45 @@
 {% extends "main/base.html" %}
 
 {% block content %}
-<div class="container">
-  <h1>{{ object.label }} ({{ object.id }})</h1>
-  <p>total rows: {{ object.numrows }}</p>
-  <p class="text-danger">total place_links: {{ count_links }}</p>
-  <p>{{ object.owner }}</p>
-  <p>{{ object.name }}</p>
-  <p>{{ object.label }}</p>
-  <p>{{ object.description }}</p>
-  <p>{{ object.format }}</p>
-  <p>{{ object.datatype }}</p>
-  <p>{{ object.delimiter }}</p>
-  <p>{{ object.status }}</p>
-  <p>{{ object.upload_date }}</p>
-  <p>{{ object.header }}</p>
-
+{% load static %}
+{% load fontawesome %}
+{% load mathfilters %}
+<div class="container ds-detail">
+  <h4>Dataset Detail: <span class="text-danger">{{ object.name }}</span> </h4>
+  <hr/>
+  <div class="row">
+    <div id="ds_details" class="col-sm-6">
+      <p><b>Description</b>: {{ object.description }}</p>
+      <p><b>Slug (id)</b>: {{ object.label }} ({{ object.id }})
+      <p><b>File</b>: {{ object.file }}</p>
+      <p><b>Date</b>: {{ object.upload_date }}</p>
+      <p><b>Total rows</b>: {{ object.numrows }}</p>
+      <p><b>Data type</b>: {{ object.datatype }}</p>
+      <p><b>Format</b>: {{ object.format }} ({{ object.delimiter }})</p>
+      {% if object.format == "delimited" %}
+        <p><b>Sources file</b>:</p>
+      {% endif %}
+      <p><b>Status</b>: {{ object.status }}</p>
+      <p><b>Columns</b>: <br/>{{ object.header }}</p>
+      <hr/>
+      <h5 class="text-secondary">Counts (initial, added)</h5>
+      <p><b>Names</b>:
+        {{ num_names }}, <span class="text-white bg-danger">&nbsp;{{ names_added }}&nbsp;</span></p>
+      <p><b>Links</b>:
+        {{ num_links }}, <span class="text-white bg-danger">&nbsp;{{ links_added }}&nbsp;</span></p>
+      <p><b>Geometries</b>: {{ num_geoms }}, <span class="text-white bg-danger">&nbsp;{{ geoms_added }}&nbsp;</span></p>
+      <p><b>Descriptions</b>: {{ num_descriptions }}, <span class="text-white bg-danger">&nbsp;{{ descriptions_added }}&nbsp;</span></p>
+  </div>
+  <div id="ds_recon" class="col-sm-6">
+    <h5 class="text-secondary">Reconciliation Tasks</h5>
+    {% for t in tasks %}
+      <p class="mb-0">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
+         <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}"><i>review</i></a>&nbsp;
+         <!-- TODO: confirm, select which to delete -->
+         <a href="{% url 'datasets:task-delete' tid=t.task_id %}">
+           {% fontawesome_icon 'trash' color='#336699' %}</a>
+      </p>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
