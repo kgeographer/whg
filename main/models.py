@@ -91,8 +91,6 @@ class PlaceLink(models.Model):
     place_id = models.ForeignKey(Place,related_name='links',
         default=-1, on_delete=models.CASCADE)
     task_id = models.CharField(max_length=100)
-    # dataset = models.ForeignKey(Dataset, db_column='dataset',
-    #     to_field='label', related_name='placelinks', on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     review_note = models.CharField(max_length=2044, blank=True, null=True)
     # type, identifier

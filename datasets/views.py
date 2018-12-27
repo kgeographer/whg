@@ -143,7 +143,10 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
                         },
                         review_note =  hits[x]['review_note'],
                     )
-
+                    # TODO: update <ds>.numlinked, <ds>.total_links
+                    ds.numlinked = ds.numlinked +1
+                    ds.total_links = ds.total_links +1
+                    ds.save()
                     # TODO: add associated records as req., per hits[x]['json']
                     # task.task_name = [align_tgn|align_dbp|align_gn|align_wd]
                     augmenter(placeid, task.task_name, tid, hits[x]['json'])
@@ -290,18 +293,38 @@ class DatasetListView(ListView):
     def get_context_data(self, *args, **kwargs):
          context = super(DatasetListView, self).get_context_data(*args, **kwargs)
          context['results'] = TaskResult.objects.all()
-         print('self.kwargs, self.args',self.kwargs,self.args)
-         # context['results'] = TaskResult.objects.all().filter(task_args = '['+self.kwargs['id']+']')
+         print('DatasetListView context:',context)
          return context
 
-# "edit metadata"
+
 class DatasetDetailView(DetailView):
     template_name = 'datasets/dataset_detail.html'
 
+    # def get_object(self):
+        # print('kwargs',self.kwargs)
+        # id_ = self.kwargs.get("id")
+        # ds = get_object_or_404(Dataset, id=id_)
+        # label_ = ds.label
+        # return ds
     def get_object(self):
+        print('kwargs:',self.kwargs)
         id_ = self.kwargs.get("id")
         return get_object_or_404(Dataset, id=id_)
 
+    def get_context_data(self, *args, **kwargs):
+        context = super(DatasetDetailView, self).get_context_data(*args, **kwargs)
+        id_ = self.kwargs.get("id")
+        ds = get_object_or_404(Dataset, id=id_)
+        print('ds',ds.label)
+        placeset = Place.objects.filter(dataset=ds.label)
+        context['count_links'] = PlaceLink.objects.filter(place_id_id__in = placeset).count()
+        print('detail context',context)
+        return context
+
+ds='alcedo200'
+Dataset.objects.raw('SELECT * FROM datasets WHERE label = %s', [ds])
+
+# "edit metadata"
 class DatasetUpdateView(UpdateView):
     form_class = DatasetModelForm
     template_name = 'datasets/dataset_create.html'

@@ -1,6 +1,20 @@
 {% extends "main/base.html" %}
 
 {% block content %}
-<h1>{{ object.id }}</h1>
-<p>{{ object.label }}</p>
+<div class="container">
+  <h1>{{ object.label }} ({{ object.id }})</h1>
+  <p>total rows: {{ object.numrows }}</p>
+  <p class="text-danger">total place_links: {{ count_links }}</p>
+  <p>{{ object.owner }}</p>
+  <p>{{ object.name }}</p>
+  <p>{{ object.label }}</p>
+  <p>{{ object.description }}</p>
+  <p>{{ object.format }}</p>
+  <p>{{ object.datatype }}</p>
+  <p>{{ object.delimiter }}</p>
+  <p>{{ object.status }}</p>
+  <p>{{ object.upload_date }}</p>
+  <p>{{ object.header }}</p>
+
+</div>
 {% endblock %}
