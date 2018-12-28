@@ -6,7 +6,7 @@ from django.conf import settings
 
 from main import views
 # from datasets.views import dashboard
-from datasets.views import DatasetListView
+from datasets.views import DatasetListView, DashboardView
 
 from django.views.generic.base import TemplateView
 from django.contrib import admin
@@ -20,7 +20,8 @@ urlpatterns = [
     path('search/', include('search.urls')),
     path('maps/', include('maps.urls')),
     path('datasets/', include('datasets.urls')),
-    path('dashboard/', DatasetListView.as_view(), name='dashboard'),
+    # path('dashboard/', DatasetListView.as_view(), name='dashboard'),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
 
     # static content
     url(r'^contributing/$', TemplateView.as_view(template_name="main/contributing.html"), name="contributing"),

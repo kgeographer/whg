@@ -1,0 +1,23 @@
+<!-- datasets/home.html -->
+{% extends "main/base.html" %}
+{% block title %}<title>WHG::Dashboard</title>{% endblock %}
+
+{% block content %}
+  {% load static %}
+  {% load fontawesome %}
+  {% load mathfilters %}
+
+  <div class="container">
+    <!--<div class="px-5 mt-3"> -->
+      <h4 class="mt-3">My Datasets
+        <a href="{% url 'datasets:dataset-create' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
+      <div id="dataset_list">
+        {% for d in dataset_list %}
+          <p>{{ d }}</p>
+        {% endfor %}
+      </div>
+  </div> <!-- container -->
+  <script>
+    $("[rel='tooltip']").tooltip();
+  </script>
+{% endblock %}

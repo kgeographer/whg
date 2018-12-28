@@ -270,6 +270,23 @@ class DatasetCreateView(CreateView):
         context['action'] = 'create'
         return context
 
+class DashboardView(ListView):
+    context_object_name = 'dataset_list'
+    template_name = 'datasets/dashboard_new.html'
+    # queryset = Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
+
+    def get_queryset(self):
+        return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
+
+    def get_context_data(self, *args, **kwargs):
+         context = super(DashboardView, self).get_context_data(*args, **kwargs)
+         # context['area_list'] = Area.objects.all().filter(owner=self.request.user)
+
+         # TODO: user place sollections
+         # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
+         print('DashboardView context:', context)
+         return context
+
 # list in dashboard
 class DatasetListView(ListView):
     model = Dataset
@@ -277,7 +294,7 @@ class DatasetListView(ListView):
     paginate_by = 4
 
     def get_queryset(self):
-        return Dataset.objects.filter(owner = self.request.user).order_by('-upload_date')
+        return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
 
     def get_context_data(self, *args, **kwargs):
          context = super(DatasetListView, self).get_context_data(*args, **kwargs)
@@ -289,12 +306,10 @@ class DatasetListView(ListView):
 class DatasetDetailView(UpdateView):
     form_class = DatasetDetailModelForm
     template_name = 'datasets/dataset_detail.html'
-    # success_url = id_+'/detail'
 
     def get_success_url(self):
         id_ = self.kwargs.get("id")
         return '/datasets/'+str(id_)+'/detail'
-        # pass
 
     def form_valid(self, form):
         context={}
@@ -315,7 +330,7 @@ class DatasetDetailView(UpdateView):
         context = super(DatasetDetailView, self).get_context_data(*args, **kwargs)
         id_ = self.kwargs.get("id")
         ds = get_object_or_404(Dataset, id=id_)
-        print('ds',ds.label)
+        # print('ds',ds.label)
         placeset = Place.objects.filter(dataset=ds.label)
         context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
 
@@ -348,7 +363,6 @@ class DatasetDetailView(UpdateView):
         context['descriptions_added'] = PlaceDescription.objects.filter(
                 place_id_id__in = placeset, task_id__contains = '-').count()
 
-        print('detail context',context)
         return context
 
 # "edit metadata"

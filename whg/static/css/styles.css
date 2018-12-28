@@ -103,7 +103,7 @@ body, html {
   font-weight: bold;
 }
 
-tr.place-row {
+tr.place-row, tr.dataset-row {
   cursor: pointer;
   line-height: .75rem;
   font-size: .9em;
