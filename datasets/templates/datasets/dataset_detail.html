@@ -4,7 +4,7 @@
 {% load static %}
 {% load fontawesome %}
 {% load mathfilters %}
-<div class="container ds-detail">
+<div class="container ds-detail mt-3">
   <!-- on click toggle .hidden, .form-value; make submit button visible -->
   <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
     {% csrf_token %}
@@ -12,7 +12,10 @@
   <h4>Dataset Detail:
     <span class="edit small"><a href="#">{% fontawesome_icon 'edit' color='#336699' %}</a></span>
     <span class="form-value text-danger"> {{ object.name }}</span>
-    <span class="hidden">{{ form.name }}
+    <a href="{% url 'datasets:dataset-delete' object.id %}" class=" float-right"
+      title="Delete dataset" rel="tooltip">
+      {% fontawesome_icon 'trash' color='#336699' %}</a>
+    <span class="hidden">{{ form.name }}</span>
   </h4>
   <hr/>
   <div class="row">
@@ -59,6 +62,7 @@
   </form>
 </div>
 <script type="text/javascript">
+  $("[rel='tooltip']").tooltip();
   $(".edit").click(function() {
     $(".hidden").toggle()
     $(".form-value").addClass("hidden")

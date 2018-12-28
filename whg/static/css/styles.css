@@ -51,12 +51,12 @@ body, html {
 .noteicon {margin-left: 4px;}
 .noteicon:hover {cursor: pointer;}
 
-.dataset-box {
+.list-box {
   border: 1px solid #ccc;
   min-height: 100px;
-  background-color: #eeeee0;
+  background-color: oldlace;
   padding:12px;
-  border-radius: 16px;
+  /* border-radius: 16px; */
   box-shadow: 3px 3px #eee;
 }
 .dataset-detail {

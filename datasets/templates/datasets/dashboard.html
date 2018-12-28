@@ -21,7 +21,7 @@
               {% fontawesome_icon 'trash' color='#336699' %}</a>
             <!-- <a href="{{ d.get_absolute_url }}" title="Edit metadata" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'edit' color='#336699' %}</a> -->
-            {% if d.status == 'uploaded' or d.status == 'inserted' %}
+            {% if d.status == 'uploaded' or d.status == 'in_database' %}
             <a href="{% url 'datasets:ds_grid' d.label %}" title="View/edit table" rel="tooltip"
             class="float-right mr-3">{% fontawesome_icon 'table' color='#336699' %}</a>
             <a href="{% url 'datasets:ds_recon' d.id %}" title="Reconciler" rel="tooltip"
@@ -63,7 +63,7 @@
               {% endfor %}
             </div>
           </div>
-          {% if d.status == "inserted" or d.status == "ready" %}
+          {% if d.status == "in_database" or d.status == "ready" %}
           <div class="row dataset-detail">
            <p>
              <b>{{ d.numrows }}</b> rows; <b>{{ d.numlinked }}</b> have total of <b>{{ d.total_links }}</b> match links; <b>{{ d.numrows|sub:d.numlinked }}</b> have none<br/>

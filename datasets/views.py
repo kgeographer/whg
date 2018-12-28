@@ -555,13 +555,13 @@ def ds_insert(request, pk ):
     PlaceLink.objects.bulk_create(objs['PlaceLink'])
     PlaceRelated.objects.bulk_create(objs['PlaceRelated'])
 
-    context['status'] = 'inserted'
+    context['status'] = 'in_database'
     print('rows,linked,links:',countrows,countlinked,countlinks)
     dataset.numrows = countrows
     dataset.numlinked = countlinked
     dataset.total_links = countlinks
     dataset.header = header
-    dataset.status = 'inserted'
+    dataset.status = 'in_database'
     dataset.save()
     print('record:', dataset.__dict__)
     print('context:',context)
