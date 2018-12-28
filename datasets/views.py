@@ -191,18 +191,22 @@ def ds_recon(request, pk):
 def task_delete(request,tid,scope='all'):
     hits = Hit.objects.all().filter(task_id=tid)
     tr = get_object_or_404(TaskResult, task_id=tid)
+    ds = tr.task_args[1:-1]
     hits.delete()
     tr.delete()
     if scope == 'all':
         placelinks = PlaceLink.objects.all().filter(task_id=tid)
         placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
         placenames = PlaceName.objects.all().filter(task_id=tid)
-        placedescriptions = PlaceDescriptions.objects.all().filter(task_id=tid)
+        placedescriptions = PlaceDescription.objects.all().filter(task_id=tid)
         placelinks.delete()
         placegeoms.delete()
         placenames.delete()
         placedescriptions.delete()
-    return HttpResponseRedirect(reverse('dashboard'))
+
+    # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    # return redirect(request.get_full_path())
+    return redirect('/datasets/'+ds+'/detail')
 
 # upload file, verify format
 class DatasetCreateView(CreateView):

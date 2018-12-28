@@ -88,6 +88,8 @@
       <p><b>Task ID</b>: {{ context.task_id }}</p>
       <p class="mb-3"><b>Result summary</b>:
         {{ context.result }}    </p>
+      <a href="{% url 'datasets:dataset-detail' id=ds.pk %}">
+        <input class="btn btn-primary" type="text" value="Return to Dataset"/></a>
       <a href="{% url 'datasets:review' pk=ds.pk tid=context.task_id %}">
         <input class="btn btn-primary" type="text" value="Review Hits"/></a>
     </div> <!-- recon_result -->
