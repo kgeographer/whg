@@ -319,11 +319,10 @@ def align_tgn(pk, *args, **kwargs):
     print('features:',features)
     hit_parade['summary'] = {
         'count':count,
-        'got-hits':count_hit,
-        'total-hits': total_hits,
-        'no-hits': {'count': count_nohit },
+        'got_hits':count_hit,
+        'total_hits': total_hits,
+        'no_hits': {'count': count_nohit },
         'elapsed': elapsed(end-start)
-        # 'no-hits': {'count': count_nohit, 'place_ids': nohits}
     }
     print("hit_parade['summary']",hit_parade['summary'])
     return hit_parade['summary']

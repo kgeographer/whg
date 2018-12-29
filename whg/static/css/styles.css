@@ -59,6 +59,14 @@ body, html {
   /* border-radius: 16px; */
   box-shadow: 3px 3px #eee;
 }
+.task-box {
+  border: 1px solid #ccc;
+  min-height: 100px;
+  background-color: #fff;
+  padding:12px;
+  /* border-radius: 16px; */
+  box-shadow: 3px 3px #eee;
+}
 .dataset-detail {
   background-color: ghostwhite;
   padding: 10px;

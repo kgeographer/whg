@@ -12,9 +12,11 @@
   <h4>Dataset Detail:
     <span class="edit small"><a href="#">{% fontawesome_icon 'edit' color='#336699' %}</a></span>
     <span class="form-value text-danger"> {{ object.name }}</span>
-    <a href="{% url 'datasets:dataset-delete' object.id %}" class=" float-right"
-      title="Delete dataset" rel="tooltip">
+    <a href="{% url 'datasets:dataset-delete' object.id %}" class="float-right"
+      title="Delete dataset" rel="tooltip" style="margin-top:-2px;">
       {% fontawesome_icon 'trash' color='#336699' %}</a>
+    <a href="{% url 'datasets:ds_grid' object.label %}" title="View/edit table" rel="tooltip"
+    class="float-right mr-2">{% fontawesome_icon 'table' color='#336699' %}</a>
     <span class="hidden">{{ form.name }}</span>
   </h4>
   <hr/>
@@ -47,16 +49,22 @@
       <p><b>Descriptions</b>: {{ num_descriptions }}, <span class="text-white bg-danger">&nbsp;{{ descriptions_added }}&nbsp;</span></p>
       <input class="btn btn-primary hidden" type="submit" value="Save" />
   </div>
-  <div id="ds_recon" class="col-sm-6">
+  <div id="ds_recon" class="col-sm-6 pt-2">
     <h5 class="text-secondary">Reconciliation Tasks <span><a href="{% url 'datasets:ds_recon' object.id %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></span>
     </h5>
     {% for t in tasks %}
-      <p class="mb-0 mt-2">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
+    <div class="task-box">
+      <p class="mb-0">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
          <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}"><i>Review hits</i></a>&nbsp;
          <!-- TODO: confirm, select which to delete -->
          <a href="{% url 'datasets:task-delete' tid=t.task_id %}">
            {% fontawesome_icon 'trash' color='#336699' %}</a>
       </p>
+      <p>wtf: {{ t.result }} </p>
+      <p>wtf: {{ t.result|get:"count"|safe }} </p>
+      <!-- {{ form.json.value|get:"location"|safe -->
+      <!-- <p><b>{{ t.result.total_hits }}</b> hits for {{ t.result.got_hits }} of {{ t.result.count }} records. Elapsed: {{ t.result.elapsed }}</p> -->
+    </div>
     {% endfor %}
   </div>
   </form>

@@ -17,7 +17,7 @@ from main.models import *
 from .choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
-import codecs, tempfile, os, re, ipdb, sys
+import codecs, tempfile, os, re, ipdb, sys, json
 from pprint import pprint
 
 def link_uri(auth,id):
@@ -333,7 +333,7 @@ class DatasetDetailView(UpdateView):
         # print('ds',ds.label)
         placeset = Place.objects.filter(dataset=ds.label)
         context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
-
+        print('type(tasks)',type(context['tasks']))
         # original, subject to augmentation
         context['num_links'] = PlaceLink.objects.filter(
                 place_id_id__in = placeset, task_id = '').count()
