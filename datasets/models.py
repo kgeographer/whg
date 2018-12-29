@@ -63,7 +63,6 @@ class Dataset(models.Model):
         managed = True
         db_table = 'datasets'
 
-
 @receiver(pre_delete, sender=Dataset)
 def remove_file(**kwargs):
     instance = kwargs.get('instance')

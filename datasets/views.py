@@ -1,31 +1,29 @@
-# datasets.views CLASS-BASED
+# datasets.views
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.forms import formset_factory, modelformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import (
-    CreateView,
-    ListView,
-    DetailView,
-    UpdateView,
-    DeleteView )
+    CreateView, ListView, UpdateView, DeleteView, DetailView )
 
-from .models import Dataset, Hit
+import codecs, tempfile, os, re, ipdb, sys, json
+from pprint import pprint
 from django_celery_results.models import TaskResult
+from .models import Dataset, Hit
+from areas.models import Area
 from main.models import *
 from .choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
-import codecs, tempfile, os, re, ipdb, sys, json
-from pprint import pprint
 
 def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
     uri = baseuri + id
     return uri
 
-def augmenter(placeid, auth, tid, hitjson):   # <- task.task_name, task.id, hits[x]['json']
+# create place_name, place_geom, place_description records as req.
+def augmenter(placeid, auth, tid, hitjson):
     place = get_object_or_404(Place, id=placeid)
     print('augmenter params:',type(place), auth, hitjson)
     if auth == 'align_tgn':
@@ -208,195 +206,7 @@ def task_delete(request,tid,scope='all'):
     # return redirect(request.get_full_path())
     return redirect('/datasets/'+ds+'/detail')
 
-# upload file, verify format
-class DatasetCreateView(CreateView):
-    form_class = DatasetModelForm
-    template_name = 'datasets/dataset_create.html'
-    queryset = Dataset.objects.all()
-    #epirus:  id	name	name_src	variants	type	aat_type	ccodes	lon	lat	min	max
-    def form_valid(self, form):
-        context={}
-        if form.is_valid():
-            print('form is valid')
-            print('cleaned_data: before ->', form.cleaned_data)
-
-            # open & write tempf to a temp location;
-            # call it tempfn for reference
-            tempf, tempfn = tempfile.mkstemp()
-            try:
-                for chunk in form.cleaned_data['file'].chunks():
-                    os.write(tempf, chunk)
-            except:
-                raise Exception("Problem with the input file %s" % request.FILES['file'])
-            finally:
-                os.close(tempf)
-
-            # open the temp file
-            fin = codecs.open(tempfn, 'r', 'utf8')
-            # send for format validation
-            if form.cleaned_data['format'] == 'delimited':
-                result = read_delimited(fin,form.cleaned_data['owner'])
-                # result = read_csv(fin,request.user.username)
-            elif form.cleaned_data['format'] == 'lpf':
-                result = read_lpf(fin,form.cleaned_data['owner'])
-                # result = read_lpf(fin,request.user.username)
-            # print('cleaned_data',form.cleaned_data)
-            fin.close()
-
-            # add status & stats
-            if len(result['errors'].keys()) == 0:
-                print('columns, type', result['columns'], type(result['columns']))
-                obj = form.save(commit=False)
-                obj.status = 'format_ok'
-                # form.format = result['format']
-                obj.format = result['format']
-                obj.delimiter = result['delimiter']
-                # # form.cleaned_data['delimiter'] = result['delimiter']
-                obj.numrows = result['count']
-                obj.header = result['columns']
-                print('cleaned_data:after ->',form.cleaned_data)
-                obj.save()
-            else:
-                context['status'] = 'format_error'
-                print('result:', result)
-
-        else:
-            print('form not valid', form.errors)
-            context['errors'] = form.errors
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(DatasetCreateView, self).get_context_data(*args, **kwargs)
-        context['action'] = 'create'
-        return context
-
-class DashboardView(ListView):
-    context_object_name = 'dataset_list'
-    template_name = 'datasets/dashboard_new.html'
-    # queryset = Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
-
-    def get_queryset(self):
-        return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
-
-    def get_context_data(self, *args, **kwargs):
-         context = super(DashboardView, self).get_context_data(*args, **kwargs)
-         # context['area_list'] = Area.objects.all().filter(owner=self.request.user)
-
-         # TODO: user place sollections
-         # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
-         print('DashboardView context:', context)
-         return context
-
-# list in dashboard
-class DatasetListView(ListView):
-    model = Dataset
-    template_name = 'datasets/dashboard.html'
-    paginate_by = 4
-
-    def get_queryset(self):
-        return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
-
-    def get_context_data(self, *args, **kwargs):
-         context = super(DatasetListView, self).get_context_data(*args, **kwargs)
-         context['results'] = TaskResult.objects.all()
-         print('DatasetListView context:',context)
-         return context
-
-# class DatasetDetailView(DetailView):
-class DatasetDetailView(UpdateView):
-    form_class = DatasetDetailModelForm
-    template_name = 'datasets/dataset_detail.html'
-
-    def get_success_url(self):
-        id_ = self.kwargs.get("id")
-        return '/datasets/'+str(id_)+'/detail'
-
-    def form_valid(self, form):
-        context={}
-        if form.is_valid():
-            print('form is valid')
-            print('cleaned_data: before ->', form.cleaned_data)
-        else:
-            print('form not valid', form.errors)
-            context['errors'] = form.errors
-        return super().form_valid(form)
-
-    def get_object(self):
-        print('kwargs:',self.kwargs)
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Dataset, id=id_)
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(DatasetDetailView, self).get_context_data(*args, **kwargs)
-        id_ = self.kwargs.get("id")
-        ds = get_object_or_404(Dataset, id=id_)
-        # print('ds',ds.label)
-        placeset = Place.objects.filter(dataset=ds.label)
-        context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
-        print('type(tasks)',type(context['tasks']))
-        # original, subject to augmentation
-        context['num_links'] = PlaceLink.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
-        context['num_names'] = PlaceName.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
-        context['num_geoms'] = PlaceGeom.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
-        context['num_descriptions'] = PlaceDescription.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
-        # others
-        context['num_types'] = PlaceType.objects.filter(
-                place_id_id__in = placeset).count()
-        context['num_when'] = PlaceWhen.objects.filter(
-                place_id_id__in = placeset).count()
-        context['num_related'] = PlaceRelated.objects.filter(
-                place_id_id__in = placeset).count()
-        context['num_depictions'] = PlaceDepiction.objects.filter(
-                place_id_id__in = placeset).count()
-
-        # augmentations (has task_id)
-        context['links_added'] = PlaceLink.objects.filter(
-                place_id_id__in = placeset, task_id__contains = '-').count()
-        context['names_added'] = PlaceName.objects.filter(
-                place_id_id__in = placeset, task_id__contains = '-').count()
-        context['geoms_added'] = PlaceGeom.objects.filter(
-                place_id_id__in = placeset, task_id__contains = '-').count()
-        context['descriptions_added'] = PlaceDescription.objects.filter(
-                place_id_id__in = placeset, task_id__contains = '-').count()
-
-        return context
-
-# "edit metadata"
-class DatasetUpdateView(UpdateView):
-    form_class = DatasetModelForm
-    template_name = 'datasets/dataset_create.html'
-    success_url = '/dashboard'
-
-    def get_object(self):
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Dataset, id=id_)
-
-    def form_valid(self, form):
-        if form.is_valid():
-            print(form.cleaned_data)
-        else:
-            print('form not valid', form.errors)
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(DatasetUpdateView, self).get_context_data(*args, **kwargs)
-        context['action'] = 'update'
-        return context
-
-class DatasetDeleteView(DeleteView):
-    template_name = 'datasets/dataset_delete.html'
-
-    def get_object(self):
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Dataset, id=id_)
-
-    def get_success_url(self):
-        return reverse('dashboard')
-
+# simple table for viewing datasets
 def ds_grid(request, label):
     print('request, pk',request, label)
     ds = get_object_or_404(Dataset, label=label)
@@ -404,7 +214,8 @@ def ds_grid(request, label):
 
     return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
-# insert LP-compatible records from csv file to database
+# insert LP-csv file to database
+# TODO: require, handle sources
 def ds_insert(request, pk ):
     # retrieve just-added file, insert to db
     import os, csv, codecs,json
@@ -569,3 +380,192 @@ def ds_insert(request, pk ):
     # dataset.file.close()
 
     return redirect('/dashboard', context=context)
+
+# list user datasets, area, place collections
+class DashboardView(ListView):
+    context_object_name = 'dataset_list'
+    template_name = 'datasets/dashboard.html'
+
+    def get_queryset(self):
+        return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
+
+    def get_context_data(self, *args, **kwargs):
+         context = super(DashboardView, self).get_context_data(*args, **kwargs)
+         context['area_list'] = Area.objects.all().filter(owner=self.request.user)
+
+         # TODO: user place sollections
+         # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
+         print('DashboardView context:', context)
+         return context
+
+# upload file, verify format
+class DatasetCreateView(CreateView):
+    form_class = DatasetModelForm
+    template_name = 'datasets/dataset_create.html'
+    queryset = Dataset.objects.all()
+    #epirus:  id	name	name_src	variants	type	aat_type	ccodes	lon	lat	min	max
+    def form_valid(self, form):
+        context={}
+        if form.is_valid():
+            print('form is valid')
+            print('cleaned_data: before ->', form.cleaned_data)
+
+            # open & write tempf to a temp location;
+            # call it tempfn for reference
+            tempf, tempfn = tempfile.mkstemp()
+            try:
+                for chunk in form.cleaned_data['file'].chunks():
+                    os.write(tempf, chunk)
+            except:
+                raise Exception("Problem with the input file %s" % request.FILES['file'])
+            finally:
+                os.close(tempf)
+
+            # open the temp file
+            fin = codecs.open(tempfn, 'r', 'utf8')
+            # send for format validation
+            if form.cleaned_data['format'] == 'delimited':
+                result = read_delimited(fin,form.cleaned_data['owner'])
+                # result = read_csv(fin,request.user.username)
+            elif form.cleaned_data['format'] == 'lpf':
+                result = read_lpf(fin,form.cleaned_data['owner'])
+                # result = read_lpf(fin,request.user.username)
+            # print('cleaned_data',form.cleaned_data)
+            fin.close()
+
+            # add status & stats
+            if len(result['errors'].keys()) == 0:
+                print('columns, type', result['columns'], type(result['columns']))
+                obj = form.save(commit=False)
+                obj.status = 'format_ok'
+                # form.format = result['format']
+                obj.format = result['format']
+                obj.delimiter = result['delimiter']
+                # # form.cleaned_data['delimiter'] = result['delimiter']
+                obj.numrows = result['count']
+                obj.header = result['columns']
+                print('cleaned_data:after ->',form.cleaned_data)
+                obj.save()
+            else:
+                context['status'] = 'format_error'
+                print('result:', result)
+
+        else:
+            print('form not valid', form.errors)
+            context['errors'] = form.errors
+        return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(DatasetCreateView, self).get_context_data(*args, **kwargs)
+        context['action'] = 'create'
+        return context
+
+# class DatasetDetailView(DetailView):
+class DatasetDetailView(UpdateView):
+    form_class = DatasetDetailModelForm
+    template_name = 'datasets/dataset_detail.html'
+
+    def get_success_url(self):
+        id_ = self.kwargs.get("id")
+        return '/datasets/'+str(id_)+'/detail'
+
+    def form_valid(self, form):
+        context={}
+        if form.is_valid():
+            print('form is valid')
+            print('cleaned_data: before ->', form.cleaned_data)
+        else:
+            print('form not valid', form.errors)
+            context['errors'] = form.errors
+        return super().form_valid(form)
+
+    def get_object(self):
+        print('kwargs:',self.kwargs)
+        id_ = self.kwargs.get("id")
+        return get_object_or_404(Dataset, id=id_)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(DatasetDetailView, self).get_context_data(*args, **kwargs)
+        id_ = self.kwargs.get("id")
+        ds = get_object_or_404(Dataset, id=id_)
+        # print('ds',ds.label)
+        placeset = Place.objects.filter(dataset=ds.label)
+        context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
+        print('type(tasks)',type(context['tasks']))
+        # original, subject to augmentation
+        context['num_links'] = PlaceLink.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        context['num_names'] = PlaceName.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        context['num_geoms'] = PlaceGeom.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        context['num_descriptions'] = PlaceDescription.objects.filter(
+                place_id_id__in = placeset, task_id = '').count()
+        # others
+        context['num_types'] = PlaceType.objects.filter(
+                place_id_id__in = placeset).count()
+        context['num_when'] = PlaceWhen.objects.filter(
+                place_id_id__in = placeset).count()
+        context['num_related'] = PlaceRelated.objects.filter(
+                place_id_id__in = placeset).count()
+        context['num_depictions'] = PlaceDepiction.objects.filter(
+                place_id_id__in = placeset).count()
+
+        # augmentations (has task_id)
+        context['links_added'] = PlaceLink.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+        context['names_added'] = PlaceName.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+        context['geoms_added'] = PlaceGeom.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+        context['descriptions_added'] = PlaceDescription.objects.filter(
+                place_id_id__in = placeset, task_id__contains = '-').count()
+
+        return context
+
+class DatasetDeleteView(DeleteView):
+    template_name = 'datasets/dataset_delete.html'
+
+    def get_object(self):
+        id_ = self.kwargs.get("id")
+        return get_object_or_404(Dataset, id=id_)
+
+    def get_success_url(self):
+        return reverse('dashboard')
+
+# ABANDONED, added edit for 2 fields to DatasetDetailView
+# class DatasetUpdateView(UpdateView):
+#     form_class = DatasetModelForm
+#     template_name = 'datasets/dataset_create.html'
+#     success_url = '/dashboard'
+#
+#     def get_object(self):
+#         id_ = self.kwargs.get("id")
+#         return get_object_or_404(Dataset, id=id_)
+#
+#     def form_valid(self, form):
+#         if form.is_valid():
+#             print(form.cleaned_data)
+#         else:
+#             print('form not valid', form.errors)
+#         return super().form_valid(form)
+#
+#     def get_context_data(self, *args, **kwargs):
+#         context = super(DatasetUpdateView, self).get_context_data(*args, **kwargs)
+#         context['action'] = 'update'
+#         return context
+
+# ABANDONED for multi-model DashboardView
+# class DatasetListView(ListView):
+#     model = Dataset
+#     template_name = 'datasets/dashboard.html'
+#     paginate_by = 4
+#
+#     def get_queryset(self):
+#         return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
+#
+#     def get_context_data(self, *args, **kwargs):
+#          context = super(DatasetListView, self).get_context_data(*args, **kwargs)
+#          context['results'] = TaskResult.objects.all()
+#          print('DatasetListView context:',context)
+#          return context

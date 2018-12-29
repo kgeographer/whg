@@ -37,11 +37,12 @@ INSTALLED_APPS = [
     'mathfilters',
     'rest_framework',
 
-    'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
+    'areas.apps.AreasConfig',
+    'datasets.apps.DatasetsConfig',
+    'main.apps.MainConfig',
     'maps.apps.MapsConfig',
     'search.apps.SearchConfig',
-    'datasets.apps.DatasetsConfig',
 ]
 
 MIDDLEWARE = [

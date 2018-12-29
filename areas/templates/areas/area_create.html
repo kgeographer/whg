@@ -1,0 +1,37 @@
+<!-- areas/area_create.html -->
+{% extends "main/base.html" %}
+{% block title %}<title>WHG::Create/Update Area</title>{% endblock %}
+
+{% block content %}
+  {% load static %}
+  {% load fontawesome %}
+
+  <div class="container">
+    <h4 class="mt-3">
+      {% if action == 'update' %}
+      Update{% else %}Create{% endif %} Study Area
+        <span class="small">{% fontawesome_icon 'question-circle' color='#336699' %}</span>
+    </h4>
+    <div class="d-flex">
+    <div class="form-box mt-2">
+      <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="owner" value='{{ user.id }}'></input>
+        <p>Title: {{ form.title }}</p>
+        {% if errors %}<p>{{ errors }}</p>{% endif %}
+        <p><span class="top">Description:</span> {{ form.description }}</p>
+        <p>Country codes: {{ form.ccodes }}</p>
+        <p><span class="top">GeoJSON: </span>{{ form.geom }}</p>
+        <!-- upload button only if it's not yet ok -->
+        <!-- {# if status != 'format_ok' #} -->
+        <input class="btn btn-primary" type="submit" value="Save" />
+        <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
+        <!-- {# endif #} -->
+      </form>
+    </div>
+  </div>
+  </div>
+  <script type="text/javascript">
+
+  </script>
+{% endblock %}

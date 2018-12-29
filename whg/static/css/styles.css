@@ -32,6 +32,7 @@ body, html {
   background-color: #eee;
 }
 
+.top { vertical-align: top;}
 .half { font-size: .6em; font-style: italic; margin-top:.6em;}
 .pagination {
   background-color: oldlace;
@@ -83,11 +84,10 @@ body, html {
   color: grey;
 }
 .form-box {
-  border: 1px solid gray;
-  background-color: #eeeee0;
+  border: 1px solid lightgray;
+  background-color: oldlace;
   padding:12px;
-  border-radius: 16px;
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 3px 3px #eee;
 }
 .form-check-input {

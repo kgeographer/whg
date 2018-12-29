@@ -1,4 +1,4 @@
-<!-- datasets/ds_form.html -->
+<!-- datasets/dataset_create.html -->
 {% extends "main/base.html" %}
 {% block title %}<title>WHG::Create/Update</title>{% endblock %}
 
@@ -7,8 +7,7 @@
 
   <div class="container">
     <h4 class="mt-3">
-      {% if action == 'update' %}
-      Update{% else %}Create{% endif %} dataset</h4>
+      {% if action == 'update' %}Update{% else %}Create{% endif %} dataset</h4>
     <div class="d-flex">
     <div class="form-box mt-2">
       <!-- status, format, delimiter, numrows, header  -->
@@ -24,12 +23,12 @@
           <input type="hidden" name="numrows" value=-1></input>
           <input type="hidden" name="header" value=[]></input>
         {% endif %}
-        <p>Name: {{ form.name }}</p>
-        <p>Unique label: {{ form.label }}
+        <p>Name {{ form.name }}</p>
+        <p>Unique label {{ form.label }}
           <span class="text-danger small"><i>12 char max, no spaces</i></span>
         </p>
         {% if errors %}<p>{{ errors }}</p>{% endif %}
-        <p>Description: {{ form.description }}</p>
+        <p><span class="top">Description</span> {{ form.description }}</p>
         <p>Data type {{ form.datatype }}</p>
         <p>Format {{ form.format }}
           <span class="text-danger small"><i>delimiters: tab, semicolon or pipe ('|')</i></span>
@@ -38,8 +37,8 @@
           <p>MapBox ID {{ form.mapbox_id }}</p>
         {% endif %}
         {% if action == 'update' %}
-          <p>Current file: <span class="text-danger" >{{ form.file.value }}</span></p>
-          <p>Status: <span class="text-danger" >{{ form.status.value }}</span></p>
+          <p>Current file <span class="text-danger" >{{ form.file.value }}</span></p>
+          <p>Status <span class="text-danger" >{{ form.status.value }}</span></p>
         {% else %}
           <p>
             <input class="text-danger" type="file" name="file"

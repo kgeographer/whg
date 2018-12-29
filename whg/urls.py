@@ -5,8 +5,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from main import views
-# from datasets.views import dashboard
-from datasets.views import DatasetListView, DashboardView
+from datasets.views import DashboardView
 
 from django.views.generic.base import TemplateView
 from django.contrib import admin
@@ -20,7 +19,8 @@ urlpatterns = [
     path('search/', include('search.urls')),
     path('maps/', include('maps.urls')),
     path('datasets/', include('datasets.urls')),
-    # path('dashboard/', DatasetListView.as_view(), name='dashboard'),
+    path('areas/', include('areas.urls')),
+
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
 
     # static content
@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^credits/$', TemplateView.as_view(template_name="main/credits.html"), name="credits"),
     url(r'^testy/$', TemplateView.as_view(template_name="main/css-bs.html"), name="testy"),
 
+    # backend stuff
     path('api/', include('api.urls')),
     path('accounts/', include('accounts.urls')),
     path('admin/', admin.site.urls),

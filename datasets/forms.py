@@ -59,7 +59,9 @@ class DatasetModelForm(forms.ModelForm):
         fields = ('id','label','name','description','file','format','datatype',
             'delimiter','status','owner','mapbox_id','header','numrows')
         widgets = {
-            'description': forms.Textarea(attrs={'rows':2,'cols': 60,'class':'textarea','placeholder':'brief description'}),
+            'description': forms.Textarea(attrs={
+                'rows':2,'cols': 60,'class':'textarea',
+                'placeholder':'brief description'}),
             'format': forms.Select(),
             'datatype': forms.Select()
         }
