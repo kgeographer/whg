@@ -28,8 +28,7 @@
             <span class="float-right">
               <a href="javascript:{ map_render() }">preview</a></span>
           </p>
-          <p><b>OR...</b></p>
-          <p id="p_geom"><span class="top">GeoJSON:</span>
+          <p id="p_geom" class="hidden"><span class="top">GeoJSON:</span>
             {{ form.geom }}
           </p>
           <!-- upload button only if it's not yet ok -->
@@ -46,9 +45,11 @@
   </div> <!-- container -->
   <script type="text/javascript">
     $(function(){
-      if ($('.textarea').html() == "None") {
-        $('.textarea').html('') //clears string 'None' ?? huh
-      }
+      $( ".textarea" ).each(function(index) {
+        if ( ["None","null"].includes( $(this).val() ) ) {
+          $(this).val('')
+        }
+      });
     })
     // expose leaflet map for events, call it 'mappy'
     window.addEventListener('map:init', function (event) {
@@ -68,12 +69,10 @@
     function map_render() {
       console.log('map_render')
       ccodes = $("input#id_ccodes").val()
-      geoj = $("textarea#id_geom.textarea").val()
-      console.clear(); console.log('codes',ccodes); console.log('geoj',geoj)
+      window.geoj = $("textarea#id_geom.textarea")
+      window.geom = {"type":"FeatureCollection","features":[]}
+      console.clear()
 
-      // console.log('got mappy?', mappy)
-      // window.countries = new L.geoJson();
-      // countries.addTo(mappy);
       var country_url = "/media/data/countries_simplified.json"
       // clear geoJSON
       if (Object.keys(mappy._layers).length >1 ) {
@@ -81,7 +80,8 @@
       }
       if (ccodes != '') {
         // TODO: test csv format
-        ccode_arr = ccodes.split(",")
+        $("#p_geom").show()
+        ccode_arr = ccodes.toUpperCase().split(",")
         console.log(ccode_arr)
         fetch(country_url)
           .then(function(resp) {
@@ -94,67 +94,29 @@
                 return ccode_arr.includes(feature.properties.iso) ;
               },
               onEachFeature: function onEachFeature(feature, layer) {
-                // console.log('feature:',feature)
+                // console.log('feature:', JSON.stringify(feature))
+                geom['features'].push(feature)
                 var props = feature.properties;
                 var content = `<p>${props.iso}</p><p>${props.gnlabel}</p>`;
                 layer.bindPopup(content);
             }}).addTo(mappy);
             mappy.fitBounds(cc_layer.getBounds())
           })
-
-        }
-        // L.geoJson(someFeatures, {
-        //   filter: function(feature, layer) {
-        //       return feature.properties.show_on_map;
-        //   }
-        // }).addTo(map);}
-      // $.ajax({
-      //   dataType: "json",
-      //   url: "/media/data/countries_simplified.json",
-      //   success: function(data) {
-      //       $(data.features).each(function(key, data) {
-      //           countries.addData(data);
-      //       });
-      //   }
-      // })
-
-      // L.geoJSON(data, {
-      //     style: function (feature) {
-      //         return {color: feature.properties.color};
-      //     }
-      // }).bindPopup(function (layer) {
-      //     return layer.feature.properties.gnlabel;
-      // }).addTo(mappy);
-      //
-      // L.geoJSON(someFeatures, {
-      //     filter: function(feature, layer) {
-      //         return feature.properties.show_on_map;
-      //     }
-      // }).addTo(map);
-
-      window.coors = {
-          "type": "Feature",
-          "properties": {
-              "name": "Coors Field",
-              "amenity": "Baseball Stadium",
-              "popupContent": "This is where the Rockies play!"
-          },
-          "geometry": {
-              "type": "Point",
-              "coordinates": [-104.99404, 39.75621]
-          }
-      };
-      // countries.addData(coors)
-      function centerLeafletMapOnMarker(map, marker) {
-        var latLngs = [ marker.getLatLng() ];
-        var markerBounds = L.latLngBounds(latLngs);
-        map.fitBounds(markerBounds);
+          .then(function(){
+            geoj.val(JSON.stringify(geom))
+          })
+      } else {
+        alert('Need some comma-delimited 2-letter country codes')
       }
     }
-
     // initialize, render map w/settings.LEAFLET_CONFIG
     function map_init (map, options) {
       console.log('in map_init()')
+      window.geoj = $("textarea#id_geom.textarea")
+      if (geoj.val() != 'null'){
+        $("#p_geom").show()
+        map_render()
+      }
     } // end map_init
   </script>
 {% endblock %}

@@ -25,7 +25,7 @@ class AreaModelForm(forms.ModelForm):
             }),
             'geom': forms.Textarea(attrs={
                 'rows':3,'cols': 40,'class':'textarea',
-                'placeholder':'Paste GeoJSON, e.g. from geojson.io'
+                'placeholder':'GeoJSON, from countries for now'
             }),
         }
         # initial = {'format': 'delimited', 'datatype': 'places'}
