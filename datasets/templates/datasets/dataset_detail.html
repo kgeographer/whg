@@ -7,66 +7,67 @@
 <div class="container ds-detail mt-3">
   <!-- on click toggle .hidden, .form-value; make submit button visible -->
   <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
-    {% csrf_token %}
+  {% csrf_token %}
     <input type="hidden" name="id" value='{{ form.id }}'></input>
-  <h4>Dataset Detail:
-    <span class="edit small"><a href="#">{% fontawesome_icon 'edit' color='#336699' %}</a></span>
-    <span class="form-value text-danger"> {{ object.name }}</span>
-    <a href="{% url 'datasets:dataset-delete' object.id %}" class="float-right"
-      title="Delete dataset" rel="tooltip" style="margin-top:-2px;">
-      {% fontawesome_icon 'trash' color='#336699' %}</a>
-    <a href="{% url 'datasets:ds_grid' object.label %}" title="View/edit table" rel="tooltip"
-    class="float-right mr-2">{% fontawesome_icon 'table' color='#336699' %}</a>
-    <span class="hidden">{{ form.name }}</span>
-  </h4>
-  <hr/>
-  <div class="row">
-    <div id="ds_details" class="col-sm-6">
-      <p class="hidden editing"><b>Description</b>: {{ form.description }}</p>
-      <p class="form-value editing"><b>Description</b>: {{ object.description }}</p>
-      <p><b>Slug (id)</b>: {{ object.label }} ({{ object.id }})
-      <p><b>File</b>: {{ object.file }}</p>
-      <p><b>Date</b>: {{ object.upload_date }}</p>
-      <p><b>Total rows</b>: {{ object.numrows }}</p>
-      <p><b>Data type</b>: {{ object.datatype }}</p>
-      <p><b>Format</b>: {{ object.format }} ({{ object.delimiter }})</p>
-      {% if object.format == "delimited" %}
-        <p><b>Sources file</b>:</p>
-      {% endif %}
-      {% if object.mapbox_id %}
-        <p class="form-value"><b>MapBox ID</b>: {{ object.mapbox_id }}</p>
-        <p class="hidden editing"><b>MapBox ID</b>: {{ form.mapbox_id }}</p>
-      {% endif %}
-      <p><b>Status</b>: {{ object.status }}</p>
-      <p><b>Columns</b>: <br/>{{ object.header }}</p>
-      <hr/>
-      <h5 class="text-secondary">Counts (initial, added)</h5>
-      <p><b>Names</b>:
-        {{ num_names }}, <span class="text-white bg-danger">&nbsp;{{ names_added }}&nbsp;</span></p>
-      <p><b>Links</b>:
-        {{ num_links }}, <span class="text-white bg-danger">&nbsp;{{ links_added }}&nbsp;</span></p>
-      <p><b>Geometries</b>: {{ num_geoms }}, <span class="text-white bg-danger">&nbsp;{{ geoms_added }}&nbsp;</span></p>
-      <p><b>Descriptions</b>: {{ num_descriptions }}, <span class="text-white bg-danger">&nbsp;{{ descriptions_added }}&nbsp;</span></p>
-      <input class="btn btn-primary hidden" type="submit" value="Save" />
-  </div>
-  <div id="ds_recon" class="col-sm-6 pt-2">
-    <h5 class="text-secondary">Reconciliation Tasks <span><a href="{% url 'datasets:ds_recon' object.id %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></span>
-    </h5>
-    {% for t in tasks %}
-    <div class="task-box">
-      <p class="mb-0">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
-         <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}"><i>Review hits</i></a>&nbsp;
-         <!-- TODO: confirm, select which to delete -->
-         <a href="{% url 'datasets:task-delete' tid=t.task_id %}">
-           {% fontawesome_icon 'trash' color='#336699' %}</a>
-      </p>
-      <p>wtf: {{ t.result }} </p>
-      <p>wtf: {{ t.result|get:"count"|safe }} </p>
-      <!-- {{ form.json.value|get:"location"|safe -->
-      <!-- <p><b>{{ t.result.total_hits }}</b> hits for {{ t.result.got_hits }} of {{ t.result.count }} records. Elapsed: {{ t.result.elapsed }}</p> -->
+    <h4>Dataset Detail:
+      <span class="edit small"><a href="#">{% fontawesome_icon 'edit' color='#336699' %}</a></span>
+      <span class="form-value text-danger"> {{ object.name }}</span>
+      <a href="{% url 'datasets:dataset-delete' object.id %}" class="float-right"
+        title="Delete dataset" rel="tooltip" style="margin-top:-2px;">
+        {% fontawesome_icon 'trash' color='#336699' %}</a>
+      <a href="{% url 'datasets:ds_grid' object.label %}" title="View/edit table" rel="tooltip"
+      class="float-right mr-2">{% fontawesome_icon 'table' color='#336699' %}</a>
+      <span class="hidden">{{ form.name }}</span>
+    </h4>
+    <hr/>
+    <div class="row">
+      <div id="ds_details" class="col-sm-6">
+        <p class="hidden editing"><b>Description</b>: {{ form.description }}</p>
+        <p class="form-value editing"><b>Description</b>: {{ object.description }}</p>
+        <p><b>Slug (id)</b>: {{ object.label }} ({{ object.id }})
+        <p><b>File</b>: {{ object.file }}</p>
+        <p><b>Date</b>: {{ object.upload_date }}</p>
+        <p><b>Total rows</b>: {{ object.numrows }}</p>
+        <p><b>Data type</b>: {{ object.datatype }}</p>
+        <p><b>Format</b>: {{ object.format }} ({{ object.delimiter }})</p>
+        {% if object.format == "delimited" %}
+          <p><b>Sources file</b>:</p>
+        {% endif %}
+        {% if object.mapbox_id %}
+          <p class="form-value"><b>MapBox ID</b>: {{ object.mapbox_id }}</p>
+          <p class="hidden editing"><b>MapBox ID</b>: {{ form.mapbox_id }}</p>
+        {% endif %}
+        <p><b>Status</b>: {{ object.status }}</p>
+        <p><b>Columns</b>: <br/>{{ object.header }}</p>
+        <hr/>
+        <h5 class="text-secondary">Counts (initial, added)</h5>
+        <p><b>Names</b>:
+          {{ num_names }}, <span class="text-white bg-danger">&nbsp;{{ names_added }}&nbsp;</span></p>
+        <p><b>Links</b>:
+          {{ num_links }}, <span class="text-white bg-danger">&nbsp;{{ links_added }}&nbsp;</span></p>
+        <p><b>Geometries</b>: {{ num_geoms }}, <span class="text-white bg-danger">&nbsp;{{ geoms_added }}&nbsp;</span></p>
+        <p><b>Descriptions</b>: {{ num_descriptions }}, <span class="text-white bg-danger">&nbsp;{{ descriptions_added }}&nbsp;</span></p>
+        <input class="btn btn-primary hidden" type="submit" value="Save" />
+      </div>
+      <div id="ds_recon" class="col-sm-6 pt-2">
+        <h5 class="text-secondary">Reconciliation Tasks <span><a href="{% url 'datasets:ds_recon' object.id %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></span>
+        </h5>
+        {% for t in tasks %}
+        <div class="task-box">
+          <p class="mb-0">{{ t.task_name }} <span class="small">({{ t.date_done }})</span>
+             <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}"><i>Review hits</i></a>&nbsp;
+             <!-- TODO: confirm, select which to delete -->
+             <a href="{% url 'datasets:task-delete' tid=t.task_id %}">
+               {% fontawesome_icon 'trash' color='#336699' %}</a>
+          </p>
+          <p>wtf: {{ t.result }} </p>
+          <p>wtf: {{ t.result|get:"count"|safe }} </p>
+          <!-- {{ form.json.value|get:"location"|safe -->
+          <!-- <p><b>{{ t.result.total_hits }}</b> hits for {{ t.result.got_hits }} of {{ t.result.count }} records. Elapsed: {{ t.result.elapsed }}</p> -->
+        </div>
+        {% endfor %}
+      </div>
     </div>
-    {% endfor %}
-  </div>
   </form>
 </div>
 <script type="text/javascript">

@@ -15,7 +15,7 @@ body, html {
 #grid_detail {
   /* background-color: #fff7e6; */
 }
-#ds_recon {
+#ds_recon, #area_map {
   background-color: ghostwhite;
 }
 .ds-detail p { margin-bottom: .3rem;}

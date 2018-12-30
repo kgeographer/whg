@@ -10,7 +10,8 @@
   <div class="container">
     <div id="dataset_list" class="mt-3">
       <h4 class="mt-3">My Datasets
-        <a href="{% url 'datasets:dataset-create' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
+        <a href="{% url 'datasets:dataset-create' %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a>
+      </h4>
       <div class="list-box">
         <table class="table table-striped">
           <thead>
@@ -54,7 +55,7 @@
       <div class="list-box">
         <p>list of user-created study areas</p>
         {% for a in area_list %}
-          <p>{{ a.title }} ({{ a.id }}); {{ a.ccodes }}</p>
+          <p><a href="{% url 'areas:area-update' a.id %}">{{ a.title }} ({{ a.id }})</a>; {{ a.ccodes }}</p>
         {% endfor %}
       </div>
     </div>

@@ -9,10 +9,10 @@
     <h4 class="mt-3">
       {% if action == 'update' %}Update{% else %}Create{% endif %} dataset</h4>
     <div class="d-flex">
-    <div class="form-box mt-2">
-      <!-- status, format, delimiter, numrows, header  -->
       <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
+      <div class="form-box mt-2">
+        <!-- status, format, delimiter, numrows, header  -->
         <input type="hidden" name="owner" value='{{ user.id }}'></input>
         {% if action == 'update' %}
           <input type="hidden" name="status" value='{{ form.status.value }}'></input>
@@ -51,9 +51,8 @@
         <input class="btn btn-primary" type="submit" value="Save" />
         <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
         {% endif %}
-
-    </div>
-    {% if action == 'update' %}
+      </div>
+      {% if action == 'update' %}
       <!-- there are validation results-->
       <input type="hidden" name="file" value='{{ form.file }}'></input>
       <div class="form-box mt-3 ml-3" id="ds_errors">
@@ -71,9 +70,9 @@
           {% endif %}
         {% endif %}
       </div>
-    {% endif %}
-    </form>
-  </div>
+      {% endif %}
+      </form>
+    </div> <!-- d-flex -->
   </div>
 
 {% endblock %}

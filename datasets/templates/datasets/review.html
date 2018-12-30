@@ -2,12 +2,13 @@
 {% extends "main/base.html" %}
 {% load leaflet_tags %}
 {% load fontawesome %}
-{% load static %}
-
 {% block title %}<title>Dataset {{ ds.label }}</title>{% endblock %}
 {% block extra_head %}
+  {% leaflet_js %}
+  {% leaflet_css %}
 {% endblock %}
 {% block content %}
+{% load static %}
 <div class="container">
   <!-- incoming: ds, hit_list -->
   <h4 class="mb-3 mt-3">

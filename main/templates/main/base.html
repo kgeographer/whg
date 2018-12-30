@@ -1,6 +1,5 @@
 {% load i18n staticfiles %}
 <!DOCTYPE html>
-{% load leaflet_tags %}
 {% load fontawesome %}
 <html lang="en">
 <head>
@@ -18,11 +17,10 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
   <!-- Add additional CSS in static -->
-  {% leaflet_js %}
-  {% leaflet_css %}
   {% load static %}
   {% fontawesome_stylesheet %}
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
   <!-- some pages will want more -->
   {% block extra_head %}{% endblock %}
 </head>
