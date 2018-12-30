@@ -126,6 +126,8 @@ class AreaUpdateView(UpdateView):
     def form_valid(self, form):
         if form.is_valid():
             print(form.cleaned_data)
+            obj = form.save(commit=False)
+            obj.save()
         else:
             print('form not valid', form.errors)
         return super().form_valid(form)

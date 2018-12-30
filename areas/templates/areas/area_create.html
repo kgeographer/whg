@@ -46,7 +46,9 @@
   </div> <!-- container -->
   <script type="text/javascript">
     $(function(){
-      $('.textarea').html('') //clears string 'None' ?? huh
+      if ($('.textarea').html() == "None") {
+        $('.textarea').html('') //clears string 'None' ?? huh
+      }
     })
     // expose leaflet map for events, call it 'mappy'
     window.addEventListener('map:init', function (event) {
@@ -73,7 +75,10 @@
       // window.countries = new L.geoJson();
       // countries.addTo(mappy);
       var country_url = "/media/data/countries_simplified.json"
-
+      // clear geoJSON
+      if (Object.keys(mappy._layers).length >1 ) {
+        cc_layer.clearLayers()
+      }
       if (ccodes != '') {
         // TODO: test csv format
         ccode_arr = ccodes.split(",")
@@ -84,7 +89,7 @@
           })
           .then(function(data) {
             console.log('fetched data', data)
-            L.geoJson(data, {
+            window.cc_layer = L.geoJson(data, {
               filter: function(feature, layer) {
                 return ccode_arr.includes(feature.properties.iso) ;
               },
@@ -94,7 +99,9 @@
                 var content = `<p>${props.iso}</p><p>${props.gnlabel}</p>`;
                 layer.bindPopup(content);
             }}).addTo(mappy);
+            mappy.fitBounds(cc_layer.getBounds())
           })
+
         }
         // L.geoJson(someFeatures, {
         //   filter: function(feature, layer) {
