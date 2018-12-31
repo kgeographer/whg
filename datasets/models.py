@@ -8,7 +8,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 
-from .choices import *
+from main.choices import *
 
 def user_directory_path(instance, filename):
     # upload to MEDIA_ROOT/user_<username>/<filename>

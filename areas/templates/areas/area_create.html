@@ -21,6 +21,7 @@
         <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
           {% csrf_token %}
           <input type="hidden" name="owner" value='{{ user.id }}'></input>
+          <input type="hidden" name="type" value='ccodes'></input>
           <p>Title: {{ form.title }}</p>
           {% if errors %}<p>{{ errors }}</p>{% endif %}
           <p><span class="top">Description:</span> {{ form.description }}</p>
@@ -67,11 +68,11 @@
     }
 
     function map_render() {
-      console.log('map_render')
+      console.log('in map_render()')
       ccodes = $("input#id_ccodes").val()
       window.geoj = $("textarea#id_geom.textarea")
       window.geom = {"type":"FeatureCollection","features":[]}
-      console.clear()
+      // console.clear()
 
       var country_url = "/media/data/countries_simplified.json"
       // clear geoJSON
@@ -106,14 +107,14 @@
             geoj.val(JSON.stringify(geom))
           })
       } else {
-        alert('Need some comma-delimited 2-letter country codes')
+        // alert('Need some comma-delimited 2-letter country codes')
       }
     }
     // initialize, render map w/settings.LEAFLET_CONFIG
     function map_init (map, options) {
-      console.log('in map_init()')
       window.geoj = $("textarea#id_geom.textarea")
-      if (geoj.val() != 'null'){
+      console.log('in map_init(), geoj.val()',geoj.val())
+      if (geoj.val() != ''){
         $("#p_geom").show()
         map_render()
       }

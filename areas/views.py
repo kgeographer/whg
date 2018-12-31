@@ -17,6 +17,7 @@ class AreaCreateView(CreateView):
     form_class = AreaModelForm
     template_name = 'areas/area_create.html'
     queryset = Area.objects.all()
+    success_url = '/dashboard'
 
     def form_valid(self, form):
         context={}

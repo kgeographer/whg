@@ -40,3 +40,9 @@ MATCHTYPES = {
     ('close','closeMatch'),
     ('related','related'),
 }
+
+AREATYPES = {
+    ('ccodes','Country codes'),
+    ('region','Region/Polity record'),
+    ('user','User drawn'),
+}

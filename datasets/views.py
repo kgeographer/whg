@@ -13,7 +13,7 @@ from django_celery_results.models import TaskResult
 from .models import Dataset, Hit
 from areas.models import Area
 from main.models import *
-from .choices import AUTHORITY_BASEURI
+from main.choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
 

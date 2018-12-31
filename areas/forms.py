@@ -5,7 +5,7 @@ from .models import Area
 class AreaDetailModelForm(forms.ModelForm):
     class Meta:
         model = Area
-        fields = ('id','title','description','ccodes','geom')
+        fields = ('id','type','title','description','ccodes','geom')
         widgets = {
             'description': forms.Textarea(attrs={
                 'rows':1,'cols': 60,'class':'textarea','placeholder':'brief description'}),
@@ -17,7 +17,7 @@ class AreaDetailModelForm(forms.ModelForm):
 class AreaModelForm(forms.ModelForm):
     class Meta:
         model = Area
-        fields = ('id','owner','title','description','ccodes','geom')
+        fields = ('id','type','owner','title','description','ccodes','geom')
         widgets = {
             'description': forms.Textarea(attrs={
                 'rows':1,'cols': 40,'class':'textarea',
