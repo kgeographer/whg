@@ -248,8 +248,8 @@ def es_lookup(qobj, *args, **kwargs):
 def align_tgn(pk, *args, **kwargs):
     ds = get_object_or_404(Dataset, id=pk)
     region = kwargs['region']
+    area_user = kwargs['area_user']
     # TODO: system for region creation
-    # ccodes = kwargs['ccodes']
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
     features = []

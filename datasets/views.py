@@ -155,10 +155,15 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
 # initiate, monitor align_tgn Celery task
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
+    area_list = Area.objects.all().filter(owner=request.user)
     # print('request, method:',request, request.method)
     context = {
         "dataset": ds.name,
+        "area_list": area_list
     }
+    # def get_queryset(self):
+    #     return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
+
     if request.method == 'GET':
         print('request:',request)
     elif request.method == 'POST' and request.POST:
@@ -169,6 +174,7 @@ def ds_recon(request, pk):
         result = align_tgn.delay(
             ds.id, ds=ds.id,
             region=request.POST['region'],
+            area_user=request.POST['area_user'],
             # ccodes=request.POST['ccodes']
         )
 
@@ -177,6 +183,7 @@ def ds_recon(request, pk):
         context['dataset id'] = ds.label
         context['authority'] = request.POST['recon']
         context['region'] = request.POST['region']
+        context['area_user'] = request.POST['area_user']
         # context['ccodes'] = request.POST['ccodes']
         # context['hits'] = '?? not wired yet'
         context['result'] = result.get()
@@ -184,7 +191,7 @@ def ds_recon(request, pk):
         pprint(locals())
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
-    return render(request, 'datasets/ds_recon.html', {'ds':ds})
+    return render(request, 'datasets/ds_recon.html', {'ds':ds, 'area_list':area_list})
 
 def task_delete(request,tid,scope='all'):
     hits = Hit.objects.all().filter(task_id=tid)
