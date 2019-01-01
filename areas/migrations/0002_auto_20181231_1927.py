@@ -21,4 +21,10 @@ class Migration(migrations.Migration):
             name='description',
             field=models.CharField(max_length=2044),
         ),
+        migrations.AddField(
+            model_name='area',
+            name='type',
+            field=models.CharField(choices=[('user', 'User drawn'), ('ccodes', 'Country codes'), ('region', 'Region/Polity record')], default='', max_length=20),
+            preserve_default=False,
+        ),
     ]
