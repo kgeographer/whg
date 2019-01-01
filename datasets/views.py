@@ -169,13 +169,17 @@ def ds_recon(request, pk):
     elif request.method == 'POST' and request.POST:
         fun = eval('align_'+request.POST['recon'])
         # TODO: let this vary per authority?
-
+        region = request.POST['region']
+        userarea = request.POST['userarea']
         # run celery/redis task
         result = align_tgn.delay(
             ds.id, ds=ds.id,
-            region=request.POST['region'],
-            area_user=request.POST['area_user'],
-            # ccodes=request.POST['ccodes']
+            bounds={
+                "type":("region" if region !=0 else "userarea"),
+                "id": (region if region !=0 else userarea)
+            },
+            # region={"type":"region", "id": request.POST['region']},
+            # userarea={"type":"userarea", "id": request.POST['userarea']},
         )
 
         context['task_id'] = result.id
@@ -183,7 +187,7 @@ def ds_recon(request, pk):
         context['dataset id'] = ds.label
         context['authority'] = request.POST['recon']
         context['region'] = request.POST['region']
-        context['area_user'] = request.POST['area_user']
+        context['userarea'] = request.POST['userarea']
         # context['ccodes'] = request.POST['ccodes']
         # context['hits'] = '?? not wired yet'
         context['result'] = result.get()

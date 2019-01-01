@@ -9,7 +9,7 @@ import random
 from pprint import pprint
 from .models import Dataset, Hit
 from main.models import Place
-from .regions import regions
+from .regions import regions as region_hash
 ##
 import shapely.geometry
 from geopy import distance
@@ -78,23 +78,28 @@ def reverse(coords):
 #   "points" : [ [-70, 40], [-80, 30], [-90, 20] ]
 # }
 
-def get_bbox_filter(region):
-    # print('regions[region]',regions[region])
-    bounds = regions[region]
-    if region.startswith('u_'):
-        filter = {
-            "geo_polygon" : {"location.coordinates" : bounds}
-        }
-    else:
-        filter = {
-            "geo_bounding_box" : {"location.coordinates" : bounds}
-        }
+def get_bbox_filter(bounds):
+    # print('type(bounds):',type(bounds),bounds)
+    # print('bounds["type"]:',bounds['type'])
+    id = bounds['id']
+    if bounds['type'] == 'region':
+        if id.startswith('u_'):
+            filter = {
+                "geo_polygon" : {"location.coordinates" : region_hash[id]}
+            }
+        else:
+            filter = {
+                "geo_bounding_box" : {"location.coordinates" : region_hash[id]}
+            }
+    elif bounds['type'] == 'userarea':
+        print('specified user area...not there yet')
+        return
     return filter
 
 @task(name="es_lookup")
 def es_lookup(qobj, *args, **kwargs):
     # print('qobj',qobj)
-    region = kwargs['region']
+    bounds = kwargs['bounds']
 
     hit_count = 0
 
@@ -169,11 +174,11 @@ def es_lookup(qobj, *args, **kwargs):
     }}
 
     # add filter
-    if region != 0: # bbox=area abbrev.
-        q1['query']['bool']['filter'].append(get_bbox_filter(region))
-        q2['query']['bool']['filter'].append(get_bbox_filter(region))
-        q3['query']['bool']['filter'].append(get_bbox_filter(region))
-        q4['query']['bool']['filter'].append(get_bbox_filter(region))
+    if bounds['id'] != 0: # bbox=area abbrev.
+        q1['query']['bool']['filter'].append(get_bbox_filter(bounds))
+        q2['query']['bool']['filter'].append(get_bbox_filter(bounds))
+        q3['query']['bool']['filter'].append(get_bbox_filter(bounds))
+        q4['query']['bool']['filter'].append(get_bbox_filter(bounds))
 
     # geom/centroid is available
     if 'geom' in qobj.keys():
@@ -247,8 +252,8 @@ def es_lookup(qobj, *args, **kwargs):
 @task(name="align_tgn")
 def align_tgn(pk, *args, **kwargs):
     ds = get_object_or_404(Dataset, id=pk)
-    region = kwargs['region']
-    area_user = kwargs['area_user']
+    bounds = kwargs['bounds']
+    # print('bounds:',bounds,type(bounds))
     # TODO: system for region creation
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
@@ -284,9 +289,9 @@ def align_tgn(pk, *args, **kwargs):
 
         print('query_obj:', query_obj)
 
-        # run es query on query_obj
+        # run ES query on query_obj, with bounds
         # regions.regions
-        result_obj = es_lookup(query_obj, region=region)
+        result_obj = es_lookup(query_obj, bounds=bounds)
 
         if result_obj['hit_count'] == 0:
             count_nohit +=1

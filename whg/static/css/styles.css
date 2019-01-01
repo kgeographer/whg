@@ -4,13 +4,11 @@ body, html {
   /* overflow: hidden; */
   height: 100%;
 }
+/*  ?? */
 @media (min-width: 768px) {
-    #sidebar {
-        position: fixed;
-        /* top: 0;
-        bottom: 0; */
-    }
+    #sidebar { position: fixed;}
 }
+/* p {font-size: .9rem;} */
 
 #grid_detail {
   /* background-color: #fff7e6; */

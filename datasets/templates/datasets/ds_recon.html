@@ -65,7 +65,7 @@
       <a href="{% url 'datasets:review' pk=ds.pk tid=context.task_id %}">
         <input class="btn btn-sm btn-outline-primary" type="text" value="Review Hits"/></a>
       {% else %}
-        <p>Reconciliation results show here...</p>
+        <p>Reconciliation results will show here...</p>
       {% endif %}
     </div> <!-- recon_result -->
   </div> <!-- row -->
@@ -74,8 +74,8 @@
     <div id="geo_constraint" class="col-md-6">
       <div class="mb-2">
         <p class="font-weight-bold">Geographic constraint</p>
-        <p><select id="select_region" name="region" class="custom-select" style="width:auto;">
-          <option value="0">Select a region</option>
+        <p><select id="select_region" name="region" class="custom-select-sm" style="width:auto;">
+          <option value="0">Select pre-defined region</option>
           <option value="eh">Eastern Hemisphere</option>
           <option disabled value="af">- Africa</option>
           <option disabled value="eu">- Europe</option>
@@ -86,14 +86,14 @@
           <option value="u_epirus">- Epirus (custom)</option>
           <option disabled value="la">- Latin America</option>
           <option disabled value="us">- US & Canada</option>
-        </select></p>
-        <p><select id="select_area_user" name="area_user" class="custom-select" style="width:auto;">
+        </select><span class="ml-2"><b>or...</b></span></p>
+        <p><select id="select_userarea" name="userarea" class="custom-select-sm" style="width:auto;">
           <option value="0">Select user-defined area</option>
           {% for a in area_list %}
               <option value="{{ a.id }}">{{ a.title }}</option>
           {% endfor %}
         </select></p>
-        <p><input type="text" name="search_region" value="" placeholder="Search regions"/></p>
+        <p><input type="text" disabled name="search_region" value="" placeholder="Search region data"/></p>
       </div>
       {% if request.method == 'GET' %}
         <button type="submit" class="btn btn-primary">Start</button>
@@ -112,5 +112,12 @@
   function map_init (map, options) {
     console.log('in map_init()')
   } // end map_init
+  $( "#select_region" ).change(function() {
+    $( "#select_userarea option[value=0]" ).prop('selected',true)
+  });
+  $( "#select_userarea" ).change(function() {
+    $( "#select_region option[value=0]" ).prop('selected',true)
+  });
+
 </script>
 {% endblock %}
