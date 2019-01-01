@@ -18,6 +18,7 @@ body, html {
 
 .ghostbox {
   background-color: ghostwhite;
+  padding: 12px;
 }
 .ds-detail p { margin-bottom: .3rem;}
 
@@ -29,7 +30,9 @@ body, html {
   padding-left: 0;
   /* margin-top: 12px; */
 }
-
+.p-tight p {
+  margin-bottom: .6rem;
+}
 .top { vertical-align: top;}
 .half { font-size: .6em; font-style: italic; margin-top:.6em;}
 .pagination {

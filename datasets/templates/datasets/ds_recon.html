@@ -2,10 +2,12 @@
 {% extends "main/base.html" %}
 {% load fontawesome %}
 {% load static %}
+{% load leaflet_tags %}
 
 {% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
 {% block extra_head %}
-
+  {% leaflet_js %}
+  {% leaflet_css %}
 {% endblock %}
 {% block content %}
 <!-- incoming: ds, place_list -->
@@ -51,18 +53,19 @@
           </label>
         </div>
     </div>
-    <div id="recon_result" class="col-md-6 ghostbox">
-      <p>results here...</p>
+    <div id="recon_result" class="col-md-6 ghostbox p-tight">
       {% if context.response %}
-      <p class="text-warning">{ progress bar }</p>
+      <p class="text-warning">{ TODO: progress bar }</p>
       <p><b>Authority</b>: {{ context.authority }}</p>
       <p><b>Task ID</b>: {{ context.task_id }}</p>
       <p class="mb-3"><b>Result summary</b>:
         {{ context.result }}    </p>
       <a href="{% url 'datasets:dataset-detail' id=ds.pk %}">
-        <input class="btn btn-primary" type="text" value="Return to Dataset"/></a>
+        <input class="btn btn-sm btn-outline-primary" type="text" value="Return to Dataset"/></a>
       <a href="{% url 'datasets:review' pk=ds.pk tid=context.task_id %}">
-        <input class="btn btn-primary" type="text" value="Review Hits"/></a>
+        <input class="btn btn-sm btn-outline-primary" type="text" value="Review Hits"/></a>
+      {% else %}
+        <p>Reconciliation results show here...</p>
       {% endif %}
     </div> <!-- recon_result -->
   </div> <!-- row -->
@@ -94,23 +97,20 @@
       </div>
       {% if request.method == 'GET' %}
         <button type="submit" class="btn btn-primary">Start</button>
+        <span title="back"><a href="javascript:history.back()">Cancel</a></span>
       {% endif %}
     </div>
-    <div id="constraint_map" class="col-md-6 ghostbox">
-      <p>region/area map</p>
+    <div id="map" class="col-md-6 ghostbox">
+      {% leaflet_map "map" callback="map_init" %}
     </div>
   </div>
   </form>
 </div> <!-- container -->
 
 <script type="text/javascript">
-  // $("select#select_region").on('change', function() {
-  //   $("select#select_area_user").prop('disabled', 'disabled');
-  //   console.log( this.value );
-  // });
-  // $("select#select_area_user").on('change', function() {
-  //   $("select#select_region").prop('disabled', 'disabled');
-  //   console.log( this.value );
-  // });
+  // initialize, render map w/settings.LEAFLET_CONFIG
+  function map_init (map, options) {
+    console.log('in map_init()')
+  } // end map_init
 </script>
 {% endblock %}
