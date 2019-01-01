@@ -11,13 +11,13 @@
 <!-- incoming: ds, place_list -->
 <!-- <div class="container flex"> -->
 <div class="container">
+  <form action="{% url 'datasets:ds_recon' ds.id %}" method="POST">
   <h4 class="my-3">
     {% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }}
     <span class="text-muted">[ #{{ ds.label }} ]</span></h4>
   <hr/>
   <div class="row">
     <div id="recon_form" class="col-md-6">
-      <form action="{% url 'datasets:ds_recon' ds.id %}" method="POST">
         <p class="font-weight-bold">Authority name source</p>
         {% csrf_token %}
         <input type="hidden" name="ds" value="{{ ds.id }}">
@@ -50,45 +50,10 @@
               <span class="ml-2 text-success d-none"></span>
           </label>
         </div>
-        <hr/>
-        <div id="geo_constraint" class="my-4">
-          <div class="mb-2">
-            <p class="font-weight-bold">Geographic constraint</p>
-            <select name="region" class="custom-select" style="width:auto;">
-              <option value="0">Select a region</option>
-              <option value="eh">Eastern Hemisphere</option>
-              <option disabled value="af">- Africa</option>
-              <option disabled value="eu">- Europe</option>
-              <option disabled value="ca">- Central Asia</option>
-              <option disabled value="ea">- East Asia</option>
-              <option disabled value="sa">- South Asia</option>
-              <option value="wh">Western Hemisphere</option>
-              <option value="u_epirus">- Epirus (custom)</option>
-              <option disabled value="la">- Latin America</option>
-              <option disabled value="us">- US & Canada</option>
-            </select><br />
-            <select name="area_user" class="custom-select" style="width:auto;">
-              <option value="0">Select user-defined area</option>
-              {% for a in area_list %}
-                  <option value="{{ a.id }}">{{ a.title }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <!-- <i class="ml-3">or...</i>
-          <div class="mt-1">
-            <p class="mb-1">Modern country code(s)
-              <span class="text-muted small ml-2">(comma-delimited if > 1)</span>
-            </p>
-            <input name="ccodes" placeholder="e.g. GR,BG"/>
-          </div> -->
-        </div>
-        {% if request.method == 'GET' %}
-          <button type="submit" class="btn btn-primary">Start</button>
-        {% endif %}
-      </form>
     </div>
-    {% if context.response %}
-    <div id="recon_result" class="col-md-6">
+    <div id="recon_result" class="col-md-6 ghostbox">
+      <p>results here...</p>
+      {% if context.response %}
       <p class="text-warning">{ progress bar }</p>
       <p><b>Authority</b>: {{ context.authority }}</p>
       <p><b>Task ID</b>: {{ context.task_id }}</p>
@@ -98,20 +63,54 @@
         <input class="btn btn-primary" type="text" value="Return to Dataset"/></a>
       <a href="{% url 'datasets:review' pk=ds.pk tid=context.task_id %}">
         <input class="btn btn-primary" type="text" value="Review Hits"/></a>
+      {% endif %}
     </div> <!-- recon_result -->
-    {% endif %}
-    <!-- <div id="dummy_column" class="col-sm-8">
-      <p class="text-warning">{ progress bar }</p>
-      <p><b>Authority</b>: { context.authority }</p>
-      <p><b>Task ID</b>: { context.task_id }</p>
-      <p class="mb-3"><b>Result summary</b>:
-        { context.result }    </p>
-      <a href="#">
-        <input class="btn btn-primary" type="text" value="Review Hits"/></a>
-    </div> -->
   </div> <!-- row -->
+  <!-- <hr/> -->
+  <div class="row mt-3">
+    <div id="geo_constraint" class="col-md-6">
+      <div class="mb-2">
+        <p class="font-weight-bold">Geographic constraint</p>
+        <p><select id="select_region" name="region" class="custom-select" style="width:auto;">
+          <option value="0">Select a region</option>
+          <option value="eh">Eastern Hemisphere</option>
+          <option disabled value="af">- Africa</option>
+          <option disabled value="eu">- Europe</option>
+          <option disabled value="ca">- Central Asia</option>
+          <option disabled value="ea">- East Asia</option>
+          <option disabled value="sa">- South Asia</option>
+          <option value="wh">Western Hemisphere</option>
+          <option value="u_epirus">- Epirus (custom)</option>
+          <option disabled value="la">- Latin America</option>
+          <option disabled value="us">- US & Canada</option>
+        </select></p>
+        <p><select id="select_area_user" name="area_user" class="custom-select" style="width:auto;">
+          <option value="0">Select user-defined area</option>
+          {% for a in area_list %}
+              <option value="{{ a.id }}">{{ a.title }}</option>
+          {% endfor %}
+        </select></p>
+        <p><input type="text" name="search_region" value="" placeholder="Search regions"/></p>
+      </div>
+      {% if request.method == 'GET' %}
+        <button type="submit" class="btn btn-primary">Start</button>
+      {% endif %}
+    </div>
+    <div id="constraint_map" class="col-md-6 ghostbox">
+      <p>region/area map</p>
+    </div>
+  </div>
+  </form>
 </div> <!-- container -->
 
 <script type="text/javascript">
+  // $("select#select_region").on('change', function() {
+  //   $("select#select_area_user").prop('disabled', 'disabled');
+  //   console.log( this.value );
+  // });
+  // $("select#select_area_user").on('change', function() {
+  //   $("select#select_region").prop('disabled', 'disabled');
+  //   console.log( this.value );
+  // });
 </script>
 {% endblock %}

@@ -15,7 +15,8 @@ body, html {
 #grid_detail {
   /* background-color: #fff7e6; */
 }
-#ds_recon, #area_map {
+
+.ghostbox {
   background-color: ghostwhite;
 }
 .ds-detail p { margin-bottom: .3rem;}
@@ -27,9 +28,6 @@ body, html {
   list-style: none;
   padding-left: 0;
   /* margin-top: 12px; */
-}
-#recon_result, #dummy_column {
-  background-color: #eee;
 }
 
 .top { vertical-align: top;}
