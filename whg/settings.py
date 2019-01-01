@@ -30,9 +30,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    
     'django_celery_beat',
     'django_celery_results',
     'leaflet',
+    'djgeojson',
     'fontawesome',
     'mathfilters',
     'rest_framework',
@@ -118,18 +120,18 @@ DATABASES = {
         'HOST':'localhost',
         'PORT':'5432',
     },
-    # data
-    'whgdata': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'whgdata',
-        'USER':'',
-        'PASSWORD':'',
-        'HOST':'localhost',
-        'PORT':'5432',
-    }
+    # not implemented
+    # 'whgdata': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'whgdata',
+    #     'USER':'',
+    #     'PASSWORD':'',
+    #     'HOST':'localhost',
+    #     'PORT':'5432',
+    # }
 }
 
-# not implemented yet
+# not implemented
 # DATABASE_ROUTERS = ('whg.dbrouters.MyDBRouter',)
 
 # Password validation
