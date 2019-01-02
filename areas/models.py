@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.urls import reverse
+rom djgeojson.fields import PolygonField
 
 from main.choices import AREATYPES
 
@@ -14,8 +15,10 @@ class Area(models.Model):
     type = models.CharField(max_length=20, choices=AREATYPES)
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=2044)
-    ccodes = ArrayField(models.CharField(max_length=2))
-    geom = JSONField(blank=True, null=True)
+    # ccodes = ArrayField(models.CharField(max_length=2))
+    ccodes = ArrayField(models.CharField(max_length=2),blank=True, null=True)
+    # geom = JSONField(blank=True, null=True)
+    geom = PolygonField()
 
     def __str__(self):
         return str(self.id)
