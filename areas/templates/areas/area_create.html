@@ -109,7 +109,13 @@
             mappy.fitBounds(cc_layer.getBounds())
           })
           .then(function(){
-            geoj.val(JSON.stringify(geom))
+            hull = turf.convex(geom)
+            // geoj.val(JSON.stringify(geom))
+            geoj.val(JSON.stringify(hull))
+            hull_layer = L.geoJSON(hull, {
+              style: function (feature) {
+                return {color: '#ff8c00'}; }
+            }).addTo(mappy)
           })
       } else {
         // alert('Need some comma-delimited 2-letter country codes')

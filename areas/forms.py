@@ -28,9 +28,7 @@ class AreaModelForm(forms.ModelForm):
                 'placeholder':'GeoJSON, from countries for now'
             }),
         }
-        # initial = {'format': 'delimited', 'datatype': 'places'}
 
 
     def __init__(self, *args, **kwargs):
-        # self.format = 'delimited'
         super(AreaModelForm, self).__init__(*args, **kwargs)
