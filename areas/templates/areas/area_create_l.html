@@ -2,51 +2,15 @@
 {% extends "main/base.html" %}
 {% load leaflet_tags %}
 {% load fontawesome %}
-{% load static %}
 {% block title %}<title>WHG::Create/Update Area</title>{% endblock %}
 {% block extra_head %}
   {% leaflet_js %}
   {% leaflet_css %}
-  <script src="https://npmcdn.com/@turf/turf/turf.min.js"></script>
-  <script src="{% static 'js/leaflet-draw/Leaflet.draw.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/Leaflet.Draw.Event.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'js/leaflet-draw/leaflet.draw.css' %}"/>
-
-  <script src="{% static 'js/leaflet-draw/Toolbar.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/Tooltip.js' %}"></script>
-
-  <script src="{% static 'js/leaflet-draw/ext/GeometryUtil.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/ext/LatLngUtil.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/ext/LineUtil.Intersect.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/ext/Polygon.Intersect.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/ext/Polyline.Intersect.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/ext/TouchEvents.js' %}"></script>
-
-  <script src="{% static 'js/leaflet-draw/draw/DrawToolbar.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.Feature.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.SimpleShape.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.Polyline.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.Marker.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.Circle.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.CircleMarker.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.Polygon.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/draw/handler/Draw.Rectangle.js' %}"></script>
-
-  <script src="{% static 'js/leaflet-draw/edit/EditToolbar.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/edit/handler/EditToolbar.Edit.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/edit/handler/EditToolbar.Delete.js' %}"></script>
-
-  <script src="{% static 'js/leaflet-draw/Control.Draw.js' %}"></script>
-
-  <script src="{% static 'js/leaflet-draw/edit/handler/Edit.Poly.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/edit/handler/Edit.SimpleShape.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/edit/handler/Edit.Rectangle.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/edit/handler/Edit.Marker.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/edit/handler/Edit.CircleMarker.js' %}"></script>
-  <script src="{% static 'js/leaflet-draw/edit/handler/Edit.Circle.js' %}"></script>
-  {% endblock %}
+  <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+{% endblock %}
 
 {% block content %}
+  {% load static %}
   <div class="container">
     <h4 class="mt-3">
       {% if action == 'update' %}
@@ -79,10 +43,8 @@
           <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
           <!-- {# endif #} -->
         </form>
-        <hr />
-        <i class="mt-3"><b>work-in-progress</b>: load countries, generate hull, edit, save</i>
       </div>
-      <div id="area_map" class="col-sm-6 ml-3">
+      <div id="map" class="col-sm-6 ml-3">
         {% leaflet_map "map" callback="map_init" %}
       </div>
     </div> <!-- d-flex -->
@@ -126,13 +88,13 @@
         // TODO: test csv format
         $("#p_geom").show()
         ccode_arr = ccodes.toUpperCase().split(",")
-        // console.log(ccode_arr)
+        console.log(ccode_arr)
         fetch(country_url)
           .then(function(resp) {
             return resp.json();
           })
           .then(function(data) {
-            // console.log('fetched data', data)
+            console.log('fetched data', data)
             window.cc_layer = L.geoJson(data, {
               filter: function(feature, layer) {
                 return ccode_arr.includes(feature.properties.iso) ;
@@ -148,30 +110,13 @@
           })
           .then(function(){
             hull = turf.convex(geom)
-            // console.log('hull:',hull)
+            console.log('hull:',hull)
             // geoj.val(JSON.stringify(geom))
             geoj.val(JSON.stringify(hull))
             hull_layer = L.geoJSON(hull, {
               style: function (feature) {
                 return {color: '#ff8c00'}; }
-            }).addTo(mappy);
-            var drawControl = new L.Control.Draw({
-              draw: {
-                 marker: false,
-                 polyline: false,
-                 circle: false,
-                 circlemarker: false,
-             },
-              edit: {
-                 featureGroup: hull_layer
-              }
-            });
-            mappy.addControl(drawControl);
-            // TODO: save edits
-            mappy.on(L.Draw.Event.CREATED, function (event) {
-                var layer = event.layer;
-                hull_layer.addLayer(layer);
-            });
+            }).addTo(mappy)
           })
       } else {
         // alert('Need some comma-delimited 2-letter country codes')
@@ -180,7 +125,7 @@
     // initialize, render map w/settings.LEAFLET_CONFIG
     function map_init (map, options) {
       window.geoj = $("textarea#id_geom.textarea")
-      // console.log('in map_init(), geoj.val()',geoj.val())
+      console.log('in map_init(), geoj.val()',geoj.val())
       if (geoj.val() != ''){
         $("#p_geom").show()
         map_render()

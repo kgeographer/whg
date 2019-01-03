@@ -22,6 +22,7 @@ class AreaFormTestCase(TestCase):
         data = {"owner":owner.id,"id":id,"type":type,"title":title,"description":description,
             "ccodes":ccodes,"geom":geom}
         form = AreaModelForm(data=data)
+        # self.assertFormError(form, geom, 'AssertionError', 'fubar, fucking ridic')
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data.get('title'), obj.title)
 

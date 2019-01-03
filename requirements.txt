@@ -28,6 +28,7 @@ ipython==7.2.0
 ipython-genutils==0.2.0
 jedi==0.13.2
 jobtastic==2.0.0
+jsonfield==2.0.2
 kombu==4.2.1
 Markdown==3.0.1
 numpy==1.15.2

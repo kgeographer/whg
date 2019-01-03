@@ -1,6 +1,27 @@
 from django import forms
 from django.db import models
+# from leaflet.forms.widgets import LeafletWidget
 from .models import Area
+
+class AreaModelForm(forms.ModelForm):
+    class Meta:
+        model = Area
+        fields = ('id','type','owner','title','description','ccodes','geom')
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'rows':1,'cols': 40,'class':'textarea',
+                'placeholder':'brief description'
+            }),
+            # 'geom': LeafletWidget(),
+            'geom': forms.Textarea(attrs={
+                'rows':3,'cols': 40,'class':'textarea',
+                'placeholder':'GeoJSON, from countries for now'
+            }),
+        }
+
+
+    def __init__(self, *args, **kwargs):
+        super(AreaModelForm, self).__init__(*args, **kwargs)
 
 class AreaDetailModelForm(forms.ModelForm):
     class Meta:
@@ -13,22 +34,3 @@ class AreaDetailModelForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AreaDetailModelForm, self).__init__(*args, **kwargs)
-
-class AreaModelForm(forms.ModelForm):
-    class Meta:
-        model = Area
-        fields = ('id','type','owner','title','description','ccodes','geom')
-        widgets = {
-            'description': forms.Textarea(attrs={
-                'rows':1,'cols': 40,'class':'textarea',
-                'placeholder':'brief description'
-            }),
-            'geom': forms.Textarea(attrs={
-                'rows':3,'cols': 40,'class':'textarea',
-                'placeholder':'GeoJSON, from countries for now'
-            }),
-        }
-
-
-    def __init__(self, *args, **kwargs):
-        super(AreaModelForm, self).__init__(*args, **kwargs)

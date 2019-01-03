@@ -23,6 +23,11 @@ body, html {
 #geo_constraint {
   /* background-color: #eeeee0; */
 }
+#area_map {
+  min-height: 400px !important;
+}
+#map { min-height: inherit;}
+
 #recon ul {
   list-style: none;
   padding-left: 0;
