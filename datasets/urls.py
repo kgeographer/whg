@@ -23,6 +23,7 @@ urlpatterns = [
 
     # review, validate hits
     path('<int:pk>/review/<str:tid>', views.review, name="review"),
+    path('review/<str:tid>', views.review, name="review_x"),
 
     # list places
     path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),

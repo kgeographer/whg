@@ -173,7 +173,9 @@ def ds_recon(request, pk):
         userarea = request.POST['userarea']
         # run celery/redis task
         result = align_tgn.delay(
-            ds.id, ds=ds.id,
+            ds.id,
+            ds=ds.id,
+            dslabel=ds.label,
             bounds={
                 "type":("region" if region !=0 else "userarea"),
                 "id": (region if region !=0 else userarea)
@@ -398,13 +400,16 @@ class DashboardView(ListView):
     template_name = 'datasets/dashboard.html'
 
     def get_queryset(self):
+        iam = self.request.user
+        # return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
         return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
 
     def get_context_data(self, *args, **kwargs):
          context = super(DashboardView, self).get_context_data(*args, **kwargs)
          context['area_list'] = Area.objects.all().filter(owner=self.request.user)
+         context['review_list'] = TaskResult.objects.all()
 
-         # TODO: user place sollections
+         # TODO: user place collections
          # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
          print('DashboardView context:', context)
          return context

@@ -50,7 +50,10 @@
         <input class="btn btn-primary hidden" type="submit" value="Save" />
       </div>
       <div id="ds_recon" class="col-sm-6 pt-2 ghostbox">
-        <h5 class="text-secondary">Reconciliation Tasks <span><a href="{% url 'datasets:ds_recon' object.id %}" class="ml-5">{% fontawesome_icon 'plus-square' color='#336699' %}</a></span>
+        <h5 class="text-secondary">Reconciliation Tasks <span>
+          <a href="{% url 'datasets:ds_recon' object.id %}" class="ml-5">
+            {% fontawesome_icon 'plus-square' color='#336699' %}
+          </a></span>
         </h5>
         {% for t in tasks %}
         <div class="task-box">
