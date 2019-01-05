@@ -58,7 +58,7 @@
 
             <li class="nav-item">
               <a class="nav-link link-bold" href="{% url 'dashboard' %}">
-                Dashboard</a>
+                {{ request.user }}'s dashboard</a>
             </li>
 
             <!-- <li class="nav-item dropdown mr-5">

@@ -400,7 +400,12 @@ class DashboardView(ListView):
     template_name = 'datasets/dashboard.html'
 
     def get_queryset(self):
+        # mygroups=[]
+        # myteam=[]
+        # for g in mygroups: for m in g.members: myteam.append(m.id)
+        # now filter datasets having an owner in myteam[]
         iam = self.request.user
+        print('user, groups',iam, iam.groups.all())
         # return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
         return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
 
