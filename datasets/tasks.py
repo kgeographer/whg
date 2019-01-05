@@ -333,7 +333,6 @@ def align_tgn(pk, *args, **kwargs):
     return hit_parade['summary']
     # return hit_parade
 
-
 def read_delimited(infile, username):
     result = {'format':'delimited','errors':{}}
     # required fields

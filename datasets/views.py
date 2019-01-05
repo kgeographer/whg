@@ -176,6 +176,7 @@ def ds_recon(request, pk):
             ds.id,
             ds=ds.id,
             dslabel=ds.label,
+            owner=ds.owner.id,
             bounds={
                 "type":("region" if region !=0 else "userarea"),
                 "id": (region if region !=0 else userarea)
@@ -400,24 +401,31 @@ class DashboardView(ListView):
     template_name = 'datasets/dashboard.html'
 
     def get_queryset(self):
-        # mygroups=[]
-        # myteam=[]
-        # for g in mygroups: for m in g.members: myteam.append(m.id)
-        # now filter datasets having an owner in myteam[]
-        iam = self.request.user
-        print('user, groups',iam, iam.groups.all())
-        # return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
-        return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
+        # TODO: make .team() a method on User
+        myteam=[]
+        me = self.request.user
+        for g in me.groups.all():
+            for u in g.user_set.all():
+                myteam.append(u)
+        print('myteam:',myteam)
+        return Dataset.objects.filter(owner__in=myteam).order_by('-upload_date')
 
     def get_context_data(self, *args, **kwargs):
-         context = super(DashboardView, self).get_context_data(*args, **kwargs)
-         context['area_list'] = Area.objects.all().filter(owner=self.request.user)
-         context['review_list'] = TaskResult.objects.all()
+        myteam=[]
+        me = self.request.user
+        for g in me.groups.all():
+            for u in g.user_set.all():
+                myteam.append(u)
+        context = super(DashboardView, self).get_context_data(*args, **kwargs)
+        context['area_list'] = Area.objects.all().filter(owner=self.request.user)
+        context['review_list'] = TaskResult.objects.all()
+        # TaskResult.objects.all().filter(task_kwargs = '['+str(self.id)+']')
+        # context['review_list'] = TaskResult.objects.filter(owner__in=myteam).order_by('-date_done')
 
-         # TODO: user place collections
-         # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
-         print('DashboardView context:', context)
-         return context
+        # TODO: user place collections
+        # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
+        print('DashboardView context:', context)
+        return context
 
 # upload file, verify format
 class DatasetCreateView(CreateView):

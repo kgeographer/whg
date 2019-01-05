@@ -14,8 +14,4 @@ def trimbrackets(value):
 def parsejson(value,key):
     """returns value for given key"""
     obj = json.loads(value.replace("'",'"'))
-    print('parsejson',type(obj),key)
-    #
     return obj[key]
-
-# {{ somevariable|cut:"0" }}
