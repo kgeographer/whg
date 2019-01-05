@@ -33,7 +33,7 @@
                 <td>{{ d.id }}</td>
                 <td><a href="{% url 'datasets:dataset-detail' d.id %}">{{ d.name }}</a></td>
                 <td>{{ d.label }}</td>
-                <td>{{ d.upload_date }}</td>
+                <td>{{ d.upload_date|date:"d-M-Y, H:i (e)" }}</td>
                 <td>{{ d.format }}</td>
                 <td>{{ d.numrows }}</td>
                 <td>{{ d.status }}</td>
@@ -95,7 +95,7 @@
                     <td>{{ r.id }}</td>
                     <td><a href="{% url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id %}">
                       {{ r.task_kwargs|parsejson:"dslabel" }}</a></td>
-                    <td>{{ r.date_done }}</td>
+                    <td>{{ r.date_done|date:"d-M-Y, H:i (e)" }}</td>
                     <td>{{ r.task_name }}</td>
                   </tr>
                 {% endfor %}
