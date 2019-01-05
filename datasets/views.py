@@ -7,7 +7,8 @@ from django.urls import reverse
 from django.views.generic import (
     CreateView, ListView, UpdateView, DeleteView, DetailView )
 
-import codecs, tempfile, os, re, ipdb, sys, json
+import codecs, tempfile, os, re, ipdb, sys
+import simplejson as json
 from pprint import pprint
 from django_celery_results.models import TaskResult
 from .models import Dataset, Hit
@@ -410,17 +411,34 @@ class DashboardView(ListView):
         print('myteam:',myteam)
         return Dataset.objects.filter(owner__in=myteam).order_by('-upload_date')
 
+    def parsejson(value,key):
+        """returns value for given key"""
+        obj = json.loads(value.replace("'",'"'))
+        return obj[key]
+
     def get_context_data(self, *args, **kwargs):
+        def parsejson(value,key):
+            """returns value for given key"""
+            obj = json.loads(value.replace("'",'"'))
+            return obj[key]
         myteam=[]
+        teamtasks=[]
         me = self.request.user
         for g in me.groups.all():
             for u in g.user_set.all():
                 myteam.append(u)
         context = super(DashboardView, self).get_context_data(*args, **kwargs)
         context['area_list'] = Area.objects.all().filter(owner=self.request.user)
-        context['review_list'] = TaskResult.objects.all()
-        # TaskResult.objects.all().filter(task_kwargs = '['+str(self.id)+']')
-        # context['review_list'] = TaskResult.objects.filter(owner__in=myteam).order_by('-date_done')
+        # list team tasks
+        for t in TaskResult.objects.all():
+            tj=json.loads(t.task_kwargs.replace("\'", "\""))
+            u=get_object_or_404(User,id=tj['owner'])
+            print('args,task owner',tj,u)
+            if u in myteam:
+                teamtasks.append(t.task_id)
+            # foo = json.loads(t.task_kwargs.replace("'",'"'))
+        # context['review_list'] = TaskResult.objects.all()
+        context['review_list'] = TaskResult.objects.filter(task_id__in=teamtasks).order_by('-date_done')
 
         # TODO: user place collections
         # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
