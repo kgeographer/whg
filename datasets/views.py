@@ -17,6 +17,7 @@ from main.models import *
 from main.choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
+from .utils import parsejson, myteam
 
 def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
@@ -403,45 +404,36 @@ class DashboardView(ListView):
 
     def get_queryset(self):
         # TODO: make .team() a method on User
-        myteam=[]
         me = self.request.user
-        for g in me.groups.all():
-            for u in g.user_set.all():
-                myteam.append(u)
-        print('myteam:',myteam)
-        return Dataset.objects.filter(owner__in=myteam).order_by('-upload_date')
-
-    def parsejson(value,key):
-        """returns value for given key"""
-        obj = json.loads(value.replace("'",'"'))
-        return obj[key]
+        if me.username == 'whgadmin':
+            return Dataset.objects.all().order_by('-upload_date')
+        else:
+            return Dataset.objects.filter(owner__in=myteam(me)).order_by('-upload_date')
 
     def get_context_data(self, *args, **kwargs):
-        def parsejson(value,key):
-            """returns value for given key"""
-            obj = json.loads(value.replace("'",'"'))
-            return obj[key]
-        myteam=[]
         teamtasks=[]
         me = self.request.user
-        for g in me.groups.all():
-            for u in g.user_set.all():
-                myteam.append(u)
         context = super(DashboardView, self).get_context_data(*args, **kwargs)
-        context['area_list'] = Area.objects.all().filter(owner=self.request.user)
+
+        # list areas
+        if me.username == 'whgadmin':
+            context['area_list'] = Area.objects.all().order_by('-created')
+        else:
+            context['area_list'] = Area.objects.all().filter(owner=self.request.user).order_by('-created')
+
         # list team tasks
-        for t in TaskResult.objects.all():
-            tj=json.loads(t.task_kwargs.replace("\'", "\""))
-            u=get_object_or_404(User,id=tj['owner'])
-            print('args,task owner',tj,u)
-            if u in myteam:
-                teamtasks.append(t.task_id)
-            # foo = json.loads(t.task_kwargs.replace("'",'"'))
-        # context['review_list'] = TaskResult.objects.all()
-        context['review_list'] = TaskResult.objects.filter(task_id__in=teamtasks).order_by('-date_done')
+        if me.username == 'whgadmin':
+            context['review_list'] = TaskResult.objects.all().order_by('-date_done')
+        else:
+            for t in TaskResult.objects.all():
+                tj=json.loads(t.task_kwargs.replace("\'", "\""))
+                u=get_object_or_404(User,id=tj['owner'])
+                print('args,task owner',tj,u)
+                if u in myteam(me):
+                    teamtasks.append(t.task_id)
+            context['review_list'] = TaskResult.objects.filter(task_id__in=teamtasks).order_by('-date_done')
 
         # TODO: user place collections
-        # context['collection_list'] = Collection.objects.all().filter(owner=self.request.user)
         print('DashboardView context:', context)
         return context
 

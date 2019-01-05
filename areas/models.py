@@ -18,6 +18,8 @@ class Area(models.Model):
     # ccodes = ArrayField(models.CharField(max_length=2))
     ccodes = ArrayField(models.CharField(max_length=2),blank=True, null=True)
     geom = JSONField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    # updated = models.DateTimeField(null=True, auto_now_add=True)
     # geom = PolygonField()
 
     def __str__(self):

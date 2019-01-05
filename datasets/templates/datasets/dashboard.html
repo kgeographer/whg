@@ -23,6 +23,7 @@
               <th>format</th>
               <th># rows</th>
               <th>status</th>
+              <th>owner</th>
               <th>&nbsp;</th>
           </thead>
           <tbody>
@@ -33,10 +34,11 @@
                 <td>{{ d.id }}</td>
                 <td><a href="{% url 'datasets:dataset-detail' d.id %}">{{ d.name }}</a></td>
                 <td>{{ d.label }}</td>
-                <td>{{ d.upload_date|date:"d-M-Y, H:i (e)" }}</td>
+                <td class="small">{{ d.upload_date|date:"d-M-Y, H:i (e)" }}</td>
                 <td>{{ d.format }}</td>
                 <td>{{ d.numrows }}</td>
                 <td>{{ d.status }}</td>
+                <td>{{ d.owner }}</td>
                 <td>
                   {% if d.status == "format_ok" %}
                   <a href="{% url 'datasets:ds_insert' d.id %}" title="Insert to db" rel="tooltip"
@@ -95,7 +97,7 @@
                     <td>{{ r.id }}</td>
                     <td><a href="{% url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id %}">
                       {{ r.task_kwargs|parsejson:"dslabel" }}</a></td>
-                    <td>{{ r.date_done|date:"d-M-Y, H:i (e)" }}</td>
+                    <td class="small">{{ r.date_done|date:"d-M-Y, H:i (e)" }}</td>
                     <td>{{ r.task_name }}</td>
                   </tr>
                 {% endfor %}

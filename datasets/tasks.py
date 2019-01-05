@@ -13,7 +13,7 @@ from .regions import regions as region_hash
 ##
 import shapely.geometry
 from geopy import distance
-from .recon_utils import roundy, fixName, classy, bestParent, elapsed
+from .utils import roundy, fixName, classy, bestParent, elapsed
 from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 ##

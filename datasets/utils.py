@@ -3,6 +3,18 @@ fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
 parent_hash = json.loads(fin.read())
 fin.close()
 
+def myteam(me):
+    myteam=[]
+    for g in me.groups.all():
+        for u in g.user_set.all():
+            myteam.append(u)
+    return myteam
+
+def parsejson(value,key):
+    """returns value for given key"""
+    obj = json.loads(value.replace("'",'"'))
+    return obj[key]
+
 def elapsed(delta):
     minutes, seconds = divmod(delta.seconds, 60)
     return '{:02}:{:02}'.format(int(minutes), int(seconds))
