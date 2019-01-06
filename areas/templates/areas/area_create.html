@@ -179,8 +179,40 @@
     }
     // initialize, render map w/settings.LEAFLET_CONFIG
     function map_init (map, options) {
+      // console.log('mappy',mappy)
       window.geoj = $("textarea#id_geom.textarea")
       // console.log('in map_init(), geoj.val()',geoj.val())
+      // drawnItems = L.featureGroup().addTo(map);
+      // // hull_layer = L.geoJSON(hull, {
+      // //   style: function (feature) {
+      // //     return {color: '#ff8c00'}; }
+      // // }).addTo(mappy);
+      // var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      // var osm = L.tileLayer(osmUrl, { maxZoom: 18, attribution: 'osm' })
+      // L.control.layers(
+      //   {'osm': osm.addTo(map)},
+      //   {'drawlayer': drawnItems},
+      //   { position: 'topleft', collapsed: false }
+      // ).addTo(map);
+      // var drawControl = new L.Control.Draw({
+      //   draw: {
+      //      marker: false,
+      //      polyline: false,
+      //      circle: false,
+      //      circlemarker: false,
+      //  },
+      //   edit: {
+      //      featureGroup: drawnItems
+      //   }
+      // });
+      // map.addControl(drawControl);
+      // // TODO: save edits
+      // map.on(L.Draw.Event.CREATED, function (event) {
+      //     window.drawnlayer = event.layer;
+      //     geoj.val(JSON.stringify(drawnlayer.toGeoJSON().geometry))
+      //     drawnItems.addLayer(drawnlayer);
+      //     $("#p_geom").show()
+      // });
       if (geoj.val() != ''){
         $("#p_geom").show()
         map_render()

@@ -21,8 +21,9 @@
       {% else %}Create Study Area{% endif %}
         <span class="small">{% fontawesome_icon 'question-circle' color='#336699' %}</span>
     </h4>
-    <div class="d-flex">
-      <div class="form-box mt-2 col-sm-6">
+    <div class="container" style="position:relative;"">
+      <div style="position:absolute; top:0; right:0; background:aliceblue; padding:8px; z-index:2; opacity:.8;" class="mt-2 mr-2">
+      <!-- <div class="form-box mt-2 col-sm-6"> -->
         <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
           {% csrf_token %}
           <input type="hidden" name="owner" value='{{ user.id }}'></input>
@@ -38,16 +39,17 @@
             {{ form.geom }}
           </p>
           <!-- upload button only if it's not yet ok -->
-          <!-- {# if status != 'format_ok' #} -->
+          {# if status != 'format_ok' #}
           <input class="btn btn-primary" type="submit" value="Save" />
-          <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
-          <!-- {# endif #} -->
+          <span title="back"><a href="{# url 'dashboard' #}">Cancel</a></span>
+          {# endif #}
         </form>
       </div>
-      <div id="map" class="col-sm-6 ml-3">
-        {% leaflet_map "map" callback="map_init" %}
+      <!-- <div id="area_map" class="col-sm-6 ml-3"> -->
+      <div class="map-div" style="position:absolute; top:0;right:0;left:0;bottom:0; z-index:1; height:-webkit-fill-available;">
+        {% leaflet_map "map_area" callback="map_init" %}
       </div>
-    </div> <!-- d-flex -->
+    <!-- </div> <!-- d-flex -->
   </div> <!-- container -->
   <script type="text/javascript">
     $(function(){

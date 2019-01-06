@@ -23,10 +23,12 @@ body, html {
 #geo_constraint {
   /* background-color: #eeeee0; */
 }
-#area_map {
-  /* min-height: 400px !important; */
-  min-height: inherit;
+.areamap {}
+#map_area, #map_home, #map_view {
+  height: -webkit-fill-available;
+  /* position:absolute;top:0;left:0; */
 }
+.overlap { position:relative; }
 /* #map { min-height: inherit;} */
 
 #recon ul {

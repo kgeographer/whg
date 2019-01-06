@@ -101,7 +101,7 @@ WSGI_APPLICATION = 'whg.wsgi.application'
 LEAFLET_CONFIG = {
     'TILES':'https://api.mapbox.com/v4/mapbox.light/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg',
     'DEFAULT_CENTER': (40.0, 15.0),
-    'DEFAULT_ZOOM': 1,
+    'DEFAULT_ZOOM': 2,
     'MIN_ZOOM': 1,
     'MAX_ZOOM': 18,
     'RESET_VIEW': False,
