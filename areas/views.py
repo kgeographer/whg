@@ -15,8 +15,8 @@ from .models import Area
 
 class AreaCreateView(CreateView):
     form_class = AreaModelForm
-    # template_name = 'areas/area_create.html'
-    template_name = 'areas/area_create_l.html'
+    template_name = 'areas/area_create.html'
+    # template_name = 'areas/area_create_l.html'
     queryset = Area.objects.all()
     success_url = '/dashboard'
 

@@ -23,13 +23,21 @@ body, html {
 #geo_constraint {
   /* background-color: #eeeee0; */
 }
-.areamap {}
+
+#area_options {
+  background-color: ghostwhite;
+  padding: 4px;
+  font-size: .8rem;
+}
+.tab-pane { padding: 3px; }
 #map_area, #map_home, #map_view {
-  height: -webkit-fill-available;
+  height: 100%;
   /* position:absolute;top:0;left:0; */
 }
+
+/* .leaflet-container { min-height: 100%;} */
 .overlap { position:relative; }
-/* #map { min-height: inherit;} */
+.tab-pane { background-color: white;;}
 
 #recon ul {
   list-style: none;
@@ -96,9 +104,10 @@ body, html {
 .form-box {
   border: 1px solid lightgray;
   background-color: oldlace;
-  padding:12px;
+  padding:8px;
   border-radius: 8px;
   box-shadow: 3px 3px #eee;
+  font-size: .8rem;
 }
 .form-check-input {
   margin-top: .2rem;

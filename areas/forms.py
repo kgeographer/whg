@@ -9,12 +9,12 @@ class AreaModelForm(forms.ModelForm):
         fields = ('id','type','owner','title','description','ccodes','geom')
         widgets = {
             'description': forms.Textarea(attrs={
-                'rows':1,'cols': 40,'class':'textarea',
+                'rows':2,'cols': 30,'class':'textarea',
                 'placeholder':'brief description'
             }),
             # 'geom': LeafletWidget(),
             'geom': forms.Textarea(attrs={
-                'rows':3,'cols': 40,'class':'textarea',
+                'rows':3,'cols': 30,'class':'textarea',
                 'placeholder':'GeoJSON, from countries for now'
             }),
         }
