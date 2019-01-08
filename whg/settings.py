@@ -113,7 +113,8 @@ LEAFLET_CONFIG = {
 DATABASES = {
     # authentication, etc.
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        # 'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'whg',
         'USER':'',
         'PASSWORD':'',

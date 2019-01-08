@@ -6,14 +6,14 @@ from .models import Area
 class AreaModelForm(forms.ModelForm):
     class Meta:
         model = Area
-        fields = ('id','type','owner','title','description','ccodes','geom')
+        fields = ('id','type','owner','title','description','ccodes','geojson')
         widgets = {
             'description': forms.Textarea(attrs={
                 'rows':2,'cols': 30,'class':'textarea',
                 'placeholder':'brief description'
             }),
             # 'geom': LeafletWidget(),
-            'geom': forms.Textarea(attrs={
+            'geojson': forms.Textarea(attrs={
                 'rows':3,'cols': 30,'class':'textarea',
                 'placeholder':'GeoJSON, from countries for now'
             }),
@@ -26,7 +26,7 @@ class AreaModelForm(forms.ModelForm):
 class AreaDetailModelForm(forms.ModelForm):
     class Meta:
         model = Area
-        fields = ('id','type','title','description','ccodes','geom')
+        fields = ('id','type','owner','title','description','ccodes','geojson')
         widgets = {
             'description': forms.Textarea(attrs={
                 'rows':1,'cols': 60,'class':'textarea','placeholder':'brief description'}),

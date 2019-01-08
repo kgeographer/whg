@@ -14,6 +14,7 @@ from .forms import AreaModelForm, AreaDetailModelForm
 from .models import Area
 
 class AreaCreateView(CreateView):
+    print('AreaCreateView()')
     form_class = AreaModelForm
     template_name = 'areas/area_create.html'
     # template_name = 'areas/area_create_l.html'
@@ -24,7 +25,7 @@ class AreaCreateView(CreateView):
         context={}
         if form.is_valid():
             print('form is valid')
-            print('cleaned_data: before ->', form.cleaned_data)
+            print('cleaned_data:', form.cleaned_data)
         else:
             print('form not valid', form.errors)
             context['errors'] = form.errors

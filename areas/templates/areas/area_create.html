@@ -63,8 +63,12 @@
       <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="owner" value='{{ user.id }}'></input>
+        {% if action == 'update' %}
+          <input type="hidden" name="type" value='{{ form.type.value }}'></input>
+        {% else %}
+          <input type="hidden" name="type" value='#areas_codes'></input>
+        {% endif %}
         <p>Title<br/>{{ form.title }}</p>
-        {% if errors %}<p>{{ errors }}</p>{% endif %}
         <p><span class="top">Description</span><br/>{{ form.description }}</p>
         <hr/>
         <div id="area_options">
@@ -72,7 +76,7 @@
             <li class="nav-item">
               <a class="nav-link active" role="tab" data-toggle="tab" href="#areas_codes">Countries</a></li>
             <li class="nav-item">
-              <a class="nav-link" role="tab" data-toggle="tab" href="#areas_load">Paste</a></li>
+              <a class="nav-link" role="tab" data-toggle="tab" href="#areas_load">Load</a></li>
             <li class="nav-item">
               <a class="nav-link" role="tab" data-toggle="tab" href="#areas_draw">Draw</a></li>
           </ul>
@@ -86,7 +90,7 @@
               </p>
               <p>Buffer (optional, km)<br/>
                 <input type="text" id="buffer_km" name="buffer_km" value=""/></p>
-              <p class="mb-0">GeoJSON<br/>{{ form.geom }}</p>
+              <p class="mb-0">GeoJSON<br/>{{ form.geojson }}</p>
               <!-- <input type="text" name="geom" value="{{ form.geom }}"></<input> -->
               <!-- <p id="p_geom" class="hidden"><span class="top">GeoJSON<br/></span>
                 {{ form.geom }}
@@ -112,10 +116,13 @@
           $(this).val('')
         }
       });
+      // $("#type_input").val('')
     })
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
       var target = $(e.target).attr("href") // activated tab
-      console.log(target);
+      // feed area type to hidden input
+      $("input[name='type']").val(target)
+      console.log('tab id:',target);
       active = $("ul#area_tabs_ul a.active").attr("href")
       // && !$(".leaflet-draw-toolbar")
       if (target == '#areas_draw' && $(".leaflet-draw").length == 0) {
@@ -156,7 +163,7 @@
     function map_render() {
       console.log('in map_render()')
       ccodes = $("input#id_ccodes").val()
-      window.geoj = $("textarea#id_geom")
+      window.geoj = $("textarea#id_geojson")
       window.geom = {"type":"FeatureCollection","features":[]}
       window.buffer = $("input#buffer_km").val()
       // console.clear()
@@ -190,7 +197,9 @@
           })
           .then(function(){
             hull = turf.buffer(turf.convex(geom),buffer,{units:'kilometers'})
+            // hull_mp = turf.multiPolygon(hull)
             // console.log('hull.geometry:',hull.geometry)
+            // geoj.val(hull.geometry)
             geoj.val(JSON.stringify(hull.geometry))
             hull_layer = L.geoJSON(hull, {
               style: function (feature) {
@@ -233,7 +242,7 @@
       cc_layer.remove()
       hull_layer.remove()
       $("input#id_ccodes").val(null)
-      $("textarea#id_geom").val(null)
+      $("textarea#id_geojson").val(null)
       $("#buffer_km").val(null)
     }
   </script>

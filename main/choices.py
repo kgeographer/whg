@@ -42,7 +42,8 @@ MATCHTYPES = {
 }
 
 AREATYPES = {
-    ('ccodes','Country codes'),
-    ('region','Region/Polity record'),
-    ('user','User drawn'),
+    ('#areas_codes','Country codes'),
+    ('#areas_load','Paste GeoJSON'),
+    ('#areas_search','Region/Polity record'),
+    ('#areas_drawn','User drawn'),
 }
