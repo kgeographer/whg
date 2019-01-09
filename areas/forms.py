@@ -14,8 +14,8 @@ class AreaModelForm(forms.ModelForm):
             }),
             # 'geom': LeafletWidget(),
             'geojson': forms.Textarea(attrs={
-                'rows':3,'cols': 30,'class':'textarea',
-                'placeholder':'GeoJSON, from countries for now'
+                'rows':2,'cols': 40,'class':'textarea',
+                'placeholder':''
             }),
         }
 

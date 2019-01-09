@@ -9,6 +9,7 @@ import random
 from pprint import pprint
 from .models import Dataset, Hit
 from main.models import Place
+from areas.models import Area
 from .regions import regions as region_hash
 ##
 import shapely.geometry
@@ -78,22 +79,43 @@ def reverse(coords):
 #   "points" : [ [-70, 40], [-80, 30], [-90, 20] ]
 # }
 
+# "geo_shape": { "location.coordinates": {"shape":
+#         {
+#             "type": "envelope",
+#             "coordinates" : [[13.0, 53.0], [14.0, 52.0]]
+#         },
+#         "relation": "within"
+#     }
+# }
+
 def get_bbox_filter(bounds):
-    # print('type(bounds):',type(bounds),bounds)
-    # print('bounds["type"]:',bounds['type'])
-    id = bounds['id']
-    if bounds['type'] == 'region':
+    print('bounds',bounds)
+    id = bounds['id'][0]
+    type = bounds['type'][0]
+    if type == 'region':
         if id.startswith('u_'):
             filter = {
-                "geo_polygon" : {"location.coordinates" : region_hash[id]}
+                "geo_polygon": {"location.coordinates" : region_hash[id]}
             }
         else:
             filter = {
-                "geo_bounding_box" : {"location.coordinates" : region_hash[id]}
+                "geo_bounding_box" : region_hash[id]
             }
-    elif bounds['type'] == 'userarea':
-        print('specified user area...not there yet')
-        return
+    elif type == 'userarea':
+        # Disabled in UI until...
+        # TODO: rebuild tgn index with geometry type 'geo_shape'
+        area = Area.objects.get(id = id)
+        filter = {
+            "geo_shape": {
+                "location.coordinates": {
+                    "shape": {
+                        "type": "envelope",
+                        "coordinates" : area.geojson['coordinates']
+                    },
+                    "relation": "within"
+                }
+            }
+        }
     return filter
 
 @task(name="es_lookup")

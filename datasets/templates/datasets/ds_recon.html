@@ -83,12 +83,11 @@
           <option disabled value="ea">- East Asia</option>
           <option disabled value="sa">- South Asia</option>
           <option value="wh">Western Hemisphere</option>
-          <option value="u_epirus">- Epirus (custom)</option>
           <option disabled value="la">- Latin America</option>
           <option disabled value="us">- US & Canada</option>
         </select><span class="ml-2"><b>or...</b></span></p>
         <p><select id="select_userarea" name="userarea" class="custom-select-sm" style="width:auto;">
-          <option value="0">Select user-defined area</option>
+          <option value="0">Select user-defined study area</option>
           {% for a in area_list %}
               <option value="{{ a.id }}">{{ a.title }}</option>
           {% endfor %}

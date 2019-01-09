@@ -163,28 +163,27 @@ def ds_recon(request, pk):
         "dataset": ds.name,
         "area_list": area_list
     }
-    # def get_queryset(self):
-    #     return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
 
     if request.method == 'GET':
         print('request:',request)
     elif request.method == 'POST' and request.POST:
         fun = eval('align_'+request.POST['recon'])
         # TODO: let this vary per authority?
-        region = request.POST['region']
-        userarea = request.POST['userarea']
+        region = request.POST['region'] # pre-defined UN regions
+        userarea = request.POST['userarea'] # 
+        print('request region, userarea',region, userarea)
+        bounds={
+            "type":["region" if region !="0" else "userarea"],
+            "id": [region if region !="0" else userarea]
+        }
+        print('bounds',bounds)
         # run celery/redis task
         result = align_tgn.delay(
             ds.id,
             ds=ds.id,
             dslabel=ds.label,
             owner=ds.owner.id,
-            bounds={
-                "type":("region" if region !=0 else "userarea"),
-                "id": (region if region !=0 else userarea)
-            },
-            # region={"type":"region", "id": request.POST['region']},
-            # userarea={"type":"userarea", "id": request.POST['userarea']},
+            bounds=bounds
         )
 
         context['task_id'] = result.id
@@ -423,9 +422,11 @@ class DashboardView(ListView):
 
         # list team tasks
         if me.username == 'whgadmin':
-            context['review_list'] = TaskResult.objects.all().order_by('-date_done')
+            context['review_list'] = TaskResult.objects.filter(status='SUCCESS').order_by('-date_done')
+            # context['review_list'] = TaskResult.objects.all().order_by('-date_done')
         else:
-            for t in TaskResult.objects.all():
+            for t in TaskResult.objects.filter(status='SUCCESS'):
+            # for t in TaskResult.objects.all():
                 tj=json.loads(t.task_kwargs.replace("\'", "\""))
                 u=get_object_or_404(User,id=tj['owner'])
                 print('args,task owner',tj,u)
@@ -529,7 +530,8 @@ class DatasetDetailView(UpdateView):
         ds = get_object_or_404(Dataset, id=id_)
         # print('ds',ds.label)
         placeset = Place.objects.filter(dataset=ds.label)
-        context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
+        context['tasks'] = TaskResult.objects.all().filter(task_args = [id_],status='SUCCESS')
+        # context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
         print('type(tasks)',type(context['tasks']))
         # original, subject to augmentation
         context['num_links'] = PlaceLink.objects.filter(
@@ -571,40 +573,3 @@ class DatasetDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse('dashboard')
-
-# ABANDONED, added edit for 2 fields to DatasetDetailView
-# class DatasetUpdateView(UpdateView):
-#     form_class = DatasetModelForm
-#     template_name = 'datasets/dataset_create.html'
-#     success_url = '/dashboard'
-#
-#     def get_object(self):
-#         id_ = self.kwargs.get("id")
-#         return get_object_or_404(Dataset, id=id_)
-#
-#     def form_valid(self, form):
-#         if form.is_valid():
-#             print(form.cleaned_data)
-#         else:
-#             print('form not valid', form.errors)
-#         return super().form_valid(form)
-#
-#     def get_context_data(self, *args, **kwargs):
-#         context = super(DatasetUpdateView, self).get_context_data(*args, **kwargs)
-#         context['action'] = 'update'
-#         return context
-
-# ABANDONED for multi-model DashboardView
-# class DatasetListView(ListView):
-#     model = Dataset
-#     template_name = 'datasets/dashboard.html'
-#     paginate_by = 4
-#
-#     def get_queryset(self):
-#         return Dataset.objects.filter(owner=self.request.user).order_by('-upload_date')
-#
-#     def get_context_data(self, *args, **kwargs):
-#          context = super(DatasetListView, self).get_context_data(*args, **kwargs)
-#          context['results'] = TaskResult.objects.all()
-#          print('DatasetListView context:',context)
-#          return context

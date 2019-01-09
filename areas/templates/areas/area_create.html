@@ -76,12 +76,12 @@
             <li class="nav-item">
               <a class="nav-link active" role="tab" data-toggle="tab" href="#areas_codes">Countries</a></li>
             <li class="nav-item">
-              <a class="nav-link" role="tab" data-toggle="tab" href="#areas_load">Load</a></li>
+              <a class="nav-link" role="tab" data-toggle="tab" href="#areas_load">Load GeoJSON</a></li>
             <li class="nav-item">
               <a class="nav-link" role="tab" data-toggle="tab" href="#areas_draw">Draw</a></li>
           </ul>
           <div class="tab-content">
-            <div id="areas_codes" class="tab-pane fade show active mt-2">
+            <div id="areas_codes" class="tab-pane fade show active">
               <p id="p_ccodes">Country codes<br/>{{ form.ccodes }}
                 <span class="float-right ml-1">
                   <a href="javascript:{ map_render() }">preview</a></span>
@@ -90,15 +90,14 @@
               </p>
               <p>Buffer (optional, km)<br/>
                 <input type="text" id="buffer_km" name="buffer_km" value=""/></p>
-              <p class="mb-0">GeoJSON<br/>{{ form.geojson }}</p>
-              <!-- <input type="text" name="geom" value="{{ form.geom }}"></<input> -->
-              <!-- <p id="p_geom" class="hidden"><span class="top">GeoJSON<br/></span>
-                {{ form.geom }}
-              </p> -->
             </div>
-            <div id="areas_load" class="tab-pane fade in">Paste from geojson.io</div>
-            <div id="areas_draw" class="tab-pane fade in">Draw polygon</div>
+            <div id="areas_load" class="tab-pane fade in">
+              <i class="text-danger">not yet available</i></div>
+            <div id="areas_draw" class="tab-pane fade in">
+              <i class="text-danger">not yet available</i>
+              <p>Use map controls to draw/edit bounding box or polygon</p></div>
           </div>
+          <p class="mt-2">GeoJSON<br/>{{ form.geojson }}</p>
         </div> <!-- area_options -->
         <input class="btn-sm btn-primary mt-2" type="submit" value="Save" />
         <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
@@ -116,33 +115,48 @@
           $(this).val('')
         }
       });
+      $("#id_geojson").attr("placeholder","generated from country codes")
       // $("#type_input").val('')
     })
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
       var target = $(e.target).attr("href") // activated tab
+      map_clear() // switch create modes? clear the deck
       // feed area type to hidden input
       $("input[name='type']").val(target)
-      console.log('tab id:',target);
+      // console.log('tab id:',target);
       active = $("ul#area_tabs_ul a.active").attr("href")
-      // && !$(".leaflet-draw-toolbar")
-      if (target == '#areas_draw' && $(".leaflet-draw").length == 0) {
-        drawnItems = L.featureGroup().addTo(mappy)
-        var drawControl = new L.Control.Draw({
-          draw: {
-             marker: false,
-             polyline: false,
-             circle: false,
-             circlemarker: false,
-         },
-          edit: {
-             featureGroup: drawnItems
-          }
-        });
-        mappy.addControl(drawControl);
-      } else if (target != '#areas_draw' && $(".leaflet-draw-toolbar").length > 0) {
-        console.log('remove drawControl')
-        $(".leaflet-draw").remove()
-        // mappy.removeControl(drawControl);
+      // TODO: refactor this eventually or face retribution
+      if (target == '#areas_codes') {
+        $("#id_geojson").attr("placeholder","generated from country codes")
+        if ($(".leaflet-draw-toolbar").length > 0) {
+            // console.log('remove drawControl')
+            $(".leaflet-draw").remove()
+        }
+      } else if (target == '#areas_load'){
+        $("#id_geojson").attr("placeholder","paste valid GeoJSON here")
+        if ($(".leaflet-draw-toolbar").length > 0) {
+            // console.log('remove drawControl')
+            $(".leaflet-draw").remove()
+        }
+        // alert('not available yet')
+      } else if (target == '#areas_draw') {
+        $("#id_geojson").attr("placeholder","generated from drawn shapes")
+        if ($(".leaflet-draw").length == 0) {
+          drawnItems = L.featureGroup().addTo(mappy)
+          var drawControl = new L.Control.Draw({
+            draw: {
+               marker: false,
+               polyline: false,
+               circle: false,
+               circlemarker: false,
+           },
+            edit: {
+               featureGroup: drawnItems
+            }
+          });
+          mappy.addControl(drawControl);
+          // alert('not available yet')
+        }
       }
     });
     // expose leaflet map for events, call it 'mappy'
@@ -161,7 +175,7 @@
     }
 
     function map_render() {
-      console.log('in map_render()')
+      // console.log('in map_render()')
       ccodes = $("input#id_ccodes").val()
       window.geoj = $("textarea#id_geojson")
       window.geom = {"type":"FeatureCollection","features":[]}
@@ -172,6 +186,7 @@
       // clear geoJSON
       if (Object.keys(mappy._layers).length > 2 ) {
         cc_layer.clearLayers()
+        hull_layer.clearLayers()
       }
       if (ccodes != '') {
         // TODO: test csv format
@@ -197,10 +212,8 @@
           })
           .then(function(){
             hull = turf.buffer(turf.convex(geom),buffer,{units:'kilometers'})
-            // hull_mp = turf.multiPolygon(hull)
-            // console.log('hull.geometry:',hull.geometry)
-            // geoj.val(hull.geometry)
-            geoj.val(JSON.stringify(hull.geometry))
+            hull_mp = turf.multiPolygon(hull.geometry.coordinates)
+            geoj.val(JSON.stringify(hull_mp.geometry))
             hull_layer = L.geoJSON(hull, {
               style: function (feature) {
                 return {color: '#ff8c00'}; }
@@ -215,6 +228,10 @@
     function map_init (map, options) {
       // console.log('mappy',mappy)
       window.geoj = $("textarea#id_geom.textarea")
+      if (geoj.val() != ''){
+        // $("#p_geom").show()
+        map_render()
+      }
       // console.log('in map_init(), geoj.val()',geoj.val())
       // drawnItems = L.featureGroup()
       // var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
@@ -232,15 +249,11 @@
       //     drawnItems.addLayer(drawnlayer);
       //     $("#p_geom").show()
       // });
-      if (geoj.val() != ''){
-        // $("#p_geom").show()
-        map_render()
-      }
     } // end map_init
 
     function map_clear() {
-      cc_layer.remove()
-      hull_layer.remove()
+      if(typeof cc_layer != "undefined"){cc_layer.remove()}
+      if(typeof hull_layer != "undefined"){hull_layer.remove()}
       $("input#id_ccodes").val(null)
       $("textarea#id_geojson").val(null)
       $("#buffer_km").val(null)

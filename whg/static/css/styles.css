@@ -29,7 +29,14 @@ body, html {
   padding: 4px;
   font-size: .8rem;
 }
-.tab-pane { padding: 3px; }
+.tab-pane {
+  padding: 3px;
+  background-color: white;
+  /* min-height: 128px; */
+  border-left: #eeeee0 1px solid;
+  border-right: #eeeee0 1px solid;
+  border-bottom: #eeeee0 1px solid;
+}
 #map_area, #map_home, #map_view {
   height: 100%;
   /* position:absolute;top:0;left:0; */
@@ -37,7 +44,6 @@ body, html {
 
 /* .leaflet-container { min-height: 100%;} */
 .overlap { position:relative; }
-.tab-pane { background-color: white;;}
 
 #recon ul {
   list-style: none;
