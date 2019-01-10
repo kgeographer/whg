@@ -212,8 +212,9 @@
           })
           .then(function(){
             hull = turf.buffer(turf.convex(geom),buffer,{units:'kilometers'})
-            hull_mp = turf.multiPolygon(hull.geometry.coordinates)
-            geoj.val(JSON.stringify(hull_mp.geometry))
+            // hull_mp = turf.multiPolygon(hull.geometry.coordinates)
+            // geoj.val(JSON.stringify(hull_mp.geometry))
+            geoj.val(JSON.stringify(hull.geometry))
             hull_layer = L.geoJSON(hull, {
               style: function (feature) {
                 return {color: '#ff8c00'}; }

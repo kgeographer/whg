@@ -93,28 +93,31 @@ def get_bbox_filter(bounds):
     id = bounds['id'][0]
     type = bounds['type'][0]
     if type == 'region':
-        if id.startswith('u_'):
-            filter = {
-                "geo_polygon": {"location.coordinates" : region_hash[id]}
-            }
-        else:
-            filter = {
-                "geo_bounding_box" : region_hash[id]
-            }
+        # if id.startswith('u_'):
+        #     filter = {
+        #         "geo_polygon": {"location.coordinates" : region_hash[id]}
+        #     }
+        # else:
+        filter = {
+            "geo_bounding_box" : {"location.coordinates" : region_hash[id]}
+        }
     elif type == 'userarea':
-        # Disabled in UI until...
         # TODO: rebuild tgn index with geometry type 'geo_shape'
+        # will allow multipolygon constraint footprint?
         area = Area.objects.get(id = id)
         filter = {
-            "geo_shape": {
-                "location.coordinates": {
-                    "shape": {
-                        "type": "envelope",
-                        "coordinates" : area.geojson['coordinates']
-                    },
-                    "relation": "within"
-                }
+            "geo_polygon": {
+                "location.coordinates" : {"points": area.geojson['coordinates'][0]}
             }
+            # "geo_shape": {
+            #     "location.coordinates": {
+            #         "shape": {
+            #             "type": "envelope",
+            #             "coordinates" : area.geojson['coordinates']
+            #         },
+            #         "relation": "within"
+            #     }
+            # }
         }
     return filter
 

@@ -157,7 +157,10 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
 # initiate, monitor align_tgn Celery task
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
-    area_list = Area.objects.all().filter(owner=request.user)
+    # TODO: handle multipolygons from "#area_load" and "#area_draw"
+    # depends on making es:tgn locations geo_shapes
+    area_list = Area.objects.all().filter(owner=request.user, type="#areas_codes")
+    # area_list = Area.objects.all().filter(owner=request.user)
     # print('request, method:',request, request.method)
     context = {
         "dataset": ds.name,
@@ -170,7 +173,7 @@ def ds_recon(request, pk):
         fun = eval('align_'+request.POST['recon'])
         # TODO: let this vary per authority?
         region = request.POST['region'] # pre-defined UN regions
-        userarea = request.POST['userarea'] # 
+        userarea = request.POST['userarea'] #
         print('request region, userarea',region, userarea)
         bounds={
             "type":["region" if region !="0" else "userarea"],
