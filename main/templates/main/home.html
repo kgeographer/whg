@@ -20,25 +20,27 @@
         </div>
       </div>
     </div>
-    <div class="form-group d-flex justify-content-center">
-      <div class="mx-auto btn-group" data-toggle="buttons">
+    <div class="form-group">
+    <!-- <div class="form-group d-flex justify-content-center"> -->
+      <div class="mx-auto btn-group" style="margin-left:185px !important;" data-toggle="buttons">
         <span style="display:block; border: 1px dashed #e0e0e0;">
           <label class="btn btn-default mb-0" rel="Enter place name">
               <input type="radio" name="class" value="place" checked>
               Place</label>
           <label class="btn btn-default mb-1" rel="Enter term or name" >
-              <input type="radio" name="class" value="trace">
-              Trace <span class="ml-1">
-                {% fontawesome_icon 'question-circle' color='#336699' %}</span>
+              <input type="radio" name="class" value="trace"> Trace
+              <span class="ml-1"><a href="" title="historical entities having spatial-temporal 'footprints'" rel="tooltip">
+                {% fontawesome_icon 'question-circle' color='#336699' %}</a></span>
           </label>
         </span>
       </div>
-      <span class="ml-2 pt-2" style="margin-top:-14px;"><a href="{% url 'search_adv' %}">Advanced</a></span>
+      <span class="float-right pt-2" style="margin-top:-14px;"><a href="{% url 'search_adv' %}">Advanced</a></span>
     </div>
     </form>
   </div>
 </div>
 <script type="text/javascript">
+  $("[rel='tooltip']").tooltip();
   $('label.btn').click(function(){
     $('#searchbox').attr("placeholder",this.getAttribute("rel"));
   })
