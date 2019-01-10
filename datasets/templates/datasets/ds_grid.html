@@ -56,6 +56,7 @@
     // console.log(data.links[0])
     html='<div><h5 class="text-danger mb-4"><b>'
       +data['title']+'</b></h5>'
+
     html+='<p><b>Variants</b>: '
     for (n in data.names) {
       html+= data.names[n].toponym !=''?data.names[n].toponym+'; ': ''
@@ -63,19 +64,25 @@
     // html+='<p><b>Names</b>: '+ data.names[0].toponym +'</p>'
     html+='</p><p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
 
-    if (data.related.length > 0) {
-      if (data.related[0].relation_type == 'gvp:broaderPartitive'){
-        html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
-      }
-      else {
-        html+='<p><b>Related</b>: '+ data.related[0].label +'</p>'
-      }
-    }
+    // if (data.related.length > 0) {
+    //   if (data.related[0].relation_type == 'gvp:broaderPartitive'){
+    //     html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
+    //   }
+    //   else {
+    //     html+='<p><b>Related</b>: '+ data.related[0].label +'</p>'
+    //   }
+    // }
 
     if (data.geoms.length > 0){
-      html+='<p><b>Geometry</b>: ' + data.geoms[0].coordinates + ' ('+data.geoms[0].geom_src+')</p>'
+      html+='<p><b>Geometry</b>: '
+      for (g in data.geoms){
+        // html+='<p>'+data.geoms[g].json+'</p>'
+        html+='<p>'+data.geoms[g].coordinates + ' ('+data.geoms[g]['citation']['id']+')</p>'
+        // html+='<p>'+g.coordinates + ' ('+g.citation['id']+')</p>'
+      }
       // html+='<p><b>Geometry</b>: ' + data.geoms[0].geowkt + '</p>'
     }
+
     html_close = '<p class="mb-0"><b>closeMatches</b>: </p>'
     html_exact = '<p class="mb-0"><b>exactMatches</b>: </p>'
     close_count = exact_count = 0
@@ -95,12 +102,7 @@
     if (data.ccodes.length > 0) {
       html+='<p><b>Countries</b>: '+ data.ccodes +'</p>'
     }
-    // for (var key in data){
-    //   if (['ccodes','names','types','links'].includes(key)) {
-    //     html+='<p class="place-detail"><b>'+[key]+
-    //       '</b>: '+JSON.stringify(data[key])+'</p>';
-    //   }
-    // }
+
     html += '</div>'
     return html
   }

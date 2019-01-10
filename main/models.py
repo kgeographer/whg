@@ -47,10 +47,12 @@ class PlaceName(models.Model):
     # {toponym, lang, citation{}, when{}}
     place_id = models.ForeignKey(Place, related_name='names',
         default=-1, on_delete=models.CASCADE)
-    task_id = models.CharField(max_length=100)
+    task_id = models.CharField(max_length=100, blank=True, null=True)
     toponym = models.CharField(max_length=200)
     name_src = models.ForeignKey(Source, null=True, on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
+
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
 
     def __str__(self):
         return self.toponym
@@ -66,6 +68,8 @@ class PlaceType(models.Model):
         default=-1, on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
 
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
+
     def __str__(self):
         return self.json.label (self.json.src_label)
 
@@ -77,10 +81,12 @@ class PlaceType(models.Model):
 class PlaceGeom(models.Model):
     place_id = models.ForeignKey(Place,related_name='geoms',
         default=-1, on_delete=models.CASCADE)
-    task_id = models.CharField(max_length=100)
+    task_id = models.CharField(max_length=100, blank=True, null=True)
     geom_src = models.ForeignKey(Source, null=True, db_column='geom_src',
         to_field='src_id', on_delete=models.SET_NULL)
     json = JSONField(blank=True, null=True)
+
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
 
     class Meta:
         managed = True
@@ -90,10 +96,11 @@ class PlaceGeom(models.Model):
 class PlaceLink(models.Model):
     place_id = models.ForeignKey(Place,related_name='links',
         default=-1, on_delete=models.CASCADE)
-    task_id = models.CharField(max_length=100)
-    json = JSONField(blank=True, null=True)
+    task_id = models.CharField(max_length=100, blank=True, null=True)
     review_note = models.CharField(max_length=2044, blank=True, null=True)
-    # type, identifier
+    json = JSONField(blank=True, null=True)
+
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
 
     class Meta:
         managed = True
@@ -106,6 +113,8 @@ class PlaceWhen(models.Model):
     json = JSONField(blank=True, null=True)
     # timespans[{start{}, end{}}], periods[{name,id}], label, duration
 
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
+
     class Meta:
         managed = True
         db_table = 'place_when'
@@ -117,6 +126,8 @@ class PlaceRelated(models.Model):
     json = JSONField(blank=True, null=True)
     # relation_type, relation_to, label, when{}, citation{label,id}, certainty
 
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
+
     class Meta:
         managed = True
         db_table = 'place_related'
@@ -125,9 +136,11 @@ class PlaceRelated(models.Model):
 class PlaceDescription(models.Model):
     place_id = models.ForeignKey(Place,related_name='descriptions',
         default=-1, on_delete=models.CASCADE)
-    task_id = models.CharField(max_length=100)
+    task_id = models.CharField(max_length=100, blank=True, null=True)
     json = JSONField(blank=True, null=True)
     # id, value, lang
+
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
 
     class Meta:
         managed = True
@@ -139,6 +152,8 @@ class PlaceDepiction(models.Model):
         default=-1, on_delete=models.CASCADE)
     json = JSONField(blank=True, null=True)
     # id, title, license
+
+    src_id = models.CharField(max_length=24,default='') # contributor's identifier
 
     class Meta:
         managed = True

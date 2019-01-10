@@ -2,7 +2,8 @@
 
 FORMATS = [
     ('delimited', 'Delimited'),
-    ('lpf', 'Linked Places (JSON-LD)'),
+    ('lpf', 'Linked Places (GeoJSON-LDT)'),
+    ('direct', 'Inserted to db directly'),
 ]
 
 DATATYPES = [

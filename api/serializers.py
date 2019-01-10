@@ -81,11 +81,12 @@ class PlaceGeomSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField(source='json.type')
     geowkt = serializers.ReadOnlyField(source='json.geowkt')
     coordinates = serializers.ReadOnlyField(source='json.coordinates')
+    citation = serializers.ReadOnlyField(source='json.citation')
     when = serializers.ReadOnlyField(source='json.when')
 
     class Meta:
         model = PlaceGeom
-        fields = ('type', 'geowkt', 'coordinates', 'geom_src', 'when')
+        fields = ('type', 'geowkt', 'coordinates', 'geom_src', 'citation', 'when')
 
 
 class PlaceTypeSerializer(serializers.ModelSerializer):

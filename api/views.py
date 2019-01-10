@@ -39,7 +39,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Place.objects.all()
-        query = self. request.GET.get('q')
+        query = self.request.GET.get('q')
         if query is not None:
             # qs = qs.filter(title__istartswith=query)
             qs = qs.filter(title__icontains=query)
