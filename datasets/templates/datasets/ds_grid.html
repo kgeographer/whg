@@ -57,13 +57,49 @@
     html='<div><h5 class="text-danger mb-4"><b>'
       +data['title']+'</b></h5>'
 
+    // NAME VARIANTS
     html+='<p><b>Variants</b>: '
     for (n in data.names) {
       html+= '<p>'+data.names[n].toponym !=''?data.names[n].toponym+'; ': ''
     }
-    // html+='<p><b>Names</b>: '+ data.names[0].toponym +'</p>'
+
+    // TYPES
     html+='</p><p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
 
+    // GEOMS
+    // if (data.geoms.length > 0){
+    //   html+='<p class="mb-0"><b>Geometry</b></<p>: '
+    //   for (g in data.geoms){
+    //     // html+='<p>'+data.geoms[g].json+'</p>'
+    //     html+='<p class="small">'+data.geoms[g].coordinates + ' ('+data.geoms[g]['citation']['id']+')</p>'
+    //     // html+='<p>'+g.coordinates + ' ('+g.citation['id']+')</p>'
+    //   }
+    //   // html+='<p><b>Geometry</b>: ' + data.geoms[0].geowkt + '</p>'
+    // }
+
+    // LINKS
+    // html_close = '<p class="mb-0"><b>closeMatches</b>: </p>'
+    // html_exact = '<p class="mb-0"><b>exactMatches</b>: </p>'
+    // close_count = exact_count = 0
+    // for (l in data.links) {
+    //   if (data.links[l].type == 'closeMatch') {
+    //     close_count += 1
+    //     html_close+='<p class="small">'+ data.links[l].identifier +'</p>'
+    //   }
+    //   else if (data.links[l].type == 'exactMatch') {
+    //     exact_count += 1
+    //     html_exact+='<p class="small">'+ data.links[l].identifier +'</p>'
+    //   }
+    // }
+    // if (close_count > 0) html += html_close
+    // if (exact_count > 0) html += html_exact
+
+    // CCODES
+    if (data.ccodes.length > 0) {
+      html+='<p><b>Countries</b>: '+ data.ccodes +'</p>'
+    }
+
+    // RELATED
     // if (data.related.length > 0) {
     //   if (data.related[0].relation_type == 'gvp:broaderPartitive'){
     //     html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
@@ -72,36 +108,6 @@
     //     html+='<p><b>Related</b>: '+ data.related[0].label +'</p>'
     //   }
     // }
-
-    if (data.geoms.length > 0){
-      html+='<p class="mb-0"><b>Geometry</b></<p>: '
-      for (g in data.geoms){
-        // html+='<p>'+data.geoms[g].json+'</p>'
-        html+='<p class="small">'+data.geoms[g].coordinates + ' ('+data.geoms[g]['citation']['id']+')</p>'
-        // html+='<p>'+g.coordinates + ' ('+g.citation['id']+')</p>'
-      }
-      // html+='<p><b>Geometry</b>: ' + data.geoms[0].geowkt + '</p>'
-    }
-
-    html_close = '<p class="mb-0"><b>closeMatches</b>: </p>'
-    html_exact = '<p class="mb-0"><b>exactMatches</b>: </p>'
-    close_count = exact_count = 0
-    for (l in data.links) {
-      if (data.links[l].type == 'closeMatch') {
-        close_count += 1
-        html_close+='<p class="small">'+ data.links[l].identifier +'</p>'
-      }
-      else if (data.links[l].type == 'exactMatch') {
-        exact_count += 1
-        html_exact+='<p class="small">'+ data.links[l].identifier +'</p>'
-      }
-    }
-    if (close_count > 0) html += html_close
-    if (exact_count > 0) html += html_exact
-
-    if (data.ccodes.length > 0) {
-      html+='<p><b>Countries</b>: '+ data.ccodes +'</p>'
-    }
 
     html += '</div>'
     return html

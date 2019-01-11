@@ -408,9 +408,9 @@ class DashboardView(ListView):
         # TODO: make .team() a method on User
         me = self.request.user
         if me.username == 'whgadmin':
-            return Dataset.objects.all().order_by('-upload_date')
+            return Dataset.objects.all().order_by('id')
         else:
-            return Dataset.objects.filter(owner__in=myteam(me)).order_by('-upload_date')
+            return Dataset.objects.filter(owner__in=myteam(me)).order_by('id')
 
     def get_context_data(self, *args, **kwargs):
         teamtasks=[]

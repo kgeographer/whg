@@ -1,4 +1,4 @@
-id	name	name_src	type	aat_type	ccodes	lon	lat	geom_src	close_match
+id	title	name_src	type	aat_type	ccodes	lon	lat	geom_src	close_match
 1000001	Mexico	gerhardNE	Ciudad	inhabited place	["MX"]	-99.13313445	19.43378643	gerhardNE	["http://vocab.getty.edu/page/tgn/7007227"]
 1000002	Guadalajara	gerhard-north	Ciudad	inhabited place	["MX"]	-103.346998	20.676143	gerhard-north	["http://www.geonames.org/4005539", "http://www.wikidata.org/entity/Q9022", "http://vocab.getty.edu/page/tgn/7007110"]
 1000003	Chihuahua	gerhard-north	Villa	inhabited place	["MX"]	-106.083947	28.654323	gerhard-north	["http://vocab.getty.edu/page/tgn/1017179", "http://www.wikidata.org/entity/Q61302", "http://www.geonames.org/4014338"]
