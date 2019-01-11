@@ -30,7 +30,7 @@ class PlaceDepictionSerializer(serializers.ModelSerializer):
 
 class PlaceDescriptionSerializer(serializers.ModelSerializer):
     # json: @id, value, lang
-    identifier = serializers.ReadOnlyField(source='json.@id')
+    identifier = serializers.ReadOnlyField(source='json.id')
     value = serializers.ReadOnlyField(source='json.value')
     lang = serializers.ReadOnlyField(source='json.lang')
 

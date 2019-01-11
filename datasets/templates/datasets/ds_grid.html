@@ -59,7 +59,7 @@
 
     html+='<p><b>Variants</b>: '
     for (n in data.names) {
-      html+= data.names[n].toponym !=''?data.names[n].toponym+'; ': ''
+      html+= '<p>'+data.names[n].toponym !=''?data.names[n].toponym+'; ': ''
     }
     // html+='<p><b>Names</b>: '+ data.names[0].toponym +'</p>'
     html+='</p><p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
@@ -74,10 +74,10 @@
     // }
 
     if (data.geoms.length > 0){
-      html+='<p><b>Geometry</b>: '
+      html+='<p class="mb-0"><b>Geometry</b></<p>: '
       for (g in data.geoms){
         // html+='<p>'+data.geoms[g].json+'</p>'
-        html+='<p>'+data.geoms[g].coordinates + ' ('+data.geoms[g]['citation']['id']+')</p>'
+        html+='<p class="small">'+data.geoms[g].coordinates + ' ('+data.geoms[g]['citation']['id']+')</p>'
         // html+='<p>'+g.coordinates + ' ('+g.citation['id']+')</p>'
       }
       // html+='<p><b>Geometry</b>: ' + data.geoms[0].geowkt + '</p>'
@@ -89,11 +89,11 @@
     for (l in data.links) {
       if (data.links[l].type == 'closeMatch') {
         close_count += 1
-        html_close+='<p>'+ data.links[l].identifier +'</p>'
+        html_close+='<p class="small">'+ data.links[l].identifier +'</p>'
       }
       else if (data.links[l].type == 'exactMatch') {
         exact_count += 1
-        html_exact+='<p>'+ data.links[l].identifier +'</p>'
+        html_exact+='<p class="small">'+ data.links[l].identifier +'</p>'
       }
     }
     if (close_count > 0) html += html_close

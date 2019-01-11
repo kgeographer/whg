@@ -10,8 +10,9 @@ body, html {
 }
 /* p {font-size: .9rem;} */
 
-#grid_detail {
-  /* background-color: #fff7e6; */
+#grid_detail p {
+  font-size: .8pem;
+  margin-bottom:0;
 }
 
 .ghostbox {
