@@ -199,11 +199,13 @@ def es_lookup(qobj, *args, **kwargs):
     }}
 
     # add filter
-    if bounds['id'] != 0: # bbox=area abbrev.
+    if bounds['id'] != ['0']: # bbox=area abbrev.
         q1['query']['bool']['filter'].append(get_bbox_filter(bounds))
         q2['query']['bool']['filter'].append(get_bbox_filter(bounds))
         q3['query']['bool']['filter'].append(get_bbox_filter(bounds))
         q4['query']['bool']['filter'].append(get_bbox_filter(bounds))
+    else:
+        print('bounds[id]',bounds['id'])
 
     # geom/centroid is available
     if 'geom' in qobj.keys():

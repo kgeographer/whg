@@ -23,12 +23,14 @@ def bestParent(qobj, flag=False):
     # TODO: region only applicable for black, right?
     global parent_hash
 
+    # TODO: case of multiple parent countries
     if len(qobj['countries']) > 0:
         best = parent_hash['ccodes'][qobj['countries'][0]]['tgnlabel']
     elif len(qobj['parents']) > 0:
         best = qobj['parents'][0]
-    elif len(qobj['regions']) > 0:
-        best = parent_hash['regions'][qobj['region']]['tgnlabel']
+    # regions only applicable for Black; already reconciled against TGN
+    # elif len(qobj['regions']) > 0:
+    #     best = parent_hash['regions'][qobj['region']]['tgnlabel']
     else:
         best = 'World'
     return best
