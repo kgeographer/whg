@@ -13,7 +13,10 @@
   <!-- incoming: ds, hit_list -->
   <h4 class="mb-3 mt-3">
     {{ authority }} <span class="text-danger small">[ #{{ ds_label }} ]</span>
-    <span class="half float-right">task id: {{ task_id }}</span></h4>
+    <span class="half float-right">
+      task id: {{ task_id }}
+      <!-- <span class="ml-3"><a href="">Review saved matches</a></span> -->
+    </span></h4>
   <div class="pagination d-flex justify-content-center">
     <span class="step-links">
         {% if records.has_previous %}

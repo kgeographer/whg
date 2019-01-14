@@ -8,6 +8,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 
+from django_celery_results.models import TaskResult
 from main.choices import *
 
 def user_directory_path(instance, filename):
@@ -73,6 +74,7 @@ def remove_file(**kwargs):
 class Hit(models.Model):
     place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
     # FK to celery_results_task_result.task_id; TODO: written yet?
+    # task_id = models.ForeignKey(TaskResult, related_name='task_id', on_delete=models.CASCADE)
     task_id = models.CharField(max_length=50)
     authority = models.CharField(max_length=12, choices=AUTHORITIES )
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)

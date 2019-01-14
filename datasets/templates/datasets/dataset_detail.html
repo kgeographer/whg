@@ -58,9 +58,12 @@
         {% for t in tasks %}
         <div class="task-box">
           <p class="mb-0">{{ t.task_name }} <span class="small">({{ t.date_done|date:"d-M-Y, H:i (e)" }})</span>
-             <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}"><i>Review hits</i></a>&nbsp;
+             <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}">
+               <i>review hits</i></a>&nbsp;
+             <a href="{% url 'datasets:task-delete' tid=t.task_id scope='matches'%}">
+               <i>clear matches</i></a>&nbsp;
              <!-- TODO: confirm, select which to delete -->
-             <a href="{% url 'datasets:task-delete' tid=t.task_id %}">
+             <a href="{% url 'datasets:task-delete' tid=t.task_id scope='task' %}">
                {% fontawesome_icon 'trash' color='#336699' %}</a>
           </p>
           <p> <b>Result</b>:

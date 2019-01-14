@@ -31,9 +31,16 @@ def augmenter(placeid, auth, tid, hitjson):
     if auth == 'align_tgn':
         source = get_object_or_404(Source, src_id="getty_tgn")
         if 'location' in hitjson.keys():
-            print('location:',hitjson['location'])
+            geojson=hitjson['location']
+            # add geowkt and citation{id,label}
+            geojson['geowkt']='POINT('+str(geojson['coordinates'][0])+' '+str(geojson['coordinates'][0])+')'
+            geojson['citation']={
+                "id": "tgn:"+hitjson['tgnid'],
+                "label":"Getty TGN"
+            }
             geom = PlaceGeom.objects.create(
-                json = hitjson['location'],
+                json = geojson,
+                # json = hitjson['location'],
                 geom_src = source,
                 place_id = place,
                 task_id = tid
@@ -204,31 +211,36 @@ def ds_recon(request, pk):
 
     return render(request, 'datasets/ds_recon.html', {'ds':ds, 'area_list':area_list})
 
-def task_delete(request,tid,scope='all'):
+def task_delete(request,tid, scope='task'):
     hits = Hit.objects.all().filter(task_id=tid)
     tr = get_object_or_404(TaskResult, task_id=tid)
     ds = tr.task_args[1:-1]
-    hits.delete()
-    tr.delete()
-    if scope == 'all':
-        placelinks = PlaceLink.objects.all().filter(task_id=tid)
-        placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
-        placenames = PlaceName.objects.all().filter(task_id=tid)
-        placedescriptions = PlaceDescription.objects.all().filter(task_id=tid)
-        placelinks.delete()
-        placegeoms.delete()
-        placenames.delete()
-        placedescriptions.delete()
+    if scope == 'task':
+        hits.delete()
+        tr.delete()
+    if scope in ['matches']:
+        for h in hits:
+            h.reviewed = False
+            h.save()
+    placelinks = PlaceLink.objects.all().filter(task_id=tid)
+    placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
+    placenames = PlaceName.objects.all().filter(task_id=tid)
+    placedescriptions = PlaceDescription.objects.all().filter(task_id=tid)
+    placelinks.delete()
+    placegeoms.delete()
+    placenames.delete()
+    placedescriptions.delete()
 
     # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     # return redirect(request.get_full_path())
     return redirect('/datasets/'+ds+'/detail')
 
+
 # simple table for viewing datasets
 def ds_grid(request, label):
     print('request, pk',request, label)
     ds = get_object_or_404(Dataset, label=label)
-    place_list = Place.objects.filter(dataset=label).order_by('id')
+    place_list = Place.objects.filter(dataset=label).order_by('title')
 
     return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
@@ -426,10 +438,8 @@ class DashboardView(ListView):
         # list team tasks
         if me.username == 'whgadmin':
             context['review_list'] = TaskResult.objects.filter(status='SUCCESS').order_by('-date_done')
-            # context['review_list'] = TaskResult.objects.all().order_by('-date_done')
         else:
             for t in TaskResult.objects.filter(status='SUCCESS'):
-            # for t in TaskResult.objects.all():
                 tj=json.loads(t.task_kwargs.replace("\'", "\""))
                 u=get_object_or_404(User,id=tj['owner'])
                 print('args,task owner',tj,u)
@@ -536,15 +546,15 @@ class DatasetDetailView(UpdateView):
         context['tasks'] = TaskResult.objects.all().filter(task_args = [id_],status='SUCCESS')
         # context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
         print('type(tasks)',type(context['tasks']))
-        # original, subject to augmentation
+        # initial (non-task)
         context['num_links'] = PlaceLink.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
+                place_id_id__in = placeset, task_id = None).count()
         context['num_names'] = PlaceName.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
+                place_id_id__in = placeset, task_id = None).count()
         context['num_geoms'] = PlaceGeom.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
+                place_id_id__in = placeset, task_id = None).count()
         context['num_descriptions'] = PlaceDescription.objects.filter(
-                place_id_id__in = placeset, task_id = '').count()
+                place_id_id__in = placeset, task_id = None).count()
         # others
         context['num_types'] = PlaceType.objects.filter(
                 place_id_id__in = placeset).count()

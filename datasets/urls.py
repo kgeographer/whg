@@ -29,6 +29,6 @@ urlpatterns = [
     path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
 
     # delete TaskResult & associated hits
-    path('task-delete/<str:tid>', views.task_delete, name="task-delete"),
+    path('task-delete/<str:tid>/<str:scope>', views.task_delete, name="task-delete"),
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
