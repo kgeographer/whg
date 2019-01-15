@@ -156,12 +156,10 @@ def es_lookup(qobj, *args, **kwargs):
     # TODO: parse a variants column in csv
 
     # pass1: name, type, distance?
+    # TODO: ensure placetypes are AAT labels
     q1 = {"query": { "bool": {
             "must": [
                 {"terms" : { "names.name" : variants }}
-                # is name in parsed TGN parent string?
-                # ,{"match": {"parents": parent}}
-                # TODO: ensure placetypes are AAT labels
                 ,{"match": {"types.placetype": placetypes[0]}}
               ],
             "filter": [
