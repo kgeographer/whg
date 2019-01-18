@@ -20,6 +20,7 @@ urlpatterns = [
     path('maps/', include('maps.urls')),
     path('datasets/', include('datasets.urls')),
     path('areas/', include('areas.urls')),
+    path('places/', include('places.urls')),
 
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
 

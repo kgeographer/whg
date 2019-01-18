@@ -13,7 +13,7 @@ from pprint import pprint
 from django_celery_results.models import TaskResult
 from .models import Dataset, Hit
 from areas.models import Area
-from main.models import *
+from places.models import *
 from main.choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
@@ -234,7 +234,6 @@ def task_delete(request,tid, scope='task'):
     # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     # return redirect(request.get_full_path())
     return redirect('/datasets/'+ds+'/detail')
-
 
 # simple table for viewing datasets
 def ds_grid(request, label):

@@ -15,3 +15,14 @@ def parsejson(value,key):
     """returns value for given key"""
     obj = json.loads(value.replace("'",'"'))
     return obj[key]
+
+@register.filter
+def parse(obj,key):
+    if '/' in key:
+        key=key.split('/')
+        return obj[key[0]][key[1]]
+    else:
+        return obj[key]
+    """returns value for given key or sub-key"""
+    # obj = json.loads(value.replace("'",'"'))
+    # return obj[key]

@@ -1,4 +1,5 @@
-from main.models import Place, Dataset
+from places.models import Place
+from datasets.models import Dataset
 
 class MyDBRouter(object):
 

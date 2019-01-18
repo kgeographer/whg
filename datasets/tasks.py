@@ -8,7 +8,7 @@ import sys, os, re, json, codecs, datetime, time, csv
 import random
 from pprint import pprint
 from .models import Dataset, Hit
-from main.models import Place
+from places.models import Place
 from areas.models import Area
 from .regions import regions as region_hash
 ##

@@ -72,7 +72,7 @@ def remove_file(**kwargs):
 # raw hits from reconciliation
 # [{'place_id', 'task_id', 'authority', 'dataset', 'authrecord_id', 'id'}]
 class Hit(models.Model):
-    place_id = models.ForeignKey('main.Place', on_delete=models.CASCADE)
+    place_id = models.ForeignKey('places.Place', on_delete=models.CASCADE)
     # FK to celery_results_task_result.task_id; TODO: written yet?
     # task_id = models.ForeignKey(TaskResult, related_name='task_id', on_delete=models.CASCADE)
     task_id = models.CharField(max_length=50)

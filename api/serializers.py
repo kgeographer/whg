@@ -3,8 +3,7 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from datasets.models import Dataset
-from main.models import (Place, PlaceName, PlaceType, PlaceGeom,
-    PlaceLink, PlaceRelated, PlaceWhen, PlaceDescription, PlaceDepiction)
+from places.models import *
 
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     places = serializers.PrimaryKeyRelatedField(many=True, queryset=Place.objects.all())

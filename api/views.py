@@ -10,7 +10,7 @@ from .serializers import UserSerializer, GroupSerializer, DatasetSerializer, \
 
 from accounts.permissions import IsOwnerOrReadOnly, IsOwner
 from datasets.models import Dataset
-from main.models import Place #, PlaceName, PlaceType
+from places.models import Place #, PlaceName, PlaceType
 
 class DatasetViewSet(viewsets.ModelViewSet):
     # print('in DatasetViewSet()')

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'datasets.apps.DatasetsConfig',
     'main.apps.MainConfig',
     'maps.apps.MapsConfig',
+    'places.apps.PlacesConfig',
     'search.apps.SearchConfig',
 ]
 

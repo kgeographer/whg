@@ -1,0 +1,31 @@
+<!-- places/place_detail.html -->
+{% extends "main/base.html" %}
+{% load fontawesome %}
+{% load static %}
+{% load dataset_extras %}
+{% load leaflet_tags %}
+
+{% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
+{% block extra_head %}
+  {% leaflet_js %}
+  {% leaflet_css %}
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div id="place_title"><h4>{{ place.title }} ({{ place.id }})</h4></div>
+  <div id="place_tabset">
+    <h5>tabset here</h5>
+    <p><b>Names</b>:</p><ul>
+    {% for name in names %}
+      <!-- <li>{{ name.json }}</li> -->
+      <li>{{ name.json|parse:"toponym" }}; src: {{ name.json|parse:"citation/label" }} ({{ name.json|parse:"citation/id" }})</li>
+    {% endfor %}</ul>
+  </div>
+</div> <!-- top container -->
+<script type="text/javascript">
+  // initialize, render map w/settings.LEAFLET_CONFIG
+  function map_init (map, options) {
+    console.log('in map_init()')
+  } // end map_init
+</script>
+{% endblock %}
