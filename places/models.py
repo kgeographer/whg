@@ -18,7 +18,8 @@ class Place(models.Model):
     ccodes = ArrayField(models.CharField(max_length=2))
 
     def __str__(self):
-        return str(self.id)
+        # return str(self.id)
+        return '%s:%d' % (self.dataset, self.id)
 
     class Meta:
         managed = True

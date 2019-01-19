@@ -30,7 +30,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
-
 class PlaceViewSet(viewsets.ModelViewSet):
     # print('in PlaceViewSet()')
     queryset = Place.objects.all().order_by('title')
@@ -45,11 +44,9 @@ class PlaceViewSet(viewsets.ModelViewSet):
             qs = qs.filter(title__icontains=query)
         return qs
 
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
-
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()

@@ -6,15 +6,15 @@ from datasets.models import Dataset
 from places.models import *
 
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
-    places = serializers.PrimaryKeyRelatedField(many=True, queryset=Place.objects.all())
+    # don't list all places in a dataset API record
+    # places = serializers.PrimaryKeyRelatedField(many=True, queryset=Place.objects.all())
     owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         model = Dataset
-        fields = ('id', 'url', 'owner', 'label', 'name', 'description','format',
+        fields = ('id', 'url', 'owner', 'label', 'name', 'numrows', 'description','format',
             'datatype', 'delimiter', 'status', 'upload_date',
-            'accepted_date', 'mapbox_id', 'places')
-
+            'accepted_date', 'mapbox_id')
 
 class PlaceDepictionSerializer(serializers.ModelSerializer):
     # json: @id, title, license
@@ -26,7 +26,6 @@ class PlaceDepictionSerializer(serializers.ModelSerializer):
         model = PlaceDepiction
         fields = ('identifier','title','license')
 
-
 class PlaceDescriptionSerializer(serializers.ModelSerializer):
     # json: @id, value, lang
     identifier = serializers.ReadOnlyField(source='json.id')
@@ -36,7 +35,6 @@ class PlaceDescriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceDescription
         fields = ('identifier','value','lang')
-
 
 class PlaceWhenSerializer(serializers.ModelSerializer):
     # json: timespans, periods, label, duration
@@ -48,7 +46,6 @@ class PlaceWhenSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceWhen
         fields = ('timespans', 'periods', 'label', 'duration')
-
 
 class PlaceRelatedSerializer(serializers.ModelSerializer):
     # json: relation_type, relation_to, label, when, citation, certainty
@@ -64,7 +61,6 @@ class PlaceRelatedSerializer(serializers.ModelSerializer):
         fields = ('relation_type', 'relation_to', 'label', 'when',
             'citation', 'certainty')
 
-
 class PlaceLinkSerializer(serializers.ModelSerializer):
     # json: type, identifier
     type = serializers.ReadOnlyField(source='json.type')
@@ -73,7 +69,6 @@ class PlaceLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceLink
         fields = ('type', 'identifier')
-
 
 class PlaceGeomSerializer(serializers.ModelSerializer):
     # json: type, geowkt, coordinates, when{}
@@ -87,7 +82,6 @@ class PlaceGeomSerializer(serializers.ModelSerializer):
         model = PlaceGeom
         fields = ('type', 'geowkt', 'coordinates', 'geom_src', 'citation', 'when')
 
-
 class PlaceTypeSerializer(serializers.ModelSerializer):
     # json: identifier, label, source_label, when{}
     identifier = serializers.ReadOnlyField(source='json.identifier')
@@ -99,7 +93,6 @@ class PlaceTypeSerializer(serializers.ModelSerializer):
         model = PlaceType
         fields = ('label', 'source_label', 'when', 'identifier')
 
-
 class PlaceNameSerializer(serializers.ModelSerializer):
     # json: toponym, citation{}
     toponym = serializers.ReadOnlyField(source='json.toponym')
@@ -108,7 +101,6 @@ class PlaceNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceName
         fields = ('toponym', 'citation')
-
 
 class PlaceSerializer(serializers.HyperlinkedModelSerializer):
     dataset = serializers.ReadOnlyField(source='dataset.label')
@@ -131,7 +123,7 @@ class PlaceSerializer(serializers.HyperlinkedModelSerializer):
 class PlaceQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('id','src_id','title','names','types','ccodes')
+        fields = ('id','src_id','title','ccodes','names','types')
 # {	"placeid" : 10028560,
 # 	"src_id" : "1000001",
 # 	"prefname" : "Ciudad de Mexico",

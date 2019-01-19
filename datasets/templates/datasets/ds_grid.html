@@ -5,20 +5,27 @@
 {% load static %}
 
 {% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
-{% block extra_head %}{% endblock %}
-
+{% block extra_head %}
+  {% leaflet_js %}
+  {% leaflet_css %}
+{% endblock %}
 {% block content %}
 <!-- incoming: ds, place_list -->
 <div class="container">
   <h4 class="mt-3">{{ ds.name }} <span class="small text-muted">[#{{ ds.label }}]</span></h4>
   <div class="container mt-3">
     <div class="row">
-      <div id="grid_detail" class="col-sm-4 pl-0">
-        <p class="text-center mt-5">
-          <img src="{% static 'images/ajax-loader.gif'%}" />
-        </p>
+      <div id="grid_detail" class="col-sm-6 pl-0">
+        <div id="grid_fields">
+          <p class="text-center mt-5">
+            <img src="{% static 'images/ajax-loader.gif'%}" />
+          </p>
+        </div>
+        <div id="map">
+            {% leaflet_map "map" callback="map_init" %}
+        </div>
       </div>
-      <div id="grid_list" class="col-sm-8">
+      <div id="grid_list" class="col-sm-5">
         <table class="table table-striped">
           <thead>
               <!-- <th></th> -->
@@ -114,7 +121,7 @@
     $.ajax({
       url: "/api/places/"+pid,
       }).done(function( data ) {
-        $("#grid_detail").html(parsePlace(data))
+        $("#grid_fields").html(parsePlace(data))
       });
   }
 
@@ -143,54 +150,54 @@
     // console.log('in map_init()')
     geom = {"type":"FeatureCollecton","features":[]}
 
-    window.gelems = $('script').filter(function() {
-      return this.id.match(/[0-9]/);
-    });
-    for (i=0;i<gelems.length;i++){
-      let t_geom = JSON.parse(JSON.parse(gelems[i].text))
-      t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
-      geom['features'].push(t_geom)
-    }
-
-    function fill(dataset) {
-      if (dataset == 'tgn')
-        return "#ff7800"
-      else if (dataset == 'dbp')
-        return "#98E2FA"
-      else
-        return "#7AFF7A"
-    }
-
-    if (geom['features'].length > 0) {
-      // console.log('geom: ',geom)
-      idToFeature = {} // for feature lookup
-      features = L.geoJSON(geom, {
-        pointToLayer: function (feature, latlng) {
-          matchid = feature.properties.dataset+':'+feature.properties.id
-          marker = L.circleMarker(latlng,
-            {
-              radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
-              color: "#000", fillColor: fill(feature.properties.dataset)
-            }
-          ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
-
-          idToFeature[matchid] = marker
-          return marker
-        }
-      }).addTo(map);
-
-      if (geom['features'].length > 1) {
-        map.fitBounds(features.getBounds().pad(1))
-      } else {
-        latlng = L.latLng(
-          geom['features'][0].coordinates[1],
-          geom['features'][0].coordinates[0])
-        map.setView(latlng, 4)
-      }
-
-    } else {
-      console.log('no geometries, no feature')
-    }
+    // window.gelems = $('script').filter(function() {
+    //   return this.id.match(/[0-9]/);
+    // });
+    // for (i=0;i<gelems.length;i++){
+    //   let t_geom = JSON.parse(JSON.parse(gelems[i].text))
+    //   t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
+    //   geom['features'].push(t_geom)
+    // }
+    //
+    // function fill(dataset) {
+    //   if (dataset == 'tgn')
+    //     return "#ff7800"
+    //   else if (dataset == 'dbp')
+    //     return "#98E2FA"
+    //   else
+    //     return "#7AFF7A"
+    // }
+    //
+    // if (geom['features'].length > 0) {
+    //   // console.log('geom: ',geom)
+    //   idToFeature = {} // for feature lookup
+    //   features = L.geoJSON(geom, {
+    //     pointToLayer: function (feature, latlng) {
+    //       matchid = feature.properties.dataset+':'+feature.properties.id
+    //       marker = L.circleMarker(latlng,
+    //         {
+    //           radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+    //           color: "#000", fillColor: fill(feature.properties.dataset)
+    //         }
+    //       ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+    //
+    //       idToFeature[matchid] = marker
+    //       return marker
+    //     }
+    //   }).addTo(map);
+    //
+    //   if (geom['features'].length > 1) {
+    //     map.fitBounds(features.getBounds().pad(1))
+    //   } else {
+    //     latlng = L.latLng(
+    //       geom['features'][0].coordinates[1],
+    //       geom['features'][0].coordinates[0])
+    //     map.setView(latlng, 4)
+    //   }
+    //
+    // } else {
+    //   console.log('no geometries, no feature')
+    // }
   } // end map_init
   // zoom on click
   function zoomTo(id) {

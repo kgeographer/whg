@@ -49,7 +49,8 @@ class Dataset(models.Model):
     total_links = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return '%d: %s' % (self.id, self.label)
+        return self.label
+        # return '%d: %s' % (self.id, self.label)
 
     def get_absolute_url(self):
         # return f"/datasets/{self.id}"

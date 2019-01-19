@@ -11,9 +11,7 @@ from . import views
 app_name='places'
 urlpatterns = [
 
-    # path('create/', views.AreaCreateView.as_view(), name='area-create'),
-    path('<int:id>/detail', views.PlaceDetailView.as_view(), name='place-detail'),
-    # path('<int:id>/update', views.AreaUpdateView.as_view(), name='area-update'),
-    # path('<int:id>/delete', views.AreaDeleteView.as_view(), name='area-delete'),
+    # will eventually take purl
+    path('<int:id>/portal', views.PlacePortalView.as_view(), name='place-portal'),
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

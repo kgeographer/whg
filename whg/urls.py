@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from main import views
+from places.views import PlaceContribView
 from datasets.views import DashboardView
 
 from django.views.generic.base import TemplateView
@@ -21,6 +22,8 @@ urlpatterns = [
     path('datasets/', include('datasets.urls')),
     path('areas/', include('areas.urls')),
     path('places/', include('places.urls')),
+    # contributor record; conflated index record via places.urls
+    path('contrib/<int:id>/detail', PlaceContribView.as_view(), name='place-detail'),
 
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
 
