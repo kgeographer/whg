@@ -13,50 +13,128 @@
 {% block content %}
 <div class="container">
   <div id="place_title">
-    <h4>{{ place.title }} <span class="small">(whg:{{ place.id }})</span>
-      <span class="float-right">
+    <h4>{{ place.title }}
+      <span class="small">[whg:{{ place.id }}]
         {% if place.dataset in spine %}<a href="" rel="tooltip" title="WHG spine record">
-          <img src="{% static 'images/whg_logo_38h.png' %}" height="25px" class="texttop"/></a>
+          <img src="{% static 'images/whg_logo_38h.png' %}" height="25px" class="textsub ml-2"/></a>
         {% endif %}
+      </span>
+      <!-- <span class="float-right">
         <a href="" rel="tooltip" title="Suggest annotation">
-        {% fontawesome_icon 'edit' color='#336699' %}</a></span>
+        {# fontawesome_icon 'edit' color='#336699' #}</a></span> -->
     </h4>
   </div>
   <div id="place_tabset">
     <ul class="nav nav-tabs" id="myTab">
       <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#place_home" selected>Home</a>
+        <a class="nav-link active" data-toggle="tab" href="#place_core" selected>Place Attestations</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#place_people">People</a>
+        <a class="nav-link" data-toggle="tab" href="#place_traces">Related Traces</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#place_events">Events</a>
+        <a class="nav-link" data-toggle="tab" href="#place_comments">Comments</a>
       </li>
     </ul>
     <div class="tab-content" id="myTabContent">
-      <div class="tab-pane fade show active" id="place_home">
+      <div class="tab-pane fade show active" id="place_core">
           <div class="row">
-            <div id="place_home_l" class="col-sm-7">
-              <div class="col-content">
+            <div id="place_home_l" class="col-sm-5">
+              <div id="place_names" class="col-content">
               <p>{% for name in names %}
               {% if not forloop.first %}|{% endif %}
                 <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} ({{ name.json|parse:'citation/id' }})">
                   <i>{{ name.json|parse:"toponym" }}</i></a>
               {% endfor %}</p>
               </div>
+              <div id="place_descriptions" class="col-content mt-1">{ descriptions }</div>
+              <div id="place_attestations" class="col-content mt-1">{ attestations }</div>
             </div>
-            <div id="place_home_r" class="col-sm-5">
-              <div class="col-content">
-              <p>right</p>
+            <div id="place_home_r" class="col-sm-7">
+              <div id="place_temporal" class="col-content">
+                <p>{temporal summary/visualization}</p></div>
+              <div class="row mt-1">
+                <div class="col-sm-6"><div class="col-content">
+                  <p>{map}</p>
+                  </div></div>
+                <div class="col-sm-6"><div class="col-content">
+                  <p>{graph visualization}</p>
+                  </div></div>
               </div>
             </div>
           </div>
       </div>
-      <div class="tab-pane fade" id="place_people">
-        <div class="container pt-2"><h5>Linked People</h5></div></div>
-      <div class="tab-pane fade" id="place_events">
-        <div class="container pt-2"><h5>Linked Events</h5></div></div>
+      <div class="tab-pane fade" id="place_traces">
+        <div class="container pt-2">
+          <h5>Traces
+            <span class="ml-1 small">
+              <a href="" title="historical entities for which this place is relevant" rel="tooltip">
+                          {% fontawesome_icon 'question-circle' color='#336699' %}</a></span>
+          </h5>
+          <p>{ if None } No trace annotations for this place yet...<a href="">learn about contributing trace data</a> { endif }<p>
+          <div id="traces">
+            <div class="card">
+              <div class="card-header" id="headingOne">
+                <h5 class="mb-0">
+                  <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    People
+                  </button>
+                </h5>
+              </div>
+              <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#traces">
+                <div class="card-body">
+                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header" id="headingTwo">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    Events
+                  </button>
+                </h5>
+              </div>
+              <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#traces">
+                <div class="card-body">
+                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header" id="headingThree">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    Datasets
+                  </button>
+                </h5>
+              </div>
+              <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#traces">
+                <div class="card-body">
+                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header" id="headingFour">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseThree">
+                    Works/Texts
+                  </button>
+                </h5>
+              </div>
+              <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#traces">
+                <div class="card-body">
+                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      <div class="tab-pane fade" id="place_comments">
+        <div class="container pt-2">
+          <h5>Comments</h5>
+        </div></div>
     </div>
   </div>
 </div> <!-- top container -->

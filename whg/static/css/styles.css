@@ -129,6 +129,7 @@ body, html {
 .hidden {display:none;}
 
 .texttop {vertical-align: text-top !important;}
+.textsub {vertical-align: sub !important;}
 
 .red-bold {
   color: #dc3545 !important;
