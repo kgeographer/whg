@@ -17,7 +17,7 @@ body, html {
 
 .ghostbox {
   background-color: ghostwhite;
-  padding: 12px;
+  /* padding: 12px; */
 }
 .ds-detail p { margin-bottom: .3rem;}
 
@@ -43,6 +43,7 @@ body, html {
   /* position:absolute;top:0;left:0; */
 }
 
+.col-content { background-color: oldlace; padding:6px;}
 /* .leaflet-container { min-height: 100%;} */
 .overlap { position:relative; }
 
@@ -126,6 +127,8 @@ body, html {
   height: 2em;
 }
 .hidden {display:none;}
+
+.texttop {vertical-align: text-top !important;}
 
 .red-bold {
   color: #dc3545 !important;

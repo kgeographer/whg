@@ -22,6 +22,7 @@ class PlaceDetailView(DetailView):
         context = super(PlaceDetailView, self).get_context_data(*args, **kwargs)
         id_ = self.kwargs.get("id")
         place = get_object_or_404(Place, id=id_)
+        spinedata = Dataset.objects.filter(id__in=[1,2])
 
         context['names'] = place.names.all()
         context['links'] = place.links.all()
@@ -31,5 +32,7 @@ class PlaceDetailView(DetailView):
         context['related'] = place.related.all()
         context['descriptions'] = place.descriptions.all()
         context['depictions'] = place.depictions.all()
+
+        context['spine'] = spinedata
         print('place context',str(context))
         return context

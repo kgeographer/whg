@@ -50,6 +50,7 @@ class Dataset(models.Model):
 
     def __str__(self):
         return '%d: %s' % (self.id, self.label)
+
     def get_absolute_url(self):
         # return f"/datasets/{self.id}"
         # return reverse('datasets:ds_edit', kwargs={'pk': self.id})

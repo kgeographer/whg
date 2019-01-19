@@ -5,24 +5,63 @@
 {% load dataset_extras %}
 {% load leaflet_tags %}
 
-{% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
+{% block title %}<title>Place::{{ place.title }}</title>{% endblock %}
 {% block extra_head %}
   {% leaflet_js %}
   {% leaflet_css %}
 {% endblock %}
 {% block content %}
 <div class="container">
-  <div id="place_title"><h4>{{ place.title }} ({{ place.id }})</h4></div>
+  <div id="place_title">
+    <h4>{{ place.title }} <span class="small">(whg:{{ place.id }})</span>
+      <span class="float-right">
+        {% if place.dataset in spine %}<a href="" rel="tooltip" title="WHG spine record">
+          <img src="{% static 'images/whg_logo_38h.png' %}" height="25px" class="texttop"/></a>
+        {% endif %}
+        <a href="" rel="tooltip" title="Suggest annotation">
+        {% fontawesome_icon 'edit' color='#336699' %}</a></span>
+    </h4>
+  </div>
   <div id="place_tabset">
-    <h5>tabset here</h5>
-    <p><b>Names</b>:</p><ul>
-    {% for name in names %}
-      <!-- <li>{{ name.json }}</li> -->
-      <li>{{ name.json|parse:"toponym" }}; src: {{ name.json|parse:"citation/label" }} ({{ name.json|parse:"citation/id" }})</li>
-    {% endfor %}</ul>
+    <ul class="nav nav-tabs" id="myTab">
+      <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#place_home" selected>Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#place_people">People</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#place_events">Events</a>
+      </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active" id="place_home">
+          <div class="row">
+            <div id="place_home_l" class="col-sm-7">
+              <div class="col-content">
+              <p>{% for name in names %}
+              {% if not forloop.first %}|{% endif %}
+                <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} ({{ name.json|parse:'citation/id' }})">
+                  <i>{{ name.json|parse:"toponym" }}</i></a>
+              {% endfor %}</p>
+              </div>
+            </div>
+            <div id="place_home_r" class="col-sm-5">
+              <div class="col-content">
+              <p>right</p>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="tab-pane fade" id="place_people">
+        <div class="container pt-2"><h5>Linked People</h5></div></div>
+      <div class="tab-pane fade" id="place_events">
+        <div class="container pt-2"><h5>Linked Events</h5></div></div>
+    </div>
   </div>
 </div> <!-- top container -->
 <script type="text/javascript">
+  $("[rel='tooltip']").tooltip();
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
     console.log('in map_init()')
