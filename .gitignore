@@ -5,6 +5,8 @@ _older/
 nohup.out
 dump.rdb
 
+*.wp*
+
 ### Django ###
 *.log
 *.pot
