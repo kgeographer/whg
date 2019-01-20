@@ -243,6 +243,13 @@ def ds_grid(request, label):
 
     return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
+def drf_grid(request, label):
+    print('request, pk',request, label)
+    ds = get_object_or_404(Dataset, label=label)
+    place_list = Place.objects.filter(dataset=label).order_by('title')
+
+    return render(request, 'datasets/drf_grid.html', {'ds':ds, 'place_list': place_list})
+
 # insert LP-csv file to database
 # TODO: require, handle sources
 def ds_insert(request, pk ):

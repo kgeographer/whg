@@ -26,7 +26,8 @@ urlpatterns = [
     path('review/<str:tid>', views.review, name="review_x"),
 
     # list places
-    path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
+    #path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
+    path('<str:label>/datagrid/', views.drf_grid, name='drf_grid'),
 
     # delete TaskResult & associated hits
     path('task-delete/<str:tid>/<str:scope>', views.task_delete, name="task-delete"),
