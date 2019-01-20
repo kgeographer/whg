@@ -5,12 +5,31 @@ from rest_framework import permissions
 from rest_framework import viewsets
 
 from .serializers import UserSerializer, GroupSerializer, DatasetSerializer, \
-    PlaceSerializer
+    PlaceSerializer, PlaceQuerySerializer, PlaceDRFSerializer
 
 
 from accounts.permissions import IsOwnerOrReadOnly, IsOwner
 from datasets.models import Dataset
 from places.models import Place #, PlaceName, PlaceType
+
+class PlaceViewSet(viewsets.ModelViewSet):
+    # print('in PlaceViewSet()')
+    queryset = Place.objects.all().order_by('title')
+    serializer_class = PlaceSerializer
+    #serializer_class = PlaceQuerySerializer
+    #serializer_class = PlaceDRFSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        qs = Place.objects.all()
+        query = self.request.GET.get('q')
+        ds = self.request.GET.get('ds')
+        if ds is not None:
+            qs = qs.filter(dataset = ds)
+        if query is not None:
+            qs = qs.filter(title__istartswith=query)
+            #qs = qs.filter(title__icontains=query)
+        return qs
 
 class DatasetViewSet(viewsets.ModelViewSet):
     # print('in DatasetViewSet()')
@@ -30,23 +49,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
-class PlaceViewSet(viewsets.ModelViewSet):
-    # print('in PlaceViewSet()')
-    queryset = Place.objects.all().order_by('title')
-    serializer_class = PlaceSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def get_queryset(self):
-        qs = Place.objects.all()
-        query = self.request.GET.get('q')
-        if query is not None:
-            # qs = qs.filter(title__istartswith=query)
-            qs = qs.filter(title__icontains=query)
-        return qs
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
+
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()

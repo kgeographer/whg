@@ -55,6 +55,9 @@ body, html {
 #select_region option, #select_userarea option{
   margin-right:6px;
 }
+#drftable_list {
+  padding-right: 0 !important;
+}
 .p-tight p {
   margin-bottom: .6rem;
 }
