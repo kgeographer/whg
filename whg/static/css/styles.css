@@ -58,6 +58,13 @@ body, html {
 #drftable_list {
   padding-right: 0 !important;
 }
+.even, .odd {
+  cursor:pointer;
+}
+.rowhover { 
+  background-color: black !important;
+  color: white;
+}
 .p-tight p {
   margin-bottom: .6rem;
 }

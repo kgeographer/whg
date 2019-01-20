@@ -32,7 +32,6 @@
             <tr>
               <th>ID</th>
               <th>Title</th>
-              <!--<th>Dataset</th>-->
             </tr>
           </thead>
         </table>
@@ -44,18 +43,36 @@
 <script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 <script src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
 <script>
-  $(document).ready(function() {
+  $(function() {
     var table = $('#placetable').DataTable({
       "serverSide": true,
-      <!--"ajax": "/api/places/?format=datatables",-->
       "ajax": "/api/places/?format=datatables&ds={{ ds.label }}",
       "columns": [
           {"data": "id", "searchable": false},
           {"data": "title"},
-          <!--{"data": "dataset"}-->
       ]
-    });
-  });
+    })
+  })
+  setTimeout(function() {
+    $( "tr.odd, tr.even" ).hover(
+      function() {
+        $(this).addClass( "rowhover" );
+      }, function() {
+        $(this).removeClass( "rowhover" );
+      }
+    )
+    $( "tr.odd, tr.even" ).click(
+      function() {
+        pid=$(this)[0].cells[0].textContent
+        getPlace(pid)
+      }
+    ) 
+    row = $("#drftable_list table tbody")[0].rows[0]
+    pid = parseInt(row.cells[0].textContent)
+    // populate place detail
+    getPlace(pid)
+  }, 500) 
+  
 </script>
 <script type="text/javascript">
   // expose leaflet map for events, call it 'mappy'
@@ -127,7 +144,7 @@
     $.ajax({
       url: "/api/places/"+pid,
       }).done(function( data ) {
-        $("#grid_fields").html(parsePlace(data))
+        $("#drftable_fields").html(parsePlace(data))
       });
   }
 
