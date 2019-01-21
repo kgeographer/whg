@@ -132,7 +132,7 @@ class PlaceDRFSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
         #fields = ('id','src_id','title','dataset')
-        fields = ('id','src_id','title')
+        fields = ('id','src_id','title','ccodes')
         
 # {	"placeid" : 10028560,
 # 	"src_id" : "1000001",
