@@ -8,6 +8,7 @@
 {% block extra_head %}
   {% leaflet_js %}
   {% leaflet_css %}
+  <!--<link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">-->
   <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
 {% endblock %}
 {% block content %}
@@ -17,13 +18,14 @@
   <div class="container mt-3">
     <div class="row">
       <div id="drftable_detail" class="col-sm-5 pl-0">
-        <div id="drftable_fields">
-          <!--<p class="text-center mt-5">-->
-            <!--<img src="{# static 'images/ajax-loader.gif' #}" />-->
-          <!--</p>-->
-        </div>
+        <div id="drftable_title"></div>
         <div id="map">
             {% leaflet_map "map" callback="map_init" %}
+        </div>
+        <div id="drftable_fields">
+          <p class="text-center mt-5">
+            <img src="{# static 'images/ajax-loader.gif' #}" />
+          </p>
         </div>
       </div>
       <div id="drftable_list" class="col-sm-7">
@@ -40,27 +42,17 @@
   </div>
 </div>
 
-<script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-<script src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+<script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
 <script>
-  $(function() {
-    var table = $('#placetable').DataTable({
-      "serverSide": true,
-      "ajax": "/api/places/?format=datatables&ds={{ ds.label }}",
-      "columns": [
-          {"data": "id", "searchable": false},
-          {"data": "title"},
-      ]
-    })
-  })
-  setTimeout(function() {
+  function setRowEvents(){
     $( "tr.odd, tr.even" ).hover(
-      function() {
-        $(this).addClass( "rowhover" );
-      }, function() {
-        $(this).removeClass( "rowhover" );
-      }
-    )
+        function() {
+          $(this).addClass( "rowhover" );
+        }, function() {
+          $(this).removeClass( "rowhover" );
+        }
+      )
     $( "tr.odd, tr.even" ).click(
       function() {
         pid=$(this)[0].cells[0].textContent
@@ -69,26 +61,73 @@
     ) 
     row = $("#drftable_list table tbody")[0].rows[0]
     pid = parseInt(row.cells[0].textContent)
-    // populate place detail
+    // display first row detail
     getPlace(pid)
-  }, 500) 
-  
+  }
+  $(function() {
+    window.table = $('#placetable').DataTable({
+      "serverSide": true,
+      "ajax": "/api/places/?format=datatables&ds={{ ds.label }}",
+      "columns": [
+          {"data": "id", "searchable": false},
+          {"data": "title"},
+      ]
+    })
+    table.on( 'draw', function () {
+      setRowEvents();
+    } );
+  })  
 </script>
+
 <script type="text/javascript">
   // expose leaflet map for events, call it 'mappy'
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map
   }, false);
 
+  function renderMap(geom){
+    <!--clear out the previous if any-->
+    if(typeof(features)!=='undefined'){
+      mappy.removeLayer(features)
+    }
+    function fill(dataset) {
+       if (dataset == 'tgn')
+         return "#ff7800"
+       else if (dataset == 'dbp')
+         return "#98E2FA"
+       else
+         return "#7AFF7A"
+     }
+    idToFeature = {}  // for feature lookup
+    features = L.geoJSON(geom, {
+     pointToLayer: function (feature, latlng) {
+       matchid = feature.properties.dataset+':'+feature.properties.id
+       marker = L.circleMarker(latlng,
+         {
+           radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+           color: "#000", fillColor: fill(feature.properties.dataset)
+         }
+       ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+    
+       idToFeature[matchid] = marker
+       return marker
+     }
+    }).addTo(mappy);
+    
+    if (geom['features'].length > 1) {
+     mappy.fitBounds(features.getBounds().pad(1))
+    } else {
+     latlng = L.latLng(
+       geom['features'][0].coordinates[1],
+       geom['features'][0].coordinates[0])
+     mappy.setView(latlng, 4)
+    }
+  }
   // TODO: better parsing here
   function parsePlace(data) {
     window.data = data
-    // console.log(data.links[0])
-    html='<div><h5 class="text-danger mb-4"><b>'
-      +data['title']+'</b></h5>'
-
     // NAME VARIANTS
-    html+='<p><b>Variants</b>: '
+    html='<p><b>Variants</b>: '
     for (n in data.names) {
       html+= '<p>'+data.names[n].toponym !=''?data.names[n].toponym+'; ': ''
     }
@@ -98,11 +137,19 @@
 
     // GEOMS
     if (data.geoms.length > 0){
+      geom = {"type":"FeatureCollecton","features":[]}
       html+='<p class="mb-0"><b>Geometry</b></<p>: '
       for (g in data.geoms){
-        html+='<p class="small">'+data.geoms[g].coordinates + ' ('+data.geoms[g]['citation']['id']+')</p>'
+        data.geoms[g]['properties'] = {"id": data.id, "dataset": data.dataset}
+        <!--console.log('data:',data)-->
+        geom.features.push(data.geoms[g])
+        // let t_geom = JSON.parse(JSON.parse(gelems[i].text))
+        // t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
+        // geom['features'].push(t_geom)
+        html+='<p class="geom small">'+data.geoms[g].coordinates + ' ('+data.geoms[g]['citation']['id']+')</p>'
       }
-    }
+      renderMap(geom)
+    } else { map_init() }
 
     // LINKS
     html_close = '<p class="mb-0"><b>closeMatches</b>: </p>'
@@ -144,12 +191,10 @@
     $.ajax({
       url: "/api/places/"+pid,
       }).done(function( data ) {
+        $("#drftable_title").html('<h5 class="text-danger mb-4"><b>'+data['title']+'</b></h5>')
         $("#drftable_fields").html(parsePlace(data))
       });
-  }
-
-  
-  
+  }    
   // initialize, render map
   function map_init (map, options) {
     $('.edit-row').on('click', function(){
@@ -157,6 +202,55 @@
     })
     // console.log('in map_init()')
     geom = {"type":"FeatureCollecton","features":[]}
+    
+    // window.gelems = $('script').filter(function() {
+    //   return this.id.match(/[0-9]/);
+    // });
+    // for (i=0;i<gelems.length;i++){
+    //   let t_geom = JSON.parse(JSON.parse(gelems[i].text))
+    //   t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
+    //   geom['features'].push(t_geom)
+    // }
+    //
+    // function fill(dataset) {
+    //   if (dataset == 'tgn')
+    //     return "#ff7800"
+    //   else if (dataset == 'dbp')
+    //     return "#98E2FA"
+    //   else
+    //     return "#7AFF7A"
+    // }
+    //
+    // if (geom['features'].length > 0) {
+    //   // console.log('geom: ',geom)
+    //   idToFeature = {} // for feature lookup
+    //   features = L.geoJSON(geom, {
+    //     pointToLayer: function (feature, latlng) {
+    //       matchid = feature.properties.dataset+':'+feature.properties.id
+    //       marker = L.circleMarker(latlng,
+    //         {
+    //           radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+    //           color: "#000", fillColor: fill(feature.properties.dataset)
+    //         }
+    //       ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+    //
+    //       idToFeature[matchid] = marker
+    //       return marker
+    //     }
+    //   }).addTo(map);
+    //
+    //   if (geom['features'].length > 1) {
+    //     map.fitBounds(features.getBounds().pad(1))
+    //   } else {
+    //     latlng = L.latLng(
+    //       geom['features'][0].coordinates[1],
+    //       geom['features'][0].coordinates[0])
+    //     map.setView(latlng, 4)
+    //   }
+    //
+    // } else {
+    //   console.log('no geometries, no feature')
+    // }    
   } // end map_init
   
   function zoomTo(id) {
@@ -164,25 +258,5 @@
   }
 
 </script>
-<!-- set aside from previous -->
-<!--<script>-->
-  <!--$(function(){-->
-    <!--// initialize with detail for first place in list-->
-    <!--row = $("#grid_list table tbody")[0].rows[0]-->
-    <!--pid = parseInt(row.cells[1].textContent)-->
-    <!--// populate place detail-->
-    <!--getPlace(pid)-->
-  <!--})-->
-
-  <!--$(".place-row").on("click", function(e){-->
-    <!--// TODO: render it in an editable Django form-->
-    <!--row = $(this)[0]-->
-    <!--pid = parseInt(row.cells[1].textContent)-->
-    <!--// console.log('this',$(this))-->
-    <!--// console.log('pid',pid)-->
-    <!--getPlace(pid)-->
-  <!--})-->
-<!--</script>-->
-
 {% endblock %}
 
