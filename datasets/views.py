@@ -161,6 +161,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     # pprint(locals())
     return render(request, 'datasets/review.html', context=context)
 
+
 # initiate, monitor align_tgn Celery task
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
@@ -235,6 +236,7 @@ def task_delete(request,tid, scope='task'):
     # return redirect(request.get_full_path())
     return redirect('/datasets/'+ds+'/detail')
 
+
 # simple table for viewing datasets
 def ds_grid(request, label):
     print('request, pk',request, label)
@@ -243,12 +245,13 @@ def ds_grid(request, label):
 
     return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
-def drf_table(request, label):
-    print('request, pk',request, label)
-    ds = get_object_or_404(Dataset, label=label)
-    place_list = Place.objects.filter(dataset=label).order_by('title')
 
-    return render(request, 'datasets/drf_table.html', {'ds':ds, 'place_list': place_list})
+# better table for viewing datasets
+def drf_table(request, label, f):
+    # need only for title; calls API w/javascript for data
+    ds = get_object_or_404(Dataset, label=label)
+    filt = f
+    return render(request, 'datasets/drf_table.html', {'ds':ds,'filter':filt})
 
 # insert LP-csv file to database
 # TODO: require, handle sources
@@ -417,6 +420,7 @@ def ds_insert(request, pk ):
 
     return redirect('/dashboard', context=context)
 
+
 # list user datasets, area, place collections
 class DashboardView(ListView):
     context_object_name = 'dataset_list'
@@ -456,6 +460,7 @@ class DashboardView(ListView):
         # TODO: user place collections
         print('DashboardView context:', context)
         return context
+
 
 # upload file, verify format
 class DatasetCreateView(CreateView):
@@ -519,7 +524,8 @@ class DatasetCreateView(CreateView):
         context['action'] = 'create'
         return context
 
-# class DatasetDetailView(DetailView):
+
+# detail
 class DatasetDetailView(UpdateView):
     form_class = DatasetDetailModelForm
     template_name = 'datasets/dataset_detail.html'
@@ -583,6 +589,8 @@ class DatasetDetailView(UpdateView):
 
         return context
 
+
+# confirm ok on delete
 class DatasetDeleteView(DeleteView):
     template_name = 'datasets/dataset_delete.html'
 

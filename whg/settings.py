@@ -139,15 +139,6 @@ DATABASES = {
         'HOST':'localhost',
         'PORT':'5432',
     },
-    # not implemented
-    # 'whgdata': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': 'whgdata',
-    #     'USER':'',
-    #     'PASSWORD':'',
-    #     'HOST':'localhost',
-    #     'PORT':'5432',
-    # }
 }
 
 # not implemented

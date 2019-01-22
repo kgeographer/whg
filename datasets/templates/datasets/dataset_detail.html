@@ -15,8 +15,12 @@
       <a href="{% url 'datasets:dataset-delete' object.id %}" class="float-right"
         title="Delete dataset" rel="tooltip" style="margin-top:-2px;">
         {% fontawesome_icon 'trash' color='#336699' %}</a>
-      <a href="{% url 'datasets:drf_table' object.label %}" title="View/edit table" rel="tooltip"
+        
+      <a href="{% url 'datasets:drf_table' label=object.label f='all' %}" title="View/edit table" rel="tooltip"
       class="float-right mr-2">{% fontawesome_icon 'table' color='#336699' %}</a>
+      
+      <a href="{% url 'datasets:drf_table' label=object.label f='nogeom' %}" title="filter geom" rel="tooltip"
+      class="float-right mr-2">{% fontawesome_icon 'filter' color='#336699' %}</a>
       <!-- datasets:ds_grid  datasets:drf_table -->
       <span class="hidden">{{ form.name }}</span>
     </h4>

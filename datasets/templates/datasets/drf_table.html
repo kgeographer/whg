@@ -69,7 +69,7 @@
   $(function() {
     window.table = $('#placetable').DataTable({
       "serverSide": true,
-      "ajax": "/api/places/?format=datatables&ds={{ ds.label }}",
+      "ajax": "/api/places/?format=datatables&ds={{ ds.label }}&f={{ filter }}",
       "columns": [
           {"data": "id", "searchable": false},
           {"data": "title"},

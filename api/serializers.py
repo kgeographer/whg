@@ -120,20 +120,20 @@ class PlaceSerializer(serializers.HyperlinkedModelSerializer):
             'related','whens', 'descriptions', 'depictions'
             )
 
-# for ds_grid queries
-class PlaceQuerySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Place
-        fields = ('id','src_id','title','ccodes','names','types')
-        
-# for drf_table queries
+# for drf_table.html queries
 class PlaceDRFSerializer(serializers.ModelSerializer):
     #dataset = serializers.ReadOnlyField(source='dataset.label')
     class Meta:
         model = Place
         #fields = ('id','src_id','title','dataset')
         fields = ('id','src_id','title','ccodes')
-        
+
+# for ds_grid queries
+# class PlaceQuerySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Place
+#         fields = ('id','src_id','title','ccodes','names','types')
+                
 # {	"placeid" : 10028560,
 # 	"src_id" : "1000001",
 # 	"prefname" : "Ciudad de Mexico",
