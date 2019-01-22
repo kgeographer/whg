@@ -200,6 +200,10 @@
   }    
   // initialize, render map
   function map_init (map, options) {
+    if(typeof(features)!=='undefined'){
+      mappy.removeLayer(features)
+      mappy.setView([35.0, 13.0], 1)
+    }
     $('.edit-row').on('click', function(){
       alert('open a modal with full record')
     })
