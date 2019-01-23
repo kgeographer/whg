@@ -10,26 +10,12 @@ body, html {
 }
 /* p {font-size: .9rem;} */
 
-#grid_detail p {
-  font-size: .8pem;
-  margin-bottom:0;
-}
-
 .ghostbox {
   background-color: ghostwhite;
   /* padding: 12px; */
 }
 .ds-detail p { margin-bottom: .3rem;}
 
-#geo_constraint {
-  /* background-color: #eeeee0; */
-}
-
-#area_options {
-  background-color: ghostwhite;
-  padding: 4px;
-  font-size: .8rem;
-}
 .tab-pane {
   padding: 3px;
   background-color: white;
@@ -38,26 +24,11 @@ body, html {
   border-right: #eeeee0 1px solid;
   border-bottom: #eeeee0 1px solid;
 }
-#map_area, #map_home, #map_view {
-  height: 100%;
-  /* position:absolute;top:0;left:0; */
-}
 
 .col-content { background-color: oldlace; padding:6px;}
-/* .leaflet-container { min-height: 100%;} */
+
 .overlap { position:relative; }
 
-#recon ul {
-  list-style: none;
-  padding-left: 0;
-  /* margin-top: 12px; */
-}
-#select_region option, #select_userarea option{
-  margin-right:6px;
-}
-#drftable_list {
-  padding-right: 0 !important;
-}
 .even, .odd {
   cursor:pointer;
 }
@@ -111,10 +82,6 @@ body, html {
   width: 95%;
   margin-left: 0 !important;
 }
-.block-left {
-  display:block;
-  float:left;
-}
 .recon-done {
   font-style: italic;
   color: grey;
@@ -151,11 +118,46 @@ body, html {
   font-weight: bold;
 }
 
+.block-left {
+  display:block;
+  float:left;
+}
+
 tr.place-row, tr.dataset-row {
   cursor: pointer;
   line-height: .75rem;
   font-size: .9em;
 }
+
 span.edit-row {
   cursor: pointer;
 }
+
+/**
+  element IDs
+**/
+#map_area, #map_home, #map_view {
+  height: 100%;
+  /* position:absolute;top:0;left:0; */
+}
+#grid_detail p {
+  font-size: .8pem;
+  margin-bottom:0;
+}
+#area_options {
+  background-color: ghostwhite;
+  padding: 4px;
+  font-size: .8rem;
+}
+#recon ul {
+  list-style: none;
+  padding-left: 0;
+  /* margin-top: 12px; */
+}
+#select_region option, #select_userarea option{
+  margin-right:6px;
+}
+#drftable_list {
+  padding-right: 0 !important;
+}
+#drftable_fields p { margin-bottom: .5rem;} 
