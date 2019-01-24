@@ -100,15 +100,28 @@
   }, false);
 
   function alias_it(str) {
+    // TODO: refactor this whole bit...ugly!
     console.log('alias_it() str',str)
-    alias = ''
-    id = str.match(/\/(?!.*\/)(.*?)$/)[1]
-    if (str.includes('getty')) {alias = 'tgn:'} 
-    else if(str.includes('dbpedia')) {alias = 'dbp:'}
-    else if(str.includes('geonames')) {alias = 'gn:'}
-    else if(str.includes('wikidata')) {alias = 'q:'}
-    link = '<span class="small mr-2"><a href="'+ str +'" target="_blank">['+
-      alias+id+']</a></span>'
+    alias = uri = ''
+    if(str.startsWith('black') || str.startsWith('dplace')) {
+      link = str
+    }
+    else if (str.startsWith('http://')) {
+      id = str.match(/\/(?!.*\/)(.*?)$/)[1]
+      if (str.includes('getty')) {alias = 'tgn:'} 
+      else if(str.includes('dbpedia')) {alias = 'dbp:'}
+      else if(str.includes('geonames')) {alias = 'gn:'}
+      else if(str.includes('wikidata')) {alias = 'q:'}
+      link = '<span class="small mr-2"><a href="'+ str +'" target="_blank">['+
+        alias+id+']</a></span>'
+    } else {
+      if (str.includes('tgn')) {uri = str.replace('tgn:','http://vocab.getty.edu/page/tgn/')} 
+      else if(str.includes('dbp')) {uri = str.replace('dbp:','http://dbpedia.org/resource/')}
+      else if(str.includes('gn')) {uri = str.replace('gn:','http://www.geonames.org/')}
+      else if(str.includes('q:')) {uri = str.replace('q:','https://www.wikidata.org/wiki/')}
+      link = '<span class="small mr-2"><a href="'+ uri +'" target="_blank">['+
+        str+']</a></span>'
+    }
     return link;
   }
   function renderMap(geom){
@@ -185,7 +198,7 @@
     // LINKS
     html += '<p class="mb-0"><b>Linked records</b>: </p>'
     close_count = exact_count = related_count = 0
-    html_exact = html_close = related = ''
+    html_exact = html_close = html_related = ''
     if (data.links.length > 0) {
       for (l in data.links) {
         if (data.links[l].type == 'exactMatch') {
