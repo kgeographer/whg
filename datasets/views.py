@@ -281,8 +281,8 @@ def ds_insert(request, pk ):
     countrows=0
     countlinked = 0
     countlinks = 0
-    # for r in reader:
-    for i, r in zip(range(200), reader):
+    for r in reader:
+    #for i, r in zip(range(200), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
@@ -296,7 +296,9 @@ def ds_insert(request, pk ):
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
         parent = r[header.index('parent')] if 'parent' in header else ''
         # ccodes = r[header.index('ccodes')][2:-2].split('", "') \
-        ccodes = r[header.index('ccodes')][2:-2].split('","') \
+        #ccodes = r[header.index('ccodes')][2:-2].split('","') \
+        # standardize on ', ' for arrays in tab-delimited files
+        ccodes = r[header.index('ccodes')][2:-2].split(', ') \
             if 'ccodes' in header else []
         coords = [
             float(r[header.index('lon')]),
