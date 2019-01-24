@@ -99,26 +99,18 @@
     window.mappy = e.detail.map
   }, false);
 
-  function alias_it(str) {
-    // TODO: refactor this whole bit...ugly!
-    console.log('alias_it() str',str)
-    alias = uri = ''
+  function url_it(str) {
+    // resolves source alias; returns url where appropriate
+    console.log('url_it() str',str)
+    uri = ''
     if(str.startsWith('black') || str.startsWith('dplace')) {
+      // TODO: applicable for links?
       link = str
-    }
-    else if (str.startsWith('http://')) {
-      id = str.match(/\/(?!.*\/)(.*?)$/)[1]
-      if (str.includes('getty')) {alias = 'tgn:'} 
-      else if(str.includes('dbpedia')) {alias = 'dbp:'}
-      else if(str.includes('geonames')) {alias = 'gn:'}
-      else if(str.includes('wikidata')) {alias = 'q:'}
-      link = '<span class="small mr-2"><a href="'+ str +'" target="_blank">['+
-        alias+id+']</a></span>'
     } else {
-      if (str.includes('tgn')) {uri = str.replace('tgn:','http://vocab.getty.edu/page/tgn/')} 
-      else if(str.includes('dbp')) {uri = str.replace('dbp:','http://dbpedia.org/resource/')}
-      else if(str.includes('gn')) {uri = str.replace('gn:','http://www.geonames.org/')}
-      else if(str.includes('q:')) {uri = str.replace('q:','https://www.wikidata.org/wiki/')}
+      if (str.startsWith('tgn')) {uri = str.replace('tgn:','http://vocab.getty.edu/page/tgn/')} 
+      else if(str.startsWith('dbp')) {uri = str.replace('dbp:','http://dbpedia.org/resource/')}
+      else if(str.startsWith('gn')) {uri = str.replace('gn:','http://www.geonames.org/')}
+      else if(str.startsWith('q:')) {uri = str.replace('q:','https://www.wikidata.org/wiki/')}
       link = '<span class="small mr-2"><a href="'+ uri +'" target="_blank">['+
         str+']</a></span>'
     }
@@ -175,25 +167,14 @@
     html+='</p><p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
 
     // GEOMS
-    <!--html+='<p class="mb-0"><b>Geometry</b></<p>: '-->
     if (data.geoms.length > 0){
       geom = {"type":"FeatureCollecton","features":[]}
-      <!--html+='<p class="mb-0"><b>Geometry</b></<p>: '-->
       for (g in data.geoms){
         data.geoms[g]['properties'] = {"id": data.id, "dataset": data.dataset}
-        <!--console.log('data:',data)-->
         geom.features.push(data.geoms[g])
-        // let t_geom = JSON.parse(JSON.parse(gelems[i].text))
-        // t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
-        // geom['features'].push(t_geom)
-        <!--html+='<span class="geom small ml-1">['+data.geoms[g]['citation']['id']+']</span>'-->
       }
       renderMap(geom)
     } 
-    <!--else { -->
-      <!--html += "<i>none yet</i>"-->
-      <!--map_init() -->
-    <!--}-->
 
     // LINKS
     html += '<p class="mb-0"><b>Linked records</b>: </p>'
@@ -203,14 +184,14 @@
       for (l in data.links) {
         if (data.links[l].type == 'exactMatch') {
           exact_count += 1
-          html_exact+=alias_it(data.links[l].identifier)
+          html_exact+=url_it(data.links[l].identifier)
         }
         else if (data.links[l].type == 'closeMatch') {
           close_count += 1
-          html_close+=alias_it(data.links[l].identifier)
+          html_close+=url_it(data.links[l].identifier)
         }
         else if (data.links[l].type == 'related') {
-          html_related+=alias_it(data.links[l].identifier)
+          html_related+=url_it(data.links[l].identifier)
         }
       }
       if (exact_count > 0) html += html_exact
