@@ -282,7 +282,7 @@ def ds_insert(request, pk ):
     countlinked = 0
     countlinks = 0
     #for r in reader:
-    for i, r in zip(range(200), reader):
+    for i, r in zip(range(300), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
@@ -293,6 +293,8 @@ def ds_insert(request, pk ):
         if 'variants' in header:
             v = r[header.index('variants')].split(';') 
             variants = v if '' not in v else []
+        else:
+            variants = []
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'not specified'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
@@ -317,7 +319,7 @@ def ds_insert(request, pk ):
         depiction = r[header.index('depiction')] \
             if 'depiction' in header else []
 
-        print('variants:',variants)
+        #print('variants:',variants)
         # build and save Place object
         newpl = Place(
             # placeid = nextpid,
