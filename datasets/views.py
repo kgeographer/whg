@@ -17,7 +17,7 @@ from places.models import *
 from main.choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
-from .utils import parsejson, myteam
+from .utils import parsejson, myteam, parse_wkt
 
 def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
@@ -274,15 +274,15 @@ def ds_insert(request, pk ):
         "PlaceDepiction":[]}
 
     # CSV * = req; ^ = desired
-    # id*, name*, name_src*, type^, variants[], parent^, ccodes[]^, lon^, lat^,
+    # id*, title*, name_src*, type^, variants[], parent^, ccodes[]^, lon^, lat^,
     # geom_src, close_match[]^, exact_match[]^, description, depiction
 
     # TODO: what if simultaneous inserts?
     countrows=0
     countlinked = 0
     countlinks = 0
-    for r in reader:
-    #for i, r in zip(range(200), reader):
+    #for r in reader:
+    for i, r in zip(range(200), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
@@ -290,15 +290,16 @@ def ds_insert(request, pk ):
         # for PlaceName insertion, strip anything in parens
         name = re.sub(' \(.*?\)', '', title)
         name_src = r[header.index('name_src')]
-        variants = r[header.index('variants')].split(', ') if 'variants' in header else []
+        if 'variants' in header:
+            v = r[header.index('variants')].split(';') 
+            variants = v if '' not in v else []
         # encouraged for reconciliation
         type = r[header.index('type')] if 'type' in header else 'not specified'
         aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
         parent = r[header.index('parent')] if 'parent' in header else ''
-        # ccodes = r[header.index('ccodes')][2:-2].split('", "') \
-        #ccodes = r[header.index('ccodes')][2:-2].split('","') \
-        # standardize on ', ' for arrays in tab-delimited files
-        ccodes = r[header.index('ccodes')][2:-2].split(', ') \
+        #standardize on ';' for name and ccode arrays in tab-delimited files
+        #ccodes = r[header.index('ccodes')][2:-2].split(', ') \
+        ccodes = r[header.index('ccodes')].split(';') \
             if 'ccodes' in header else []
         coords = [
             float(r[header.index('lon')]),
@@ -353,12 +354,14 @@ def ds_insert(request, pk ):
         # TODO: test geometry type or force geojson
         if 'lon' in header and (coords[0] != 0 and coords[1] != 0):
             objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
-                # src_id = src_id,
-                # dataset = dataset,
                 json={"type": "Point", "coordinates": coords,
                     "geowkt": 'POINT('+str(coords[0])+' '+str(coords[1])+')'}
             ))
-
+        elif 'geowkt' in header:
+            objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
+                json=parse_wkt(r[header.index('geowkt')])
+            ))            
+            
         # # PlaceLink()
         if len(list(filter(None,close_match))) > 0:
             countlinked += 1
@@ -556,6 +559,7 @@ class DatasetDetailView(UpdateView):
         id_ = self.kwargs.get("id")
         ds = get_object_or_404(Dataset, id=id_)
         # print('ds',ds.label)
+        context['status'] = ds.status
         placeset = Place.objects.filter(dataset=ds.label)
         context['tasks'] = TaskResult.objects.all().filter(task_args = [id_],status='SUCCESS')
         # context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])

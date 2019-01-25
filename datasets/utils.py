@@ -1,8 +1,16 @@
 import codecs, json, datetime
+from shapely import wkt, geometry
+
 fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
 parent_hash = json.loads(fin.read())
 fin.close()
 
+def parse_wkt(g):
+    gw = wkt.loads(g)
+    feature = geometry.mapping(gw)
+    print('wkt, feature',g, feature)
+    return feature
+    
 def myteam(me):
     myteam=[]
     for g in me.groups.all():

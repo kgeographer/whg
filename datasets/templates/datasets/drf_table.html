@@ -8,7 +8,7 @@
 {% block extra_head %}
   {% leaflet_js %}
   {% leaflet_css %}
-  <!--<link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">-->
+  <script src="https://npmcdn.com/@turf/turf/turf.min.js"></script>
   <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
 {% endblock %}
 {% block content %}
@@ -131,6 +131,7 @@
      }
     idToFeature = {}  // for feature lookup
     features = L.geoJSON(geom, {
+    // TODO: for some reason linestrings are parsed and rendered here
      pointToLayer: function (feature, latlng) {
        matchid = feature.properties.dataset+':'+feature.properties.id
        marker = L.circleMarker(latlng,
@@ -146,12 +147,21 @@
     }).addTo(mappy);
     
     if (geom['features'].length > 1) {
-     mappy.fitBounds(features.getBounds().pad(1))
+      mappy.fitBounds(features.getBounds().pad(1))
     } else {
-     latlng = L.latLng(
-       geom['features'][0].coordinates[1],
-       geom['features'][0].coordinates[0])
-     mappy.setView(latlng, 4)
+      feat0 = geom['features'][0]
+      if (feat0.type == 'Point') {
+        latlng = L.latLng(
+          feat0.coordinates[1],
+          feat0.coordinates[0])
+        mappy.setView(latlng, 4)
+      } else if (feat0.type == 'MultiLineString') {
+        c = turf.centroid(feat0)
+        latlng = L.latLng(
+          c.geometry.coordinates[1],
+          c.geometry.coordinates[0])
+        mappy.setView(latlng, 4)
+      }
     }
   }
   // TODO: better parsing here
