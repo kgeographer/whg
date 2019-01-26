@@ -359,6 +359,8 @@ def align_tgn(pk, *args, **kwargs):
     # return hit_parade
 
 def read_delimited(infile, username):
+    # some WKT is big
+    csv.field_size_limit(100000000)
     result = {'format':'delimited','errors':{}}
     # required fields
     # TODO: req. fields not null or blank
@@ -366,8 +368,13 @@ def read_delimited(infile, username):
     required = ['id', 'title', 'name_src']
 
     # learn delimiter [',',';']
-    dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
-    result['delimiter'] = 'tab' if dialect.delimiter == '\t' else dialect.delimiter
+    # TODO: falling back to tab if it fails; need more stable approach
+    try:
+        dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
+        result['delimiter'] = 'tab' if dialect.delimiter == '\t' else dialect.delimiter
+    except:
+        dialect = '\t'
+        result['delimiter'] = 'tab'
 
     reader = csv.reader(infile, dialect)
     result['count'] = sum(1 for row in reader)

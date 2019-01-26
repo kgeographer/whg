@@ -281,8 +281,8 @@ def ds_insert(request, pk ):
     countrows=0
     countlinked = 0
     countlinks = 0
-    #for r in reader:
-    for i, r in zip(range(300), reader):
+    for r in reader:
+    #for i, r in zip(range(300), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]

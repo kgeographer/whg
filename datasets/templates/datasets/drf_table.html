@@ -156,11 +156,7 @@
           feat0.coordinates[0])
         mappy.setView(latlng, 4)
       } else if (['MultiLineString','MultiPolygon'].includes(feat0.type)) {
-        c = turf.centroid(feat0)
-        latlng = L.latLng(
-          c.geometry.coordinates[1],
-          c.geometry.coordinates[0])
-        mappy.setView(latlng, 4)
+        mappy.fitBounds(features.getBounds())
       }
     }
   }

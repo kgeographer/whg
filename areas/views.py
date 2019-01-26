@@ -14,7 +14,7 @@ from .forms import AreaModelForm, AreaDetailModelForm
 from .models import Area
 
 class AreaCreateView(CreateView):
-    print('AreaCreateView()')
+    #print('AreaCreateView()')
     form_class = AreaModelForm
     template_name = 'areas/area_create.html'
     # template_name = 'areas/area_create_l.html'
