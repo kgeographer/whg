@@ -57,6 +57,7 @@
 <script src="//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
 <script>
   $("[rel='tooltip']").tooltip();
+  
   function setRowEvents(){
     $( "tr.odd, tr.even" ).hover(
         function() {
@@ -110,6 +111,7 @@
       if (str.startsWith('tgn')) {uri = str.replace('tgn:','http://vocab.getty.edu/page/tgn/')} 
       else if(str.startsWith('dbp')) {uri = str.replace('dbp:','http://dbpedia.org/resource/')}
       else if(str.startsWith('gn')) {uri = str.replace('gn:','http://www.geonames.org/')}
+      else if(str.startsWith('wwf:')) {uri = str.replace('wwf:','https://www.worldwildlife.org/ecoregions/')}
       else if(str.startsWith('q:')) {uri = str.replace('q:','https://www.wikidata.org/wiki/')}
       link = '<span class="small mr-2"><a href="'+ uri +'" target="_blank">['+
         str+']</a></span>'

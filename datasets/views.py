@@ -274,6 +274,7 @@ def ds_insert(request, pk ):
         "PlaceDepiction":[]}
 
     # CSV * = req; ^ = desired
+    # lists are ';' delimited, no brackets
     # id*, title*, name_src*, type^, variants[], parent^, ccodes[]^, lon^, lat^,
     # geom_src, close_match[]^, exact_match[]^, description, depiction
 
@@ -306,9 +307,9 @@ def ds_insert(request, pk ):
         coords = [
             float(r[header.index('lon')]),
             float(r[header.index('lat')]) ] if 'lon' in header else []
-        close_match = r[header.index('close_match')][1:-1].split('", "') \
+        close_match = r[header.index('close_match')].split(';') \
             if 'close_match' in header else []
-        exact_match = r[header.index('exact_match')][1:-1].split('", "') \
+        exact_match = r[header.index('exact_match')].split(';') \
             if 'exact_match' in header else []
         # nice to have
         minmax = [
@@ -364,16 +365,22 @@ def ds_insert(request, pk ):
                 json=parse_wkt(r[header.index('geowkt')])
             ))            
             
-        # # PlaceLink()
+        # PlaceLink() - close
         if len(list(filter(None,close_match))) > 0:
             countlinked += 1
-            # print('close_match',close_match)
             for m in close_match:
                 countlinks += 1
                 objs['PlaceLink'].append(PlaceLink(place_id=newpl,
-                    # src_id = src_id,
-                    # dataset = dataset,
                     json={"type":"closeMatch", "identifier":m}
+                ))
+
+        # PlaceLink() - exact
+        if len(list(filter(None,exact_match))) > 0:
+            countlinked += 1
+            for m in exact_match:
+                countlinks += 1
+                objs['PlaceLink'].append(PlaceLink(place_id=newpl,
+                    json={"type":"exactMatch", "identifier":m}
                 ))
 
         # PlaceRelated()
