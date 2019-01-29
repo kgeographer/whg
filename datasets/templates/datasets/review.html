@@ -44,7 +44,7 @@
       <div class="row mt-2">
         <div id="review_record" class="col-sm-4 pl-0">
           <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
-          <div id="place-record">
+          <div id="place_record">
             <div>
               <input type="hidden" name="place_id" value="{{ record.id }}" />
               <span><h4 class="text-danger">{{ record.title }} </h4></span>
@@ -52,12 +52,16 @@
                 <button type="submit" class="btn btn-secondary float-right">Save</button>
               </span>
             </div>
+            {% for g in record.geoms.all %}
+              {{ g.json|safe|json_script:record.id }}
+            {% endfor %}
             <p><strong>Source id</strong>: {{ record.src_id }}</p>
             <p><strong>WHG id</strong>: {{ record.id }} </p>
             <p><strong>Name variants</strong>:
               {% for name in record.names.all %}
                {{ name.json.toponym }};
               {% endfor %}</p>
+            <p><strong>Modern countries</strong>: {{ record.ccodes }} </p>
             <p><strong>Place type(s)</strong>:
               {% for type in record.types.all %}
                 <br/>{{ type.json.label }} ({{ type.json.src_label }})
@@ -127,8 +131,7 @@
       console.log('hovering')
     })
 
-    $( ".geolink" ).hover(
-      function() {
+    $( ".geolink" ).hover(function() {
         let id = 'tgn:'+$(this)[0].id.toString()
         feat = idToFeature[id]
         feat.setStyle(
@@ -200,7 +203,8 @@
         }).addTo(map);
 
         if (geom['features'].length > 1) {
-          map.fitBounds(features.getBounds().pad(1))
+          <!--map.fitBounds(features.getBounds().pad(1))-->
+          map.fitBounds(features.getBounds())
         } else {
           latlng = L.latLng(
             geom['features'][0].coordinates[1],

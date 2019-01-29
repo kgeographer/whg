@@ -16,21 +16,21 @@
       <div class="list-box">
         <table class="table table-striped">
           <thead>
-              <th>id</th>
-              <th>name</th>
-              <th>label</th>
-              <th>uploaded</th>
-              <th>format</th>
-              <th># rows</th>
-              <th>status</th>
-              <th>owner</th>
-              <th>&nbsp;</th>
+            <th></th>
+            <th>id</th>
+            <th>name</th>
+            <th>label</th>
+            <th>uploaded</th>
+            <th>format</th>
+            <th># rows</th>
+            <th>status</th>
+            <th>owner</th>
+            <th>&nbsp;</th>
           </thead>
           <tbody>
             {% for d in dataset_list %}
               <tr class="place-row">
-                <!-- <td><span class="edit-row" style="cursor:pointer;">
-                  {# fontawesome_icon 'edit' color='#336699' #}</span</td> -->
+                <td>{% if d.spine %}<i class="small">spine<i>{% endif %}</td>
                 <td>{{ d.id }}</td>
                 <td><a href="{% url 'datasets:dataset-detail' d.id %}">{{ d.name }}</a></td>
                 <td>{{ d.label }}</td>

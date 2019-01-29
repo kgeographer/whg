@@ -27,10 +27,13 @@ def link_uri(auth,id):
 # create place_name, place_geom, place_description records as req.
 def augmenter(placeid, auth, tid, hitjson):
     place = get_object_or_404(Place, id=placeid)
+    task = get_object_or_404(TaskResult, task_id=tid)
+    kwargs=json.loads(task.task_kwargs.replace("\'", "\""))
     print('augmenter params:',type(place), auth, hitjson)
     if auth == 'align_tgn':
         source = get_object_or_404(Source, src_id="getty_tgn")
-        if 'location' in hitjson.keys():
+        # don't add place_geom if flagged to ignore (physical non-point)
+        if 'location' in hitjson.keys() and kwargs['aug_geom'] == 'on':
             geojson=hitjson['location']
             # add geowkt and citation{id,label}
             geojson['geowkt']='POINT('+str(geojson['coordinates'][0])+' '+str(geojson['coordinates'][0])+')'
@@ -133,12 +136,15 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
                         },
                         review_note =  hits[x]['review_note'],
                     )
-                    # TODO: update <ds>.numlinked, <ds>.total_links
+                    # update <ds>.numlinked, <ds>.total_links
                     ds.numlinked = ds.numlinked +1
                     ds.total_links = ds.total_links +1
                     ds.save()
-                    # TODO: add associated records as req., per hits[x]['json']
+                    # TODO: augment fields for match 
                     # task.task_name = [align_tgn|align_dbp|align_gn|align_wd]
+                    # ignore TGN geometry for non-point physical geography datasets
+                    #hits[x]['json']['geom'] = True if ds in ('ne_rivers','ne_mountains','wri_lakes') else False
+                    #hits[x]['json']['geom'] = True if task.task_kwargs['aug_geom'] == 'on' else False
                     augmenter(placeid, task.task_name, tid, hits[x]['json'])
 
 
@@ -182,7 +188,9 @@ def ds_recon(request, pk):
         # TODO: let this vary per authority?
         region = request.POST['region'] # pre-defined UN regions
         userarea = request.POST['userarea'] #
-        print('request region, userarea',region, userarea)
+        aug_names = request.POST['aug_names'] #
+        aug_geom = request.POST['aug_geom'] #
+        #print('augment: names, geom',aug_names, aug_geom)
         bounds={
             "type":["region" if region !="0" else "userarea"],
             "id": [region if region !="0" else userarea]
@@ -194,7 +202,9 @@ def ds_recon(request, pk):
             ds=ds.id,
             dslabel=ds.label,
             owner=ds.owner.id,
-            bounds=bounds
+            bounds=bounds,
+            aug_names=aug_names,
+            aug_geom=aug_geom
         )
 
         context['task_id'] = result.id
@@ -203,6 +213,8 @@ def ds_recon(request, pk):
         context['authority'] = request.POST['recon']
         context['region'] = request.POST['region']
         context['userarea'] = request.POST['userarea']
+        context['aug_names'] = request.POST['aug_names']
+        context['aug_geom'] = request.POST['aug_geom']
         # context['ccodes'] = request.POST['ccodes']
         # context['hits'] = '?? not wired yet'
         context['result'] = result.get()
@@ -282,8 +294,8 @@ def ds_insert(request, pk ):
     countrows=0
     countlinked = 0
     countlinks = 0
-    for r in reader:
-    #for i, r in zip(range(300), reader):
+    #for r in reader:
+    for i, r in zip(range(100), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
@@ -447,6 +459,7 @@ class DashboardView(ListView):
             return Dataset.objects.all().order_by('id')
         else:
             return Dataset.objects.filter(owner__in=myteam(me)).order_by('id')
+        
 
     def get_context_data(self, *args, **kwargs):
         teamtasks=[]

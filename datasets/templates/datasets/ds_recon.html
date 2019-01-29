@@ -14,21 +14,21 @@
 <!-- <div class="container flex"> -->
 <div class="container">
   <form action="{% url 'datasets:ds_recon' ds.id %}" method="POST">
+  {% csrf_token %}
   <h4 class="my-3">
     {% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }}
     <span class="text-muted">[ #{{ ds.label }} ]</span></h4>
   <hr/>
   <div class="row">
     <div id="recon_form" class="col-md-6">
-        <p class="font-weight-bold">Authority name source</p>
-        {% csrf_token %}
+      <p class="font-weight-bold">Authority name source</p>
+      <div class="row">
+        <div class="col-sm-6">
         <input type="hidden" name="ds" value="{{ ds.id }}">
         <div class="form-check">
           <label class="form-check-label" for="auth1">
             <input type="radio" class="form-check-input" id="auth1"
               name="recon" value="tgn" checked>Getty TGN (tgn)
-              <span class="ml-2 text-success">{ task status }</span>
-              <!-- <span class="ml-2 text-success">{{ context.response }}</span> -->
           </label>
         </div>
         <div class="form-check">
@@ -52,6 +52,26 @@
               <span class="ml-2 text-success d-none"></span>
           </label>
         </div>
+      
+        </div>
+        <div class="col-sm-4 ghostbox">
+          <p class="small mb-0">For matches validated in review step, augment this dataset with:</p>
+          <div class="form-check">
+            <input type="hidden" name="aug_names" value="off" />
+            <label class="form-check-label small" for="aug1">
+              <input type="checkbox" class="form-check-input" id="aug1"
+                name="aug_names" checked>Name variants
+            </label>
+          </div>
+          <div class="form-check">
+            <input type="hidden" name="aug_geom" value="off" />
+            <label class="form-check-label small" for="aug2">
+              <input type="checkbox" class="form-check-input" id="aug2"
+                name="aug_geom" >Point geometry
+            </label>
+          </div>
+        </div>
+      </div> <!-- row -->
     </div>
     <div id="recon_result" class="col-md-6 ghostbox p-tight">
       {% if context.response %}

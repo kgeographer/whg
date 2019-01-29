@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 from celery.decorators import task
 from django.conf import settings
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 
 import sys, os, re, json, codecs, datetime, time, csv
 import random
@@ -309,8 +309,10 @@ def align_tgn(pk, *args, **kwargs):
         query_obj['parents'] = parents
 
         # TODO: handle multipoint, polygons(?)
+        # ignore non-point geometry
         if len(place.geoms.all()) > 0:
-            query_obj['geom'] = place.geoms.first().json
+            if place.geoms.all()[0].json['type'] == 'Point':
+                query_obj['geom'] = place.geoms.first().json
 
         print('query_obj:', query_obj)
 

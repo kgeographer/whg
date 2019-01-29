@@ -140,7 +140,7 @@ span.edit-row {
   height: 100%;
   /* position:absolute;top:0;left:0; */
 }
-#grid_detail p {
+#grid_detail, #place_record p {
   font-size: .8pem;
   margin-bottom:0;
 }

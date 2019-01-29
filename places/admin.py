@@ -32,3 +32,5 @@ admin.site.register(PlaceWhen)
 admin.site.register(PlaceRelated)
 admin.site.register(PlaceDescription)
 admin.site.register(PlaceDepiction)
+
+#admin.site.register(Hit)
