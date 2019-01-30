@@ -30,7 +30,7 @@
           <tbody>
             {% for d in dataset_list %}
               <tr class="place-row">
-                <td>{% if d.spine %}<i class="small">spine<i>{% endif %}</td>
+                <td>{% if d.spine %}{% fontawesome_icon 'superpowers' %}{% endif %}</td>
                 <td>{{ d.id }}</td>
                 <td><a href="{% url 'datasets:dataset-detail' d.id %}">{{ d.name }}</a></td>
                 <td>{{ d.label }}</td>
