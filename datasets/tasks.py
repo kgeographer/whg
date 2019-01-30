@@ -14,7 +14,7 @@ from .regions import regions as region_hash
 ##
 import shapely.geometry
 from geopy import distance
-from .utils import roundy, fixName, classy, bestParent, elapsed
+from .utils import roundy, fixName, classy, bestParent, elapsed, hully
 from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 ##
@@ -205,11 +205,16 @@ def es_lookup(qobj, *args, **kwargs):
     else:
         print('bounds[id]',bounds['id'])
 
-    # geom/centroid is available
+    # Point geom is available
     if 'geom' in qobj.keys():
-        print('geom in qobj')
         location = qobj['geom']
 
+        filter_within = { "geo_polygon" : {
+            "location.coordinates" : {
+                # extra bracket pair(s), dunno why
+                "points" : location['coordinates'][0] if location['type'] == "Polygon" else location['coordinates'][0][0]
+            }
+        }}
         filter_dist_100 = {"geo_distance" : {
             "ignore_unmapped": "true",
             "distance" : "100km",
@@ -221,10 +226,17 @@ def es_lookup(qobj, *args, **kwargs):
             "location.coordinates" : qobj['geom']['coordinates']
         }}
 
-        q1['query']['bool']['filter'].append(filter_dist_200)
-        q2['query']['bool']['filter'].append(filter_dist_200)
-        q3['query']['bool']['filter'].append(filter_dist_200)
-        q4['query']['bool']['filter'].append(filter_dist_200)
+        if location['type'] == 'Point':
+            q1['query']['bool']['filter'].append(filter_dist_200)
+            q2['query']['bool']['filter'].append(filter_dist_200)
+            q3['query']['bool']['filter'].append(filter_dist_200)
+            q4['query']['bool']['filter'].append(filter_dist_200)
+        else:
+            q1['query']['bool']['filter'].append(filter_within)
+            q2['query']['bool']['filter'].append(filter_within)
+            q3['query']['bool']['filter'].append(filter_within)
+            q4['query']['bool']['filter'].append(filter_within)
+            
 
     result_obj = {
         'place_id': qobj['place_id'], 'hits':[],
@@ -232,8 +244,7 @@ def es_lookup(qobj, *args, **kwargs):
     }
     print('q1',q1)
     # pass1: query [name, type, parent]
-    #res1 = es.search(index="tgn", body = q1)
-    res1 = es.search(index="tgn_shape", body = q1)
+    res1 = es.search(index="tgn", body = q1)
     hits1 = res1['hits']['hits']
     # 1 or more hits
     if len(hits1) > 0:
@@ -312,8 +323,11 @@ def align_tgn(pk, *args, **kwargs):
         # TODO: handle multipoint, polygons(?)
         # ignore non-point geometry
         if len(place.geoms.all()) > 0:
-            if place.geoms.all()[0].json['type'] == 'Point':
+            geom = place.geoms.all()[0].json
+            if geom['type'] in ('Point','MultiPolygon'):
                 query_obj['geom'] = place.geoms.first().json
+            elif geom['type'] == 'MultiLineString':
+                query_obj['geom'] = hully(geom)
 
         print('query_obj:', query_obj)
 

@@ -64,8 +64,8 @@
             <p><strong>Modern countries</strong>: {{ record.ccodes }} </p>
             <p><strong>Place type(s)</strong>:
               {% for type in record.types.all %}
-                <br/>{{ type.json.label }} ({{ type.json.src_label }})
-            {% endfor %}</p>
+                {{ type.json.label }} ({{ type.json.src_label }}); 
+              {% endfor %}</p>
             <!-- TODO: full place record -->
           </div>
           <div id="map">

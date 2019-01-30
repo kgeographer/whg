@@ -1,13 +1,19 @@
-import codecs, json, datetime
-from shapely import wkt, geometry
+import codecs, datetime
+import simplejson as json
+from shapely import wkt
+from shapely.geometry import MultiLineString, mapping
 
 fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
 parent_hash = json.loads(fin.read())
 fin.close()
 
+def hully(geom):
+    hull = mapping(MultiLineString(geom['coordinates']).convex_hull)
+    return json.loads(json.dumps(hull))
+    
 def parse_wkt(g):
     gw = wkt.loads(g)
-    feature = geometry.mapping(gw)
+    feature = mapping(gw)
     print('wkt, feature',g, feature)
     return feature
     
