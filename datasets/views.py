@@ -32,7 +32,7 @@ def augmenter(placeid, auth, tid, hitjson):
     print('augmenter params:',type(place), auth, hitjson)
     if auth == 'align_tgn':
         source = get_object_or_404(Source, src_id="getty_tgn")
-        # don't add place_geom if flagged to ignore (physical non-point)
+        # don't add place_geom record unless flagged in task
         if 'location' in hitjson.keys() and kwargs['aug_geom'] == 'on':
             geojson=hitjson['location']
             # add geowkt and citation{id,label}
@@ -189,8 +189,8 @@ def ds_recon(request, pk):
         region = request.POST['region'] # pre-defined UN regions
         userarea = request.POST['userarea'] #
         aug_names = request.POST['aug_names'] #
+        aug_notes = request.POST['aug_notes'] #
         aug_geom = request.POST['aug_geom'] #
-        #print('augment: names, geom',aug_names, aug_geom)
         bounds={
             "type":["region" if region !="0" else "userarea"],
             "id": [region if region !="0" else userarea]
@@ -204,6 +204,7 @@ def ds_recon(request, pk):
             owner=ds.owner.id,
             bounds=bounds,
             aug_names=aug_names,
+            aug_notes=aug_notes,
             aug_geom=aug_geom
         )
 
@@ -214,6 +215,7 @@ def ds_recon(request, pk):
         context['region'] = request.POST['region']
         context['userarea'] = request.POST['userarea']
         context['aug_names'] = request.POST['aug_names']
+        context['aug_notes'] = request.POST['aug_notes']
         context['aug_geom'] = request.POST['aug_geom']
         # context['ccodes'] = request.POST['ccodes']
         # context['hits'] = '?? not wired yet'

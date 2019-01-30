@@ -11,7 +11,7 @@
 {% endblock %}
 {% block content %}
 <!-- incoming: ds, place_list -->
-<!-- <div class="container flex"> -->
+<!-- TODO: convert this to proper django form & call it task_create -->
 <div class="container">
   <form action="{% url 'datasets:ds_recon' ds.id %}" method="POST">
   {% csrf_token %}
@@ -52,10 +52,9 @@
               <span class="ml-2 text-success d-none"></span>
           </label>
         </div>
-      
         </div>
         <div class="col-sm-4 ghostbox">
-          <p class="small mb-0">For matches validated in review step, augment this dataset with:</p>
+          <p class="small mb-0">When validating matches returned by this task, augment records with:</p>
           <div class="form-check">
             <input type="hidden" name="aug_names" value="off" />
             <label class="form-check-label small" for="aug1">
@@ -64,10 +63,17 @@
             </label>
           </div>
           <div class="form-check">
+            <input type="hidden" name="aug_notes" value="off" />
+            <label class="form-check-label small" for="aug1">
+              <input type="checkbox" class="form-check-input" id="aug1"
+                name="aug_notes" checked>Notes
+            </label>
+          </div>
+          <div class="form-check">
             <input type="hidden" name="aug_geom" value="off" />
             <label class="form-check-label small" for="aug2">
               <input type="checkbox" class="form-check-input" id="aug2"
-                name="aug_geom" >Point geometry
+                name="aug_geom">Point geometry
             </label>
           </div>
         </div>

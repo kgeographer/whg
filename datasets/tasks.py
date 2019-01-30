@@ -232,7 +232,8 @@ def es_lookup(qobj, *args, **kwargs):
     }
     print('q1',q1)
     # pass1: query [name, type, parent]
-    res1 = es.search(index="tgn", body = q1)
+    #res1 = es.search(index="tgn", body = q1)
+    res1 = es.search(index="tgn_shape", body = q1)
     hits1 = res1['hits']['hits']
     # 1 or more hits
     if len(hits1) > 0:
