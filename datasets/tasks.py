@@ -356,6 +356,7 @@ def align_tgn(pk, *args, **kwargs):
                     query_pass = hit['pass'],
                     json = hit['_source'],
                     src_id = query_obj['src_id'],
+                    score = hit['_score'],
                     geom = loc,
                     reviewed = False,
                 )

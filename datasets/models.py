@@ -83,6 +83,7 @@ class Hit(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     query_pass = models.CharField(max_length=12, choices=AUTHORITIES )
     src_id = models.CharField(max_length=50)
+    score = models.FloatField()
     reviewed = models.BooleanField(default=False)
 
     # authority record identifier (could be uri)

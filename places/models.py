@@ -155,29 +155,3 @@ class PlaceDepiction(models.Model):
         managed = True
         db_table = 'place_depiction'
         
-# raw hits from reconciliation
-# [{'place_id', 'task_id', 'authority', 'dataset', 'authrecord_id', 'id'}]
-#class Hit(models.Model):
-    #place_id = models.ForeignKey(Place, on_delete=models.CASCADE)
-    ## FK to celery_results_task_result.task_id; TODO: written yet?
-    ## task_id = models.ForeignKey(TaskResult, related_name='task_id', on_delete=models.CASCADE)
-    #task_id = models.CharField(max_length=50)
-    #authority = models.CharField(max_length=12, choices=AUTHORITIES )
-    #dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    #query_pass = models.CharField(max_length=12, choices=AUTHORITIES )
-    #src_id = models.CharField(max_length=50)
-    #reviewed = models.BooleanField(default=False)
-
-    ## authority record identifier (could be uri)
-    #authrecord_id = models.CharField(max_length=255)
-
-    ## json response; parse later according to authority
-    #json = JSONField(blank=True, null=True)
-    #geom = JSONField(blank=True, null=True)
-
-    #def __str__(self):
-        #return str(self.id)
-
-    #class Meta:
-        #managed = True
-        #db_table = 'hits'

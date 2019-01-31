@@ -103,7 +103,7 @@
                     <td><b>{{ r.task_name|cut:"align_" }}</b></td>
                     <td class="small">{{ r.date_done|date:"d-M-Y, H:i (e)" }}</td>
                     <td>
-                      <a href="{% url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id %}"
+                      <a href="{% url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id passnum='pass1' %}"
                         title="Review hits" rel="tooltip">
                         {% fontawesome_icon 'search' color='#336699' %}
                       </a>

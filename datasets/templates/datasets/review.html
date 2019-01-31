@@ -14,8 +14,26 @@
   <h4 class="mb-3 mt-3">
     {{ authority }} <span class="text-danger small">[ #{{ ds_label }} ]</span>
     <span class="half float-right">
+      <select id="select_pass" name="pass" class="custom-select-sm mr-2" style="width:auto;">
+        <option value="pass1" selected = "selected">Query pass 1</option>
+        <option value="pass2">Query pass 2</option>
+        <option value="pass3">Query pass 3</option>
+      </select>
+      <!--<div class="btn-group">-->
+        <!--<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" -->
+          <!--data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
+          <!--Filter query pass-->
+        <!--</button>-->
+        <!--<div class="dropdown-menu">-->
+          <!--<a class="dropdown-item" -->
+            <!--href="{% url 'datasets:review' pk=ds_id tid=task_id passnum='pass1' %}">Pass 1</a>-->
+          <!--<a class="dropdown-item" -->
+            <!--href="{% url 'datasets:review' pk=ds_id tid=task_id passnum='pass2' %}">Pass 2</a>-->
+          <!--<a class="dropdown-item" -->
+            <!--href="{% url 'datasets:review' pk=ds_id tid=task_id passnum='pass3' %}">Pass 3</a>-->
+        <!--</div>-->
+      <!--</div>-->
       task id: {{ task_id }}
-      <!-- <span class="ml-3"><a href="">Review saved matches</a></span> -->
     </span></h4>
   <div class="pagination d-flex justify-content-center">
     <span class="step-links">
@@ -88,7 +106,9 @@
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
-                  <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}</p>
+                  <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
+                    <span class="float-right">{{ form.query_pass.value }} ({{ form.score.value }})</span>
+                  </p>
                   <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
                     <p><strong>Variants</strong>:
                       {% for n in form.json.value|get:"names" %}
@@ -116,11 +136,21 @@
     $(function(){
       // defaults to string 'None' - no idea why
       $('.textarea').html('')
+      // set pass dropdown
+      z=window.location.href
+      $( "#select_pass" ).val(z.substring([z.length -5],))
     })
     // expose leaflet map for events, call it 'mappy'
     window.addEventListener('map:init', function (e) {
       window.mappy = e.detail.map
     }, false);
+
+    $( "#select_pass" ).change(function() {
+      z=window.location.href
+      base=z.substring(0,[z.length -5])
+      window.location.href = base + $(this).val()
+      <!--$('#select_pass')-->
+    });
 
     $('.noteicon').on('click', function(){
       $(this).parents(".matchbar").find(".notefield").toggle()

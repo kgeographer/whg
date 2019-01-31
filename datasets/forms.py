@@ -24,7 +24,7 @@ class HitModelForm(forms.ModelForm):
 
     class Meta:
         model = Hit
-        fields = ['id','authrecord_id','json',
+        fields = ['id','authrecord_id','json', 'query_pass', 'score'
             # 'place_id'
         ]
         # all Hit model fields

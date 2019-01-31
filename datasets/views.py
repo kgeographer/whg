@@ -76,14 +76,15 @@ def augmenter(placeid, auth, tid, hitjson):
         return
 
 # present reconciliation hits for review, execute augmenter() for valid ones
-def review(request, pk, tid): # dataset pk, celery recon task_id
+def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     # print('pk, tid:', pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
     # TODO: also filter by reviewed, per authority
 
-    # filter place records for those with unreviewed hits on this task
-    hitplaces = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False)
+    # filter place records for those with unreviewed hits on this task AND requested passnum
+    #hitplaces = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False).exclude(query_pass=passnum)
+    hitplaces = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False,query_pass=passnum)
     record_list = Place.objects.order_by('title').filter(pk__in=hitplaces)
     # record_list = Place.objects.order_by('title').filter(dataset=ds)
     paginator = Paginator(record_list, 1)
@@ -95,7 +96,9 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     place = get_object_or_404(Place, id=placeid)
     # print('records[0]',dir(records[0]))
     # recon task hits
-    hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid)
+    #hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('query_pass','-score')
+    #hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).exclude(query_pass=passnum).order_by('-score')
+    hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('-score')
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list':hit_list, 'authority': task.task_name,
@@ -105,7 +108,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     # Hit model fields = ['task_id','authority','dataset','place_id',
     #     'query_pass','src_id','authrecord_id','json','geom' ]
     HitFormset = modelformset_factory(
-        Hit, fields = ['id','authrecord_id','json'], form=HitModelForm, extra=0)
+        Hit, fields = ['id','authrecord_id','json','query_pass','score'], form=HitModelForm, extra=0)
     formset = HitFormset(request.POST or None, queryset=hit_list)
     # formset = HitFormset(request.POST, queryset=hit_list)
     context['formset'] = formset
