@@ -272,7 +272,7 @@ def drf_table(request, label, f):
 
 # insert LP-csv file to database
 # TODO: require, handle sources
-def ds_insert(request, pk ):
+def ds_insert(request, pk):
     # retrieve just-added file, insert to db
     import os, csv, codecs,json
     dataset = get_object_or_404(Dataset, id=pk)
@@ -299,8 +299,8 @@ def ds_insert(request, pk ):
     countrows=0
     countlinked = 0
     countlinks = 0
-    #for r in reader:
-    for i, r in zip(range(100), reader):
+    for r in reader:
+    #for i, r in zip(range(100), reader):
         # TODO: should columns be required even if blank?
         # required
         src_id = r[header.index('id')]
@@ -324,10 +324,10 @@ def ds_insert(request, pk ):
         coords = [
             float(r[header.index('lon')]),
             float(r[header.index('lat')]) ] if 'lon' in header else []
-        close_match = r[header.index('close_match')].split(';') \
-            if 'close_match' in header else []
-        exact_match = r[header.index('exact_match')].split(';') \
-            if 'exact_match' in header else []
+        close_matches = r[header.index('close_matches')].split(';') \
+            if 'close_matches' in header else []
+        exact_matches = r[header.index('exact_matches')].split(';') \
+            if 'exact_matches' in header else []
         # nice to have
         minmax = [
             r[header.index('min')],
@@ -383,18 +383,18 @@ def ds_insert(request, pk ):
             ))            
             
         # PlaceLink() - close
-        if len(list(filter(None,close_match))) > 0:
+        if len(list(filter(None,close_matches))) > 0:
             countlinked += 1
-            for m in close_match:
+            for m in close_matches:
                 countlinks += 1
                 objs['PlaceLink'].append(PlaceLink(place_id=newpl,
                     json={"type":"closeMatch", "identifier":m}
                 ))
 
         # PlaceLink() - exact
-        if len(list(filter(None,exact_match))) > 0:
+        if len(list(filter(None,exact_matches))) > 0:
             countlinked += 1
-            for m in exact_match:
+            for m in exact_matches:
                 countlinks += 1
                 objs['PlaceLink'].append(PlaceLink(place_id=newpl,
                     json={"type":"exactMatch", "identifier":m}

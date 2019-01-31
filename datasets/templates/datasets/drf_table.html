@@ -112,7 +112,7 @@
       else if(str.startsWith('dbp')) {uri = str.replace('dbp:','http://dbpedia.org/resource/')}
       else if(str.startsWith('gn')) {uri = str.replace('gn:','http://www.geonames.org/')}
       else if(str.startsWith('wwf:')) {uri = str.replace('wwf:','https://www.worldwildlife.org/ecoregions/')}
-      else if(str.startsWith('q:')) {uri = str.replace('q:','https://www.wikidata.org/wiki/')}
+      else if(str.startsWith('wd:')) {uri = str.replace('wd:','https://www.wikidata.org/wiki/')}
       link = '<span class="small mr-2"><a href="'+ uri +'" target="_blank">['+
         str+']</a></span>'
     }

@@ -231,7 +231,7 @@ def es_lookup(qobj, *args, **kwargs):
             q2['query']['bool']['filter'].append(filter_dist_200)
             q3['query']['bool']['filter'].append(filter_dist_200)
             q4['query']['bool']['filter'].append(filter_dist_200)
-        else:
+        elif location['type'] in ('Polygon','MultiPolygon'): # hull
             q1['query']['bool']['filter'].append(filter_within)
             q2['query']['bool']['filter'].append(filter_within)
             q3['query']['bool']['filter'].append(filter_within)
