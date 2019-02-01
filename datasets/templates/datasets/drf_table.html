@@ -173,12 +173,12 @@
     }
 
     // TYPES
-    html+='</p><p><b>Types</b>: ' + data.types[0].source_label +' <i class="small">('
+    html+='</p><p><b>Types</b>: ' + data.types[0].source_label +' [<i class="small">'
     typeids = ''
     for (t in data.types) {
-      typeids+=data.types[t].identifier +'; '
+      typeids+=data.types[t].label+'('+data.types[t].identifier +'); '
     }
-    html += typeids.replace(/(; $)/g, "") +')</i></p>'
+    html += typeids.replace(/(; $)/g, "") +'</i>]</p>'
 
 
     // GEOMS
