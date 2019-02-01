@@ -173,7 +173,13 @@
     }
 
     // TYPES
-    html+='</p><p><b>Types</b>: '+ data.types[0].label +' ('+data.types[0].source_label+')</p>'
+    html+='</p><p><b>Types</b>: ' + data.types[0].source_label +' <i class="small">('
+    typeids = ''
+    for (t in data.types) {
+      typeids+=data.types[t].identifier +'; '
+    }
+    html += typeids.replace(/(; $)/g, "") +')</i></p>'
+
 
     // GEOMS
     if (data.geoms.length > 0){
