@@ -2,10 +2,15 @@ import codecs, datetime
 import simplejson as json
 from shapely import wkt
 from shapely.geometry import MultiLineString, mapping
+from datasets.static.hashes import aat
 
 fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
 parent_hash = json.loads(fin.read())
 fin.close()
+
+def aat_lookup(id):
+    label = aat.types[id]['term_full']
+    return label
 
 def hully(geom):
     hull = mapping(MultiLineString(geom['coordinates']).convex_hull)
@@ -36,17 +41,16 @@ def elapsed(delta):
 def bestParent(qobj, flag=False):
     # TODO: region only applicable for black, right?
     global parent_hash
-
-    # TODO: case of multiple parent countries
+    best = []
+    # merge parent country/ies & parents
     if len(qobj['countries']) > 0:
-        best = parent_hash['ccodes'][qobj['countries'][0]]['tgnlabel']
-    elif len(qobj['parents']) > 0:
-        best = qobj['parents'][0]
-    # regions only applicable for Black; already reconciled against TGN
-    # elif len(qobj['regions']) > 0:
-    #     best = parent_hash['regions'][qobj['region']]['tgnlabel']
-    else:
-        best = 'World'
+        for c in qobj['countries']:
+            best.append(parent_hash['ccodes'][c]['tgnlabel'])
+    if len(qobj['parents']) > 0:
+        for p in qobj['parents']:
+            best.append(p)
+    if len(best) == 0:
+        best = ['World']
     return best
 
 def roundy(x, direct="up", base=10):

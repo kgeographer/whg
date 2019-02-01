@@ -125,10 +125,14 @@ def get_bbox_filter(bounds):
 def es_lookup(qobj, *args, **kwargs):
     # print('qobj',qobj)
     bounds = kwargs['bounds']
-
     hit_count = 0
-
-    search_name = fixName(qobj['prefname'])
+    #search_name = fixName(qobj['prefname'])
+    
+    # empty result object
+    result_obj = {
+        'place_id': qobj['place_id'], 'hits':[],
+        'missed':-1, 'total_hits':-1
+    }  
 
     # array (includes title)
     variants = qobj['variants']
@@ -136,114 +140,76 @@ def es_lookup(qobj, *args, **kwargs):
     # bestParent() coalesces mod. country and region; countries.json
     parent = bestParent(qobj)
 
-    # province, if there
-    # province = qobj['province']
-
     # pre-computed in sql
     # minmax = row['minmax']
 
-    # must be aat_type(s)
+    # getty aat numerical identifiers
     placetypes = qobj['placetypes']
 
-    # TODO insert to query/ies & prioritize?
-    # title_search = {"multi_match": {
-    #     "query": search_name,
-    #     "fields": ["title", "names.name"]}
-    # }
-
-    # TODO: refactor the whole query generation thing
-    # TODO: ensure name search on ANY(names.name)
-    # TODO: parse a variants column in csv
-
-    # pass1: name, type, distance?
-    # TODO: ensure placetypes are AAT labels
-    q1 = {"query": { "bool": {
-            "must": [
-                {"terms" : { "names.name" : variants }}
-                ,{"match": {"types.placetype": placetypes[0]}}
-              ],
-            "filter": [
-            ]
-          }
-    }}
-    # pass2: name, parent, distance?
-    q2 = {"query": { "bool": {
+    # base query: name, type, parent, bounds if specified
+    qbase = {"query": { 
+            "bool": {
               "must": [
-                {"terms" : { "names.name" : variants }}
-                ,{"match": {"parents": parent}}
+                {"terms": {"names.name":variants}},
+                {"terms": {"types.id":placetypes}},
               ],
-              "filter": [
-              ]
-          }
-    }}
-    # TODO: 3 & 4 are the same
-    # pass3a: name, distance?
-    q3 = {"query": { "bool": {
-            "must": [
-                {"terms" : { "names.name" : variants }
-            }],
-            "filter": [
-            ]
-        }
-    }}
-    # pass3b: name only
-    q4 = { "query": { "bool": {
-            "must": [{
-                "terms" : { "names.name" : variants }
-            }],
-            "filter": [
-            ]
-        }
-    }}
+              "should":[
+                {"match": {"parents":parent}}                
+              ],
+              "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
+            }
+          }}
 
-    # add filter
-    if bounds['id'] != ['0']: # bbox=area abbrev.
-        q1['query']['bool']['filter'].append(get_bbox_filter(bounds))
-        q2['query']['bool']['filter'].append(get_bbox_filter(bounds))
-        q3['query']['bool']['filter'].append(get_bbox_filter(bounds))
-        q4['query']['bool']['filter'].append(get_bbox_filter(bounds))
-    else:
-        print('bounds[id]',bounds['id'])
+    
+    qbare = {"query": { 
+            "bool": {
+              "must": [
+                {"terms": {"names.name":variants}}
+              ],
+              "should":[
+                {"match": {"parents":parent}}                
+              ],
+              "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
+            }
+          }}
 
-    # Point geom is available
+    
+    # grab copy of qbase
+    q1 = qbase
+    
+    # if geometry is supplied, define spatial filters & apply one to copy of qbase
     if 'geom' in qobj.keys():
+        # call it location
         location = qobj['geom']
-
+        
         filter_within = { "geo_polygon" : {
             "location.coordinates" : {
                 # extra bracket pair(s), dunno why
-                "points" : location['coordinates'][0] if location['type'] == "Polygon" else location['coordinates'][0][0]
+                "points" : location['coordinates'][0] if location['type'] == "Polygon" \
+                    else location['coordinates'][0][0]
             }
         }}
+        
         filter_dist_100 = {"geo_distance" : {
             "ignore_unmapped": "true",
             "distance" : "100km",
             "location.coordinates" : qobj['geom']['coordinates']
         }}
+        
         filter_dist_200 = {"geo_distance" : {
             "ignore_unmapped": "true",
             "distance" : "200km",
             "location.coordinates" : qobj['geom']['coordinates']
         }}
-
+    
+        # selectively add filters to queries
         if location['type'] == 'Point':
             q1['query']['bool']['filter'].append(filter_dist_200)
-            q2['query']['bool']['filter'].append(filter_dist_200)
-            q3['query']['bool']['filter'].append(filter_dist_200)
-            q4['query']['bool']['filter'].append(filter_dist_200)
         elif location['type'] in ('Polygon','MultiPolygon'): # hull
             q1['query']['bool']['filter'].append(filter_within)
-            q2['query']['bool']['filter'].append(filter_within)
-            q3['query']['bool']['filter'].append(filter_within)
-            q4['query']['bool']['filter'].append(filter_within)
-            
 
-    result_obj = {
-        'place_id': qobj['place_id'], 'hits':[],
-        'missed':-1, 'total_hits':-1
-    }
-    print('q1',q1)
-    # pass1: query [name, type, parent]
+
+    # pass1: name, type, parent, study_area, geom if provided
     res1 = es.search(index="tgn", body = q1)
     hits1 = res1['hits']['hits']
     # 1 or more hits
@@ -252,27 +218,20 @@ def es_lookup(qobj, *args, **kwargs):
             hit_count +=1
             hit['pass'] = 'pass1'
             result_obj['hits'].append(hit)
-    # no hits -> pass2 with only [name,parent]
     elif len(hits1) == 0:
+    # pass2: drop geom (revert to qbase{})
+        q2 = qbase
         res2 = es.search(index="tgn", body = q2)
         hits2 = res2['hits']['hits']
         if len(hits2) > 0:
             for hit in hits2:
-                if any(x['placetype'] == "rivers" for x in hits2[0]['_source']['types']):
-                    pass
-                else:
-                    hit_count +=1
-                    hit['pass'] = 'pass2'
-                    result_obj['hits'].append(hit)
+                hit_count +=1
+                hit['pass'] = 'pass2'
+                result_obj['hits'].append(hit)
         elif len(hits2) == 0:
-            # now name only; may yield a few correct matches
-            # because place type mapping is imperfect
-            # tests geometry (200km) if exists
-            if 'geom' not in qobj.keys():
-            # if qobj['geom'] != None:
-                res3 = es.search(index="tgn", body = q3)
-            else:
-                res3 = es.search(index="tgn", body = q4) # no geom
+            # drop type, parent using qbare{}
+            q3 = qbare
+            res3 = es.search(index="tgn", body = q3)
             hits3 = res3['hits']['hits']
             if len(hits3) > 0:
                 for hit in hits3:
@@ -280,9 +239,9 @@ def es_lookup(qobj, *args, **kwargs):
                     hit['pass'] = 'pass3'
                     result_obj['hits'].append(hit)
             else:
-                # no hit at all, even on name only
+                # no hit at all, name & bounds only
                 result_obj['missed'] = qobj['place_id']
-                # TODO: make name search fuzzy?
+                # TODO: q4 for fuzzy names?
     result_obj['hit_count'] = hit_count
     return result_obj
 
@@ -305,22 +264,30 @@ def align_tgn(pk, *args, **kwargs):
         count +=1
         query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
         variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
-
+        
+        # ccodes (2-letter iso codes)
+        for c in place.ccodes:
+            ccodes.append(c)
         query_obj['countries'] = place.ccodes
-        query_obj['placetypes'] = [place.types.first().json['label']]
+        
+        # types (Getty AAT identifiers)
+        for t in place.types.all():
+            print('type',t)
+            types.append(int(t.json['identifier'][4:]))
+        query_obj['placetypes'] = types
 
         # names
         for name in place.names.all():
             variants.append(name.toponym)
         query_obj['variants'] = variants
 
-        #parents
+        # parents
         for rel in place.related.all():
             if rel.json['relation_type'] == 'gvp:broaderPartitive':
                 parents.append(rel.json['label'])
         query_obj['parents'] = parents
 
-        # TODO: handle multipoint, polygons(?)
+        # geoms
         # ignore non-point geometry
         if len(place.geoms.all()) > 0:
             geom = place.geoms.all()[0].json

@@ -17,7 +17,7 @@ from places.models import *
 from main.choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
 from .tasks import read_delimited, align_tgn, read_lpf
-from .utils import parsejson, myteam, parse_wkt
+from .utils import parsejson, myteam, parse_wkt, aat_lookup
 
 def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
@@ -314,8 +314,9 @@ def ds_insert(request, pk):
         else:
             variants = []
         # encouraged for reconciliation
-        type = r[header.index('type')] if 'type' in header else 'not specified'
-        aat_type = r[header.index('aat_type')] if 'aat_type' in header else ''
+        src_type = r[header.index('type')] if 'type' in header else 'not specified'
+        aat_types = r[header.index('aat_types')].split(';') \
+            if 'aat_types' in header else ''
         parent = r[header.index('parent')] if 'parent' in header else ''
         #standardize on ';' for name and ccode arrays in tab-delimited files
         #ccodes = r[header.index('ccodes')][2:-2].split(', ') \
@@ -365,9 +366,13 @@ def ds_insert(request, pk):
                     json={"toponym": v, "citation": {"id":name_src,"label":""}}
                 ))
 
-        # PlaceType()
-        objs['PlaceType'].append(PlaceType(place_id=newpl,
-            json={"src_label": type, "label":aat_type}
+        # PlaceTypes()
+        if len(aat_types) > 0:
+            print('aat_types',aat_types)
+            for t in aat_types:
+                objs['PlaceType'].append(PlaceType(place_id=newpl,
+                    json={"identifier":"aat:"+t, "src_label":src_type, 
+                        "label":aat_lookup(int(t))}
         ))
 
         # PlaceGeom()
