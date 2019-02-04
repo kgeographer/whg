@@ -151,10 +151,10 @@ def es_lookup(qobj, *args, **kwargs):
             "bool": {
               "must": [
                 {"terms": {"names.name":variants}},
-                {"terms": {"types.id":placetypes}},
+                {"terms": {"types.id":placetypes}}
               ],
               "should":[
-                {"match": {"parents":parent}}                
+                {"terms": {"parents":parent}}                
               ],
               "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
             }
@@ -167,7 +167,7 @@ def es_lookup(qobj, *args, **kwargs):
                 {"terms": {"names.name":variants}}
               ],
               "should":[
-                {"match": {"parents":parent}}                
+                {"terms": {"parents":parent}}                
               ],
               "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
             }
@@ -210,6 +210,7 @@ def es_lookup(qobj, *args, **kwargs):
 
 
     # pass1: name, type, parent, study_area, geom if provided
+    print('q1',q1)
     res1 = es.search(index="tgn", body = q1)
     hits1 = res1['hits']['hits']
     # 1 or more hits
@@ -221,6 +222,7 @@ def es_lookup(qobj, *args, **kwargs):
     elif len(hits1) == 0:
     # pass2: drop geom (revert to qbase{})
         q2 = qbase
+        print('q2 (base)',q2)
         res2 = es.search(index="tgn", body = q2)
         hits2 = res2['hits']['hits']
         if len(hits2) > 0:
@@ -231,6 +233,7 @@ def es_lookup(qobj, *args, **kwargs):
         elif len(hits2) == 0:
             # drop type, parent using qbare{}
             q3 = qbare
+            print('q3 (bare)',q3)
             res3 = es.search(index="tgn", body = q3)
             hits3 = res3['hits']['hits']
             if len(hits3) > 0:
