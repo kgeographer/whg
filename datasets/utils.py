@@ -4,9 +4,11 @@ from shapely import wkt
 from shapely.geometry import MultiLineString, mapping
 from datasets.static.hashes import aat
 
-fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
+#fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
+fin = codecs.open('/Users/karlg/Documents/Repos/_whg/whg/static/js/parents.json', 'r', 'utf8')
 parent_hash = json.loads(fin.read())
 fin.close()
+
 
 def aat_lookup(id):
     label = aat.types[id]['term_full']
