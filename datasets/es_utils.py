@@ -134,7 +134,8 @@ def delete_dataset(ds):
 
 def find_match(qobj):
     # 
-    q1 = {"query": { 
+    matches = []
+    q_links = {"query": { 
             "bool": {
                 "must": [
                     {"nested": {
@@ -151,10 +152,16 @@ def find_match(qobj):
             }
       }}
     
-    if len(qobj['links']) > 0:
-        res = es.search(index='whg', doc_type='place', body=q1)
-        hits = res['hits']['hits']        
-        if len(hits) > 0:
+    if len(qobj['links']) > 0: # if links, terms query
+        res = es.search(index='whg', doc_type='place', body=q_links)
+        hits = res['hits']['hits']
+        if len(hits) == 0:
+            # create seed (and/or parent+child)
+        elif len(hits) == 1:
+            # get its id & create child to it
+        elif len(hits) > 1:
+            # alert
+            print('')
             
 
             
