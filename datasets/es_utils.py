@@ -94,9 +94,31 @@ def make_seed(place, dataset, whgid):
     return sobj
 
 def delete_docs(ids):
-    for id in ids:
+    from elasticsearch import Elasticsearch
+    es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+    for i in ids:
         try:
-            es.delete(es_index='whg', doc_type='place', id=id)
+            es.delete(index='whg', doc_type='place', id=i)
+        except:
+            print('failed delete for: ',id)
+            pass
+
+def delete_kids(ids):
+    from elasticsearch import Elasticsearch
+    {"nested": {
+            "path": "is_conflation_of",
+            "query": 
+              {"nested" : {
+                "path" :  "is_conflation_of.types",
+                "query" : {"terms": {"is_conflation_of.place_id": ids}}
+                }
+              }
+          }}    
+    q={"query": {"terms": { "":ds }}}
+    es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+    for i in ids:
+        try:
+            es.delete(index='whg', doc_type='place', id=i)
         except:
             print('failed delete for: ',id)
             pass
@@ -109,9 +131,38 @@ def delete_dataset(ds):
         print('failed delete for: ',ds)
         pass
     
+
+def find_match(qobj):
+    # 
+    q1 = {"query": { 
+            "bool": {
+                "must": [
+                    {"nested": {
+                        "path": "is_conflation_of",
+                        "query": {
+                            "nested" : {
+                                "path" :  "is_conflation_of.links",
+                                "query" : {
+                                    "terms": {
+                                        "is_conflation_of.links.identifier": qobj['links'] }}
+                        }}
+                    }}
+                ]
+            }
+      }}
+    
+    if len(qobj['links']) > 0:
+        res = es.search(index='whg', doc_type='place', body=q1)
+        hits = res['hits']['hits']        
+        if len(hits) > 0:
+            
+
+            
+    return matches
+
 def query_object(place):
     qobj = {"place_id":place.id,"src_id":place.src_id,"title":place.title}
-    variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
+    variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]; links=[]
     
     # ccodes (2-letter iso codes)
     for c in place.ccodes:
@@ -133,6 +184,12 @@ def query_object(place):
         if rel.json['relation_type'] == 'gvp:broaderPartitive':
             parents.append(rel.json['label'])
     qobj['parents'] = parents
+    
+    # links
+    if len(place.links.all()) > 0:
+        for l in place.links.all():
+            links.append(l.json['identifier'])
+        qobj['links'] = links
     
     # geoms
     if len(place.geoms.all()) > 0:
