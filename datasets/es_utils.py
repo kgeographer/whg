@@ -1,17 +1,6 @@
 # es_utils.py 7 Feb 2019
 # misc supporting eleasticsearch tasks (es.py)
 
-def insert_child(parent_id, child_obj):
-    # select parent, add child to is_conflation_of
-    print('added ',child_obj,' to ',parent_id)
-    
-def json_default(value):
-    import datetime
-    if isinstance(value, datetime.date):
-        return dict(year=value.year, month=value.month, day=value.day)
-    else:
-        return value.__dict__
-    
 class SeedPlace(object):
     def __init__(self, whgid, place_id, dataset, src_id, title):
         self.whgid = whgid
@@ -31,35 +20,64 @@ class SeedPlace(object):
     def toJSON(self):
         import json
         #return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=2)    
-        return json.dumps(self, default=json_default, sort_keys=True, indent=2)    
+        return json.dumps(self, default=jsonDefault, sort_keys=True, indent=2)            
 
-def parse_place(place,attr):
-    qs = eval('place.'+attr+'.all()')
-    arr = []
-    for obj in qs:
-        arr.append(obj.json)
-    return arr
+def uriMaker(place):
+    from django.shortcuts import get_object_or_404
+    ds = get_object_or_404(Dataset,id=place.dataset.id)
+    return ds.uri_base
     
-def make_child(place):
-    cobj = {
+def findMatch(qobj,scheme,es):
+    matches = {"scheme":scheme, "whgids":[]}
+    q_links = {"query": { 
+        "bool": {
+            "must": [
+                {"nested": {
+                    "path": "is_conflation_of",
+                    "query": {
+                        "nested" : {
+                            "path" :  "is_conflation_of.links",
+                            "query" : {
+                                "terms": {
+                                    "is_conflation_of.links.identifier": qobj['links'] }}
+                    }}
+                }}
+            ]
+        }
+    }}
+    
+    if len(qobj['links']) > 0: # if links, terms query
+        res = es.search(index='whg_'+scheme, doc_type='place', body=q_links)
+        hits = res['hits']['hits']
+        if len(hits) == 0:
+            print('no hits, run makeSeed()')
+            # create seed (and/or parent+child)
+        elif len(hits) > 0:
+            for h in hits:
+                matches['whgids'].append(h['_source']['whgid'])
+    return matches
+
+def makeChildConflate(place):
+    cc_obj = {
             "place_id": place.id,
             "dataset": place.dataset.label,
             "src_id": place.src_id,
             "title": place.title,
-            "uri": "http://whgazetteer.org/api/places/"+str(place.id),
+            "uri": uriMaker(place),
             "ccodes": place.ccodes,
-            "names": parse_place(place,'names'),
-            "types": parse_place(place,'types'),
-            "links": parse_place(place,'links')
-            #"geometries": [],
+            "names": parsePlace(place,'names'),
+            "types": parsePlace(place,'types'),
+            "links": parsePlace(place,'links'),
+            "geoms": parsePlace(place,'geoms'),
+            "descriptions": parsePlace(place,'descriptions')
             #"relations": [],
-            #"descriptions": [], 
             #"depictions": [], 
             #"timespans": []
         }
-    return cobj
-    
-def make_seed(place, dataset, whgid):
+    return cc_obj
+
+
+def makeSeed(place, dataset, whgid):
     # whgid, place_id, dataset, src_id, title
     sobj = SeedPlace(whgid, place.id, dataset, place.src_id, place.title )
     
@@ -85,7 +103,7 @@ def make_seed(place, dataset, whgid):
     if len(place.whens.all()) > 0:
         sobj['minmax'] = []
     
-    sobj.is_conflation_of.append(make_child(place))
+    sobj.is_conflation_of.append(makeChildConflate(place))
     
     # TODO update sobj['suggest']['input']
     # TODO update sobj['minmax']
@@ -93,7 +111,26 @@ def make_seed(place, dataset, whgid):
     
     return sobj
 
-def delete_docs(ids):
+
+def insertChild(parent_id, child_obj):
+    # select parent, add child to is_conflation_of
+    print('added ',child_obj,' to ',parent_id)
+            
+def jsonDefault(value):
+    import datetime
+    if isinstance(value, datetime.date):
+        return dict(year=value.year, month=value.month, day=value.day)
+    else:
+        return value.__dict__
+    
+def parsePlace(place,attr):
+    qs = eval('place.'+attr+'.all()')
+    arr = []
+    for obj in qs:
+        arr.append(obj.json)
+    return arr
+    
+def deleteDocs(ids):
     from elasticsearch import Elasticsearch
     es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
     for i in ids:
@@ -102,8 +139,8 @@ def delete_docs(ids):
         except:
             print('failed delete for: ',id)
             pass
-
-def delete_kids(ids):
+        
+def deleteKids(ids):
     from elasticsearch import Elasticsearch
     {"nested": {
             "path": "is_conflation_of",
@@ -123,7 +160,7 @@ def delete_kids(ids):
             print('failed delete for: ',id)
             pass
 
-def delete_dataset(ds):
+def deleteDataset(ds):
     q={"query": {"match": { "seed_dataset":ds }}}
     try:
         es.delete(es_index='whg', doc_type='place', body=q)
@@ -132,42 +169,9 @@ def delete_dataset(ds):
         pass
     
 
-def find_match(qobj):
-    # 
-    matches = []
-    q_links = {"query": { 
-            "bool": {
-                "must": [
-                    {"nested": {
-                        "path": "is_conflation_of",
-                        "query": {
-                            "nested" : {
-                                "path" :  "is_conflation_of.links",
-                                "query" : {
-                                    "terms": {
-                                        "is_conflation_of.links.identifier": qobj['links'] }}
-                        }}
-                    }}
-                ]
-            }
-      }}
-    
-    if len(qobj['links']) > 0: # if links, terms query
-        res = es.search(index='whg', doc_type='place', body=q_links)
-        hits = res['hits']['hits']
-        if len(hits) == 0:
-            # create seed (and/or parent+child)
-        elif len(hits) == 1:
-            # get its id & create child to it
-        elif len(hits) > 1:
-            # alert
-            print('')
-            
 
-            
-    return matches
 
-def query_object(place):
+def queryObject(place):
     qobj = {"place_id":place.id,"src_id":place.src_id,"title":place.title}
     variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]; links=[]
     

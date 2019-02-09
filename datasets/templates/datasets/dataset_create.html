@@ -33,6 +33,7 @@
         <p>Format {{ form.format }}
           <span class="text-danger small"><i>delimiters: tab, semicolon or pipe ('|')</i></span>
         </p>
+        <p>URI base {{ form.uri_base }}</p>
         {% if user.id == 1 %}<p>Spine? {{ form.spine }}</p>{% endif %}
         {% if form.mapbox_id != null %}
           <p>MapBox ID {{ form.mapbox_id }}</p>

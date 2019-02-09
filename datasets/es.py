@@ -1,6 +1,5 @@
 # index dataset from database
 # 7 Feb 2019
-
 from __future__ import absolute_import, unicode_literals
 import sys, os, re, json, codecs, datetime, time, csv, random
 from elasticsearch import Elasticsearch
@@ -13,7 +12,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, render, redirect
 
 from areas.models import Area
-from datasets.es_utils import * # query_object, make_seed, make_child
+from datasets.es_utils import * # 
 from datasets.models import Dataset, Hit
 from datasets.regions import regions as region_hash
 from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
@@ -21,39 +20,50 @@ from places.models import Place
 ##
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
-def max_id():
-    q={"aggs":{"max_whgid" : { "max" : { "field" : "whgid" } } } }
-    res = es.search(index="whg", size=0, body = q)
-    return int(res['aggregations']['max_whgid']['value'])
-
-# index dataset
-def index_dataset(dataset):
+dataset='dplace'
+scheme='conflate'
+# 1428 dplace records; 1364 new, 64 into is_conflation_of
+# e.g. 97829 (Calusa) into 12347200
+# index dataset ('conflate','flat')
+def indexDataset(dataset,scheme):
     qs = Place.objects.all().filter(dataset_id=dataset)
     count = 0
-    whgid = max_id()    
-    # TODO: confirm it doesn't exist
-    for place in qs:
-        # build query object
-        qobj = query_object(place)
-        
-        # is there a record for it?
-        # matches = find_match(qobj)
-        matches = [] # empty for now
     
-        if len(matches) == 0:
-            # no match, make seed record + first child
+    def maxID():
+        q={"aggs":{"max_whgid" : { "max" : { "field" : "whgid" } } } }
+        res = es.search(index="whg_"+scheme, size=0, body = q)
+        return int(res['aggregations']['max_whgid']['value'])   
+    whgid = maxID(); print('max whgid:',whgid)  
+    count_seeds = count_kids = 0
+    for place in qs:
+        place=get_object_or_404(Place,id=97829) # dbp:Calusa
+        links=place.links.first().json
+        
+        # build query object
+        qobj = queryObject(place)
+        
+        # if it has links, look for matches in existing
+        matches = findMatch(qobj,scheme,es) if 'links' in qobj.keys() else {"scheme":scheme, "whgids":[]}
+    
+        if len(matches['whgids']) == 0:
+            # no matches -> make seed record + first child
             whgid +=1
-            seed_obj = make_seed(place,dataset,whgid)
+            seed_obj = makeSeed(place,dataset,whgid)
             # add
             try:
-                res = es.index(index='whg', doc_type='place', id=whgid, body=seed_obj.toJSON())
+                res = es.index(index='whg_'+scheme, doc_type='place', id=whgid, body=seed_obj.toJSON())
+                count_seeds +=1
             except:
                 print(doc['place_id'], ' broke it')
                 print("error:", sys.exc_info()[0])                
         else:
-            # TODO: if match, insert as child
-            child_obj = make_child(place, dataset)
-            # parse matches[] for parent_id
-            insert_child(parent_id, child_obj)
-    
+            count_kids +=1
+            # 1 or more matches
+            for parentid in matches['whgids']:
+                #print('insert '+str(place.id)+' into each of these:'+str(m))
+                child_obj = makeChildConflate(place) if scheme=='conflate' \
+                    else makeChildFlat(place, parentid)
+                print(child_obj)
+            #insertChild(parent_id, child_obj)
+    print(str(count_seeds)+' seeds added, '+str(count_kids)+' kids to be added')
 #index_dataset('dplace')

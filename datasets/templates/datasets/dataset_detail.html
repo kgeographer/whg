@@ -35,6 +35,7 @@
         <p><b>Date</b>: {{ object.upload_date|date:"d-M-Y, H:i (e)" }}</p>
         <p><b>Total rows</b>: {{ object.numrows }}</p>
         <p><b>Data type</b>: {{ object.datatype }}</p>
+        <p><b>URI base</b>: {{ object.uri_base }}</p>
         <p><b>Format</b>: {{ object.format }} ({{ object.delimiter }})</p>
         {% if object.format == "delimited" %}
           <p><b>Sources file</b>:</p>

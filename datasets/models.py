@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from django_celery_results.models import TaskResult
 from main.choices import *
-#from places.models import Place
+from places.models import Place
 
 def user_directory_path(instance, filename):
     # upload to MEDIA_ROOT/user_<username>/<filename>
@@ -32,6 +32,7 @@ class Dataset(models.Model):
     name = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=2044, null=False)
     file = models.FileField(upload_to=user_directory_path)
+    uri_base = models.URLField(blank=True, null=True)
     format = models.CharField(max_length=12, null=False,choices=FORMATS,
         default='delimited')
     datatype = models.CharField(max_length=12, null=False,choices=DATATYPES,
@@ -75,7 +76,7 @@ def remove_file(**kwargs):
 # raw hits from reconciliation
 # [{'place_id', 'task_id', 'authority', 'dataset', 'authrecord_id', 'id'}]
 class Hit(models.Model):
-    place_id = models.ForeignKey('places.Place', on_delete=models.CASCADE)
+    place_id = models.ForeignKey(Place, on_delete=models.CASCADE)
     # FK to celery_results_task_result.task_id; TODO: written yet?
     # task_id = models.ForeignKey(TaskResult, related_name='task_id', on_delete=models.CASCADE)
     task_id = models.CharField(max_length=50)
