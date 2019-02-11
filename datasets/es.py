@@ -21,7 +21,7 @@ from places.models import Place
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 dataset='dplace'
-scheme='conflate'
+scheme='flat'
 # 1428 dplace records; 1364 new, 64 into is_conflation_of
 # e.g. 97829 (Calusa) into 12347200
 # index dataset ('conflate','flat')
@@ -29,41 +29,46 @@ def indexDataset(dataset,scheme):
     qs = Place.objects.all().filter(dataset_id=dataset)
     count = 0
     
-    def maxID():
-        q={"aggs":{"max_whgid" : { "max" : { "field" : "whgid" } } } }
-        res = es.search(index="whg_"+scheme, size=0, body = q)
-        return int(res['aggregations']['max_whgid']['value'])   
-    whgid = maxID(); print('max whgid:',whgid)  
+    if scheme=='conflate':
+        def maxID():
+            q={"aggs":{"max_whgid" : { "max" : { "field" : "whgid" } } } }
+            res = es.search(index="whg_"+scheme, size=0, body = q)
+            return int(res['aggregations']['max_whgid']['value'])   
+        whgid = maxID(); print('max whgid:',whgid)  
     count_seeds = count_kids = 0
     for place in qs:
-        place=get_object_or_404(Place,id=97829) # dbp:Calusa
-        links=place.links.first().json
-        
+        #place=get_object_or_404(Place,id=97829) # dbp:Calusa
+        #links=place.links.first().json
         # build query object
         qobj = queryObject(place)
         
         # if it has links, look for matches in existing
-        matches = findMatch(qobj,scheme,es) if 'links' in qobj.keys() else {"scheme":scheme, "whgids":[]}
+        matches = findMatch(qobj,scheme,es) if 'links' in qobj.keys() else {"scheme":scheme, "ids":[]}
     
-        if len(matches['whgids']) == 0:
-            # no matches -> make seed record + first child
-            whgid +=1
-            seed_obj = makeSeed(place,dataset,whgid)
-            # add
-            try:
-                res = es.index(index='whg_'+scheme, doc_type='place', id=whgid, body=seed_obj.toJSON())
+        if len(matches['ids']) == 0:
+            if scheme=='conflate':
+                whgid +=1
+                seed_obj = makeSeed(place,dataset,whgid)
+                try:
+                    res = es.index(index='whg_conflate', doc_type='place', id=whgid, body=seed_obj.toJSON())
+                    count_seeds +=1
+                except:
+                    print(qobj['place_id'], ' broke it')
+                    print("error:", sys.exc_info()[0])
+            elif scheme=='flat':
                 count_seeds +=1
-            except:
-                print(doc['place_id'], ' broke it')
-                print("error:", sys.exc_info()[0])                
+                child_obj = makeChild(place,'none')
+                res = es.index(index='whg_flat', doc_type='place', id=place.id, body=json.dumps(child_obj))
         else:
-            count_kids +=1
             # 1 or more matches
-            for parentid in matches['whgids']:
-                #print('insert '+str(place.id)+' into each of these:'+str(m))
-                child_obj = makeChildConflate(place) if scheme=='conflate' \
-                    else makeChildFlat(place, parentid)
-                print(child_obj)
-            #insertChild(parent_id, child_obj)
-    print(str(count_seeds)+' seeds added, '+str(count_kids)+' kids to be added')
+            for parentid in matches['ids']:
+                if scheme=='conflate':
+                    count_kids +=1                    
+                    child_obj = makeChild(place,'none') # no parent
+                    insertChildConflate(parentid,child_obj,es)
+                else:
+                    count_kids +=1                
+                    child_obj = makeChild(place,parentid)
+                    res = es.index(index='whg_'+scheme, doc_type='place', id=place.id, body=json.dumps(child_obj))
+    print(str(count_seeds)+' seeds added, '+str(count_kids)+' kids added')
 #index_dataset('dplace')

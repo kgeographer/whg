@@ -24,12 +24,16 @@ class SeedPlace(object):
 
 def uriMaker(place):
     from django.shortcuts import get_object_or_404
+    from datasets.models import Dataset
     ds = get_object_or_404(Dataset,id=place.dataset.id)
-    return ds.uri_base
+    if ds.uri_base.startswith('http://whgazetteer'):
+        return ds.uri_base + str(place.id)
+    else:
+        return ds.uri_base + str(place.src_id)
     
 def findMatch(qobj,scheme,es):
-    matches = {"scheme":scheme, "whgids":[]}
-    q_links = {"query": { 
+    matches = {"scheme":scheme, "ids":[]}
+    q_links_c = {"query": { 
         "bool": {
             "must": [
                 {"nested": {
@@ -45,16 +49,23 @@ def findMatch(qobj,scheme,es):
             ]
         }
     }}
+    q_links_f = {"query": { 
+     "bool": {
+       "must": [
+         {"terms": {"links.identifier": qobj['links'] }}
+        ]
+     }
+    }}
     
     if len(qobj['links']) > 0: # if links, terms query
-        res = es.search(index='whg_'+scheme, doc_type='place', body=q_links)
+        res = es.search(index='whg_'+scheme, doc_type='place', body=q_links_c if scheme=='conflate' else q_links_f)
         hits = res['hits']['hits']
         if len(hits) == 0:
-            print('no hits, run makeSeed()')
+            #print('no hits, run makeSeed()')
             # create seed (and/or parent+child)
         elif len(hits) > 0:
             for h in hits:
-                matches['whgids'].append(h['_source']['whgid'])
+                matches['ids'].append( h['_source']['whgid'] if scheme=='conflate' else h['_id'])
     return matches
 
 def makeChildConflate(place):
@@ -62,6 +73,25 @@ def makeChildConflate(place):
             "place_id": place.id,
             "dataset": place.dataset.label,
             "src_id": place.src_id,
+            "title": place.title,
+            "uri": uriMaker(place),
+            "ccodes": place.ccodes,
+            "names": parsePlace(place,'names'),
+            "types": parsePlace(place,'types'),
+            "links": parsePlace(place,'links'),
+            "geoms": parsePlace(place,'geoms'),
+            "descriptions": parsePlace(place,'descriptions')
+            #"relations": [],
+            #"depictions": [], 
+            #"timespans": []
+        }
+    return cc_obj
+def makeChild(place,parentid):
+    cc_obj = {
+            "place_id": place.id,
+            "dataset": place.dataset.label,
+            "src_id": place.src_id,
+            "parent": parentid,
             "title": place.title,
             "uri": uriMaker(place),
             "ccodes": place.ccodes,
@@ -112,10 +142,18 @@ def makeSeed(place, dataset, whgid):
     return sobj
 
 
-def insertChild(parent_id, child_obj):
+def insertChildConflate(parentid, child_obj, es):
     # select parent, add child to is_conflation_of
-    print('added ',child_obj,' to ',parent_id)
-            
+    q_insert = {"script" : {
+        "source": "ctx._source.is_conflation_of.add(params.obj)",
+        "lang": "painless",
+        "params" : {
+            "obj" : child_obj
+        }
+    }}
+    es.update(index="whg_conflate",doc_type="place",id=parentid, body=q_insert)
+    print('added ',child_obj['place_id'],' to ',parentid)
+
 def jsonDefault(value):
     import datetime
     if isinstance(value, datetime.date):

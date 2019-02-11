@@ -14,7 +14,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         model = Dataset
         fields = ('id', 'url', 'owner', 'label', 'name', 'numrows', 'description','format',
             'datatype', 'delimiter', 'status', 'upload_date',
-            'accepted_date', 'mapbox_id')
+            'accepted_date', 'mapbox_id','uri_base')
 
 class PlaceDepictionSerializer(serializers.ModelSerializer):
     # json: @id, title, license
