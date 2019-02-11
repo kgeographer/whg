@@ -60,19 +60,18 @@ def findMatch(qobj,scheme,es):
     if len(qobj['links']) > 0: # if links, terms query
         res = es.search(index='whg_'+scheme, doc_type='place', body=q_links_c if scheme=='conflate' else q_links_f)
         hits = res['hits']['hits']
-        if len(hits) == 0:
-            #print('no hits, run makeSeed()')
-            # create seed (and/or parent+child)
-        elif len(hits) > 0:
+        if len(hits) > 0:
             for h in hits:
                 matches['ids'].append( h['_source']['whgid'] if scheme=='conflate' else h['_id'])
+        # else: create seed (and/or parent+child)
     return matches
 
-def makeChildConflate(place):
+def makeDoc(place,parentid):
     cc_obj = {
             "place_id": place.id,
             "dataset": place.dataset.label,
             "src_id": place.src_id,
+            "relation": {},
             "title": place.title,
             "uri": uriMaker(place),
             "ccodes": place.ccodes,
@@ -86,73 +85,6 @@ def makeChildConflate(place):
             #"timespans": []
         }
     return cc_obj
-def makeChild(place,parentid):
-    cc_obj = {
-            "place_id": place.id,
-            "dataset": place.dataset.label,
-            "src_id": place.src_id,
-            "parent": parentid,
-            "title": place.title,
-            "uri": uriMaker(place),
-            "ccodes": place.ccodes,
-            "names": parsePlace(place,'names'),
-            "types": parsePlace(place,'types'),
-            "links": parsePlace(place,'links'),
-            "geoms": parsePlace(place,'geoms'),
-            "descriptions": parsePlace(place,'descriptions')
-            #"relations": [],
-            #"depictions": [], 
-            #"timespans": []
-        }
-    return cc_obj
-
-
-def makeSeed(place, dataset, whgid):
-    # whgid, place_id, dataset, src_id, title
-    sobj = SeedPlace(whgid, place.id, dataset, place.src_id, place.title )
-    
-    # top level properties
-    # TODO: geometry, defer for now
-    #if len(place.geoms.all()) > 0:
-        #for g in place.geoms.all():
-            #if g['type'] in ('Point'):
-                ## aggregate in MultiPoint
-                #sobj['representative_point'] = place.geoms.first().json
-            #elif g['type'] == 'MultiLineString':
-                ## aggregate
-                #sobj['representative_shape'] = hully(ls_agg)
-            #elif g['type'] == 'MultiPolygon':
-                ## aggregate
-                #sobj['representative_shape'] = hully(poly_agg)
-                    
-    # pull from name.json
-    for n in place.names.all():
-        sobj.suggest['input'].append(n.json['toponym'])
-    
-    # no place_when data yet
-    if len(place.whens.all()) > 0:
-        sobj['minmax'] = []
-    
-    sobj.is_conflation_of.append(makeChildConflate(place))
-    
-    # TODO update sobj['suggest']['input']
-    # TODO update sobj['minmax']
-    # TODO ?? update global geometry
-    
-    return sobj
-
-
-def insertChildConflate(parentid, child_obj, es):
-    # select parent, add child to is_conflation_of
-    q_insert = {"script" : {
-        "source": "ctx._source.is_conflation_of.add(params.obj)",
-        "lang": "painless",
-        "params" : {
-            "obj" : child_obj
-        }
-    }}
-    es.update(index="whg_conflate",doc_type="place",id=parentid, body=q_insert)
-    print('added ',child_obj['place_id'],' to ',parentid)
 
 def jsonDefault(value):
     import datetime
@@ -250,3 +182,66 @@ def queryObject(place):
     
     return qobj
 
+def makeSeed(place, dataset, whgid):
+    # whgid, place_id, dataset, src_id, title
+    sobj = SeedPlace(whgid, place.id, dataset, place.src_id, place.title )
+    
+    # top level properties
+    # TODO: geometry, defer for now
+    #if len(place.geoms.all()) > 0:
+        #for g in place.geoms.all():
+            #if g['type'] in ('Point'):
+                ## aggregate in MultiPoint
+                #sobj['representative_point'] = place.geoms.first().json
+            #elif g['type'] == 'MultiLineString':
+                ## aggregate
+                #sobj['representative_shape'] = hully(ls_agg)
+            #elif g['type'] == 'MultiPolygon':
+                ## aggregate
+                #sobj['representative_shape'] = hully(poly_agg)
+                    
+    # pull from name.json
+    for n in place.names.all():
+        sobj.suggest['input'].append(n.json['toponym'])
+    
+    # no place_when data yet
+    if len(place.whens.all()) > 0:
+        sobj['minmax'] = []
+    
+    sobj.is_conflation_of.append(makeChildConflate(place))
+    
+    # TODO update sobj['suggest']['input']
+    # TODO update sobj['minmax']
+    # TODO ?? update global geometry
+    
+    return sobj
+
+def makeChildConflate(place):
+    cc_obj = {
+            "place_id": place.id,
+            "dataset": place.dataset.label,
+            "src_id": place.src_id,
+            "title": place.title,
+            "uri": uriMaker(place),
+            "ccodes": place.ccodes,
+            "names": parsePlace(place,'names'),
+            "types": parsePlace(place,'types'),
+            "links": parsePlace(place,'links'),
+            "geoms": parsePlace(place,'geoms'),
+            "descriptions": parsePlace(place,'descriptions')
+            #"relations": [],
+            #"depictions": [], 
+            #"timespans": []
+        }
+    return cc_obj
+def insertChildConflate(parentid, child_obj, es):
+    # select parent, add child to is_conflation_of
+    q_insert = {"script" : {
+        "source": "ctx._source.is_conflation_of.add(params.obj)",
+        "lang": "painless",
+        "params" : {
+            "obj" : child_obj
+        }
+    }}
+    es.update(index="whg_conflate",doc_type="place",id=parentid, body=q_insert)
+    print('added ',child_obj['place_id'],' to ',parentid)

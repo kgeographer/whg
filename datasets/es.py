@@ -2,7 +2,6 @@
 # 7 Feb 2019
 from __future__ import absolute_import, unicode_literals
 import sys, os, re, json, codecs, datetime, time, csv, random
-from elasticsearch import Elasticsearch
 from geopy import distance
 import shapely.geometry
 from pprint import pprint
@@ -18,7 +17,8 @@ from datasets.regions import regions as region_hash
 from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
 from places.models import Place
 ##
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+#from elasticsearch import Elasticsearch
+#es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 dataset='dplace'
 scheme='flat'
@@ -50,15 +50,16 @@ def indexDataset(dataset,scheme):
                 whgid +=1
                 seed_obj = makeSeed(place,dataset,whgid)
                 try:
-                    res = es.index(index='whg_conflate', doc_type='place', id=whgid, body=seed_obj.toJSON())
+                    res = es.index(index=idx, doc_type='place', id=whgid, body=seed_obj.toJSON())
                     count_seeds +=1
                 except:
                     print(qobj['place_id'], ' broke it')
                     print("error:", sys.exc_info()[0])
             elif scheme=='flat':
                 count_seeds +=1
-                child_obj = makeChild(place,'none')
-                res = es.index(index='whg_flat', doc_type='place', id=place.id, body=json.dumps(child_obj))
+                child_obj = makeDoc(place,'none')
+                child_obj['relation']="parent"
+                res = es.index(index=idx, doc_type='place', id=place.id, body=json.dumps(child_obj))
         else:
             # 1 or more matches
             for parentid in matches['ids']:
@@ -66,9 +67,38 @@ def indexDataset(dataset,scheme):
                     count_kids +=1                    
                     child_obj = makeChild(place,'none') # no parent
                     insertChildConflate(parentid,child_obj,es)
-                else:
+                elif scheme=='flat':
                     count_kids +=1                
-                    child_obj = makeChild(place,parentid)
-                    res = es.index(index='whg_'+scheme, doc_type='place', id=place.id, body=json.dumps(child_obj))
-    print(str(count_seeds)+' seeds added, '+str(count_kids)+' kids added')
-#index_dataset('dplace')
+                    child_obj = makeDoc(place,parentid)
+                    child_obj['relation']={"name":"child","parent":parentid}
+                    try:
+                        res = es.index(
+                            index=idx, 
+                            doc_type='place',
+                            id=place.id,
+                            routing=1,
+                            body=json.dumps(child_obj))
+                    except:
+                        print('failed on '+str(place.id), child_obj)
+                        sys.exit(sys.exc_info()[0])
+                        
+    print(str(count_seeds)+' fresh records added, '+str(count_kids)+' child records added')
+
+def init(dataset):
+    global es, idx, scheme, rows
+    scheme='flat'
+    idx = 'whg_'+scheme # 'conflate' or 'flat' (parent-child)
+
+    from elasticsearch import Elasticsearch
+    es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+
+    q_del = {"query": {"match": {"dataset": dataset}}}
+    # zap dataset from index
+    try:
+        res=es.delete_by_query(idx,q_del)
+        print(str(res['deleted'])+' docs deleted')
+    except Exception as ex:
+        print(ex)
+    
+    indexDataset(dataset,scheme)
+    
