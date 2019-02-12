@@ -37,15 +37,15 @@ def indexDataset(dataset,scheme):
         whgid = maxID(); print('max whgid:',whgid)  
     count_seeds = count_kids = 0
     for place in qs:
-        #place=get_object_or_404(Place,id=97829) # dbp:Calusa
+        #place=get_object_or_404(Place,id=82499) # dbp:Calusa
         #links=place.links.first().json
         # build query object
         qobj = queryObject(place)
-        
+
         # if it has links, look for matches in existing
-        matches = findMatch(qobj,scheme,es) if 'links' in qobj.keys() else {"scheme":scheme, "ids":[]}
+        matches = findMatch(qobj,scheme,es) if 'links' in qobj.keys() else {"scheme":scheme, "parents":[], "names":[]}
     
-        if len(matches['ids']) == 0:
+        if len(matches['parents']) == 0:
             if scheme=='conflate':
                 whgid +=1
                 seed_obj = makeSeed(place,dataset,whgid)
@@ -59,28 +59,43 @@ def indexDataset(dataset,scheme):
                 count_seeds +=1
                 child_obj = makeDoc(place,'none')
                 child_obj['relation']="parent"
+                for n in child_obj['names']:
+                    child_obj['suggest']['input'].append(n['toponym'])                
                 res = es.index(index=idx, doc_type='place', id=place.id, body=json.dumps(child_obj))
         else:
             # 1 or more matches
-            for parentid in matches['ids']:
+            for pid in matches['parents']:
                 if scheme=='conflate':
                     count_kids +=1                    
                     child_obj = makeChild(place,'none') # no parent
                     insertChildConflate(parentid,child_obj,es)
                 elif scheme=='flat':
                     count_kids +=1                
-                    child_obj = makeDoc(place,parentid)
-                    child_obj['relation']={"name":"child","parent":parentid}
+                    child_obj = makeDoc(place,pid)
+                    child_obj['relation']={"name":"child","parent":pid}
+                    #for n in child_obj['names']:
+                        #child_obj['suggest']['input'].append(n['toponym'])                                    
                     try:
-                        res = es.index(
-                            index=idx, 
-                            doc_type='place',
-                            id=place.id,
-                            routing=1,
-                            body=json.dumps(child_obj))
+                        res = es.index(index=idx,doc_type='place',id=place.id,
+                            routing=1,body=json.dumps(child_obj))
                     except:
                         print('failed on '+str(place.id), child_obj)
                         sys.exit(sys.exc_info()[0])
+                        
+                    # add child's names to parent's suggest{"input":[]}
+                    q_update = {
+                        "script": {
+                          "source": "ctx._source.suggest.input.addAll(params.names)",
+                          "lang": "painless",
+                          "params":{"names": matches['names']}
+                        },
+                        "query": {"match":{"_id": pid}}
+                      }
+                    try:
+                        es.update_by_query(index=idx,doc_type='place',body=q_update)
+                    except:
+                        print('failed on '+str(place.id), child_obj)
+                        print(sys.exc_info()[0])                            
                         
     print(str(count_seeds)+' fresh records added, '+str(count_kids)+' child records added')
 

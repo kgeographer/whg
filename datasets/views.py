@@ -16,7 +16,7 @@ from areas.models import Area
 from places.models import *
 from main.choices import AUTHORITY_BASEURI
 from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
-from .tasks import read_delimited, align_tgn, read_lpf
+from .tasks import read_delimited, align_tgn, align_whg, read_lpf
 from .utils import parsejson, myteam, parse_wkt, aat_lookup
 
 def link_uri(auth,id):
@@ -187,10 +187,12 @@ def ds_recon(request, pk):
     if request.method == 'GET':
         print('request:',request)
     elif request.method == 'POST' and request.POST:
-        fun = eval('align_'+request.POST['recon'])
+        func = eval('align_'+request.POST['recon'])
+        #auth = request.POST['recon']
         # TODO: let this vary per authority?
         region = request.POST['region'] # pre-defined UN regions
         userarea = request.POST['userarea'] #
+        # bool options
         aug_names = request.POST['aug_names'] #
         aug_notes = request.POST['aug_notes'] #
         aug_geom = request.POST['aug_geom'] #
@@ -199,8 +201,8 @@ def ds_recon(request, pk):
             "id": [region if region !="0" else userarea]
         }
         print('bounds',bounds)
-        # run celery/redis task
-        result = align_tgn.delay(
+        # run celery/redis tasks
+        result = func.delay(
             ds.id,
             ds=ds.id,
             dslabel=ds.label,

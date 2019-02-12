@@ -346,6 +346,10 @@ def align_tgn(pk, *args, **kwargs):
     return hit_parade['summary']
     # return hit_parade
 
+
+@task(name="align_whg")
+def align_whg(pk, *args, **kwargs):
+    print('align_whg kwargs:', str(kwargs))
 def read_delimited(infile, username):
     # some WKT is big
     csv.field_size_limit(100000000)

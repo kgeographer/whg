@@ -32,7 +32,7 @@ def uriMaker(place):
         return ds.uri_base + str(place.src_id)
     
 def findMatch(qobj,scheme,es):
-    matches = {"scheme":scheme, "ids":[]}
+    matches = {"scheme":scheme, "parents":[], "names":[]}
     q_links_c = {"query": { 
         "bool": {
             "must": [
@@ -62,7 +62,10 @@ def findMatch(qobj,scheme,es):
         hits = res['hits']['hits']
         if len(hits) > 0:
             for h in hits:
-                matches['ids'].append( h['_source']['whgid'] if scheme=='conflate' else h['_id'])
+                print(h['_source']['names'])
+                matches['parents'].append( h['_source']['whgid'] if scheme=='conflate' else h['_id'])
+                for n in h['_source']['names']:
+                    matches['names'].append(n['toponym'])
         # else: create seed (and/or parent+child)
     return matches
 
@@ -75,6 +78,7 @@ def makeDoc(place,parentid):
             "title": place.title,
             "uri": uriMaker(place),
             "ccodes": place.ccodes,
+            "suggest": {"input":[]},
             "names": parsePlace(place,'names'),
             "types": parsePlace(place,'types'),
             "links": parsePlace(place,'links'),
