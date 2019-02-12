@@ -37,7 +37,7 @@ def indexDataset(dataset,scheme):
         whgid = maxID(); print('max whgid:',whgid)  
     count_seeds = count_kids = 0
     for place in qs:
-        #place=get_object_or_404(Place,id=82499) # dbp:Calusa
+        #place=get_object_or_404(Place,id=118432) # dbp:Calusa
         #links=place.links.first().json
         # build query object
         qobj = queryObject(place)
@@ -58,7 +58,7 @@ def indexDataset(dataset,scheme):
             elif scheme=='flat':
                 count_seeds +=1
                 child_obj = makeDoc(place,'none')
-                child_obj['relation']="parent"
+                child_obj['relation']={"name":"parent"}
                 for n in child_obj['names']:
                     child_obj['suggest']['input'].append(n['toponym'])                
                 res = es.index(index=idx, doc_type='place', id=place.id, body=json.dumps(child_obj))
@@ -79,7 +79,7 @@ def indexDataset(dataset,scheme):
                         res = es.index(index=idx,doc_type='place',id=place.id,
                             routing=1,body=json.dumps(child_obj))
                     except:
-                        print('failed on '+str(place.id), child_obj)
+                        print('failed indexing '+str(place.id), child_obj)
                         sys.exit(sys.exc_info()[0])
                         
                     # add child's names to parent's suggest{"input":[]}
@@ -94,8 +94,8 @@ def indexDataset(dataset,scheme):
                     try:
                         es.update_by_query(index=idx,doc_type='place',body=q_update)
                     except:
-                        print('failed on '+str(place.id), child_obj)
-                        print(sys.exc_info()[0])                            
+                        print('failed updating suggest for parent '+str(pid)+' from child '+str(place.id))
+                        #print(sys.exc_info()[0])                            
                         
     print(str(count_seeds)+' fresh records added, '+str(count_kids)+' child records added')
 

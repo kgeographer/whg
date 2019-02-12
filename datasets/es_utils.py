@@ -62,7 +62,7 @@ def findMatch(qobj,scheme,es):
         hits = res['hits']['hits']
         if len(hits) > 0:
             for h in hits:
-                print(h['_source']['names'])
+                #print(h['_source']['names'])
                 matches['parents'].append( h['_source']['whgid'] if scheme=='conflate' else h['_id'])
                 for n in h['_source']['names']:
                     matches['names'].append(n['toponym'])

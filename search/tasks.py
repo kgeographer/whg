@@ -1,4 +1,5 @@
 # some queries 12 Feb 2019
+import json
 from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
@@ -36,7 +37,8 @@ def findName():
                     #print('parent has kids:',str(res['hits']))
                     for i in res['hits']['hits']:
                         all_hits.append(i['_source'])
-        print('like any of these? \n',all_hits)
+        print(json.dumps(all_hits,indent=2))
+        print('got '+str(len(all_hits))+' results, like any?\n')
     else:
         print('got nothing for that string, sorry!')
 
