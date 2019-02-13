@@ -11,30 +11,31 @@
   </div>
   <div class="d-flex justify-content-center">
     <!--<form class="mt-3 w-50" action="{# url 'searchy' #}">-->
-    <form id="search_form" class="mt-3 w-50">
-    <div class="form-group">
-      <div class="input-group mb-3">
-        <input type="text" class="form-control" id="searchbox" name="q" placeholder="Enter place name" aria-label="Search term" aria-describedby="search-type">
-        <div class="input-group-append">
-          <button class="btn btn-secondary" type="submit" id="search_button">Search</button>
-        </div>
+    <form id="search_form" class="mt-3 w-50" onsubmit="return false;" autocomplete="off" >
+    <div class="form-group mb-0">
+      <div class="input-group">
+        <input type="text" class="form-control input-sm" id="searchbox" name="q" 
+          placeholder="Enter place name" aria-label="Search term" aria-describedby="search-type">
+        <!--<div class="input-group-append">-->
+          <!--<button class="btn btn-secondary" type="submit" id="search_button">Search</button>-->
+        <!--</div>-->
       </div>
     </div>
     <div class="nameautosuggest"><!-- suggestions inserted here--></div>
     <div class="form-group">
     <!-- <div class="form-group d-flex justify-content-center"> -->
-      <div class="mx-auto btn-group" style="margin-left:185px !important;" data-toggle="buttons">
-        <span style="display:block; border: 1px dashed #e0e0e0;">
-          <label class="btn btn-default mb-0" rel="Enter place name">
-              <input type="radio" name="class" value="place" checked>
-              Place</label>
-          <label class="btn btn-default mb-1" rel="Enter term or name" >
-              <input type="radio" name="class" value="trace"> Trace
-              <span class="ml-1"><a href="" title="historical entities having spatial-temporal 'footprints'" rel="tooltip">
-                {% fontawesome_icon 'question-circle' color='#336699' %}</a></span>
-          </label>
-        </span>
-      </div>
+      <!--<div class="mx-auto btn-group" style="margin-left:185px !important;" data-toggle="buttons">-->
+        <!--<span style="display:block; border: 1px dashed #e0e0e0;">-->
+          <!--<label class="btn btn-default mb-0" rel="Enter place name">-->
+              <!--<input type="radio" name="class" value="place" checked>-->
+              <!--Place</label>-->
+          <!--<label class="btn btn-default mb-1" rel="Enter term or name" >-->
+              <!--<input type="radio" name="class" value="trace"> Trace-->
+              <!--<span class="ml-1"><a href="" title="historical entities having spatial-temporal 'footprints'" rel="tooltip">-->
+                <!--{% fontawesome_icon 'question-circle' color='#336699' %}</a></span>-->
+          <!--</label>-->
+        <!--</span>-->
+      <!--</div>-->
       <span class="float-right pt-2" style="margin-top:-14px;"><a href="{% url 'search_adv' %}">Advanced</a></span>
     </div>
     </form>

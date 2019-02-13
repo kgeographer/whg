@@ -9,8 +9,17 @@ body, html {
   home, search
 **/
 .nameautosuggest {
-  z-index: 100;
+  padding: 5px;
   background-color: ghostwhite;
+}
+.nameautosuggest li {
+  list-style-type: none;
+  margin-bottom: 3px;
+  background-color: lightsteelblue;
+  padding-left: 5px;
+  font-size: small;
+  cursor: pointer;
+  
 }
 /*  ?? */
 @media (min-width: 768px) {
@@ -32,7 +41,7 @@ body, html {
   border-bottom: #eeeee0 1px solid;
 }
 
-.col-content { background-color: oldlace; padding:6px;}
+.col-content { background-color: ghostwhite; padding:6px;}
 
 .overlap { position:relative; }
 
