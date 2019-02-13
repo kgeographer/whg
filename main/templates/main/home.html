@@ -12,7 +12,6 @@
   <div class="d-flex justify-content-center">
     <!--<form class="mt-3 w-50" action="{# url 'searchy' #}">-->
     <form id="search_form" class="mt-3 w-50">
-      <!-- javascript:alert('searching...')-->
     <div class="form-group">
       <div class="input-group mb-3">
         <input type="text" class="form-control" id="searchbox" name="q" placeholder="Enter place name" aria-label="Search term" aria-describedby="search-type">
@@ -21,9 +20,7 @@
         </div>
       </div>
     </div>
-    <div class="nameautosuggest">
-    <!-- suggestions inserted here-->
-    </div>
+    <div class="nameautosuggest"><!-- suggestions inserted here--></div>
     <div class="form-group">
     <!-- <div class="form-group d-flex justify-content-center"> -->
       <div class="mx-auto btn-group" style="margin-left:185px !important;" data-toggle="buttons">
@@ -48,10 +45,10 @@
   var searchoption = null;
   var doctype = $("input[name='class']:checked").val();
   
-  //Typing into the input box will generate autosuggestions
+  // starts query on first character
   
   $("#searchbox").on('input', function(){
-    console.log('heard',$(this).val())
+    <!--console.log('heard',$(this).val())-->
     autosuggest($(this).val());
    });
   
@@ -61,13 +58,19 @@
         showSuggestions(data);
       });
    }
+   
+  $('.nameautosuggest').on('click', '.suggestion', function(){
+    console.log('navigate to:',$(this).attr('ref'));
+    location.href = 'places/'+$(this).attr('ref')+'/portal'
+   });
 
   //Creates the Suggestion dropdown
  function showSuggestions(data){
   var div = '';
-  data.forEach(function(suggestion){
+  data.forEach(function(sug){
    <!--if(!titles[suggestion.toLowerCase()]){-->
-    div += ('<li class="suggestions">' + suggestion['name'] + ' ('+suggestion['type']+')</li>');
+    div += (
+      '<li ref="'+sug['pid']+'" class="suggestion">' + sug['name'] + ' ('+sug['type']+')</li>');
    <!--};-->
   });
   $('.nameautosuggest').html(div);

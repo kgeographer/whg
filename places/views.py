@@ -5,6 +5,7 @@ from django.views.generic import DetailView
 from django.utils.safestring import SafeString
 
 from .models import *
+from datasets.models import Dataset
 
 class PlacePortalView(DetailView):
     # TODO: get conflated record data from ES index

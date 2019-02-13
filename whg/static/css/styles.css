@@ -4,16 +4,23 @@ body, html {
   /* overflow: hidden; */
   height: 100%;
 }
+
+/**
+  home, search
+**/
+.nameautosuggest {
+  z-index: 100;
+  background-color: ghostwhite;
+}
 /*  ?? */
 @media (min-width: 768px) {
     #sidebar { position: fixed;}
 }
-/* p {font-size: .9rem;} */
 
 .ghostbox {
   background-color: ghostwhite;
-  /* padding: 12px; */
 }
+
 .ds-detail p { margin-bottom: .3rem;}
 
 .tab-pane {

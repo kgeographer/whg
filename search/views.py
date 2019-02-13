@@ -23,7 +23,7 @@ class NameSuggestView(View):
             "suggest":{"suggest":{"prefix":text,"completion":{"field":"suggest"}}}
         }
         suggestions = nameSuggest(idx, doctype, q_initial)
-        suggestions = [{"name":s['title'],"type":s['types'][0]['label']} for s in suggestions]
+        suggestions = [{"name":s['title'],"type":s['types'][0]['label'],"pid":s['place_id']} for s in suggestions]
         return JsonResponse(suggestions, safe=False)
 
 def nameSuggest(idx,doctype,q_initial):
