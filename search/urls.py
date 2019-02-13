@@ -1,12 +1,13 @@
 from django.urls import path, include
 from django.conf.urls import url
 
-from . import views
+from search.views import advanced, NameSuggestView
 
 urlpatterns = [
     # url(r'^$', views.home, name="search_home"),
-    url(r'^$', views.search, name="searchy"),
-    url(r'^advanced$', views.advanced, name="search_adv"),
+    #url(r'^$', search, name="searchy"),
+    url(r'^names?$', NameSuggestView.as_view(), name='name_suggest'),
+    url(r'^advanced$', advanced, name="search_adv"),
 
 
     # path('<int:product_id>/', views.detail, name='detail'),

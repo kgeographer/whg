@@ -10,7 +10,8 @@
     <img src="{% static 'images/whg_logo_notext_400w.png'%}"  height="200"/>
   </div>
   <div class="d-flex justify-content-center">
-    <form class="mt-3 w-50" action="{% url 'searchy' %}">
+    <!--<form class="mt-3 w-50" action="{# url 'searchy' #}">-->
+    <form id="search_form" class="mt-3 w-50">
       <!-- javascript:alert('searching...')-->
     <div class="form-group">
       <div class="input-group mb-3">
@@ -19,6 +20,9 @@
           <button class="btn btn-secondary" type="submit" id="search_button">Search</button>
         </div>
       </div>
+    </div>
+    <div class="nameautosuggest">
+    <!-- suggestions inserted here-->
     </div>
     <div class="form-group">
     <!-- <div class="form-group d-flex justify-content-center"> -->
@@ -40,6 +44,34 @@
   </div>
 </div>
 <script type="text/javascript">
+  var titles = {}
+  var searchoption = null;
+  var doctype = $("input[name='class']:checked").val();
+  
+  //Typing into the input box will generate autosuggestions
+  
+  $("#searchbox").on('input', function(){
+    console.log('heard',$(this).val())
+    autosuggest($(this).val());
+   });
+  
+  function autosuggest(value){
+    $.get("/search/names",{idx: 'whg_flat', search: value, doc_type: doctype},
+      function(data){
+        showSuggestions(data);
+      });
+   }
+
+  //Creates the Suggestion dropdown
+ function showSuggestions(data){
+  var div = '';
+  data.forEach(function(suggestion){
+   <!--if(!titles[suggestion.toLowerCase()]){-->
+    div += ('<li class="suggestions">' + suggestion['name'] + ' ('+suggestion['type']+')</li>');
+   <!--};-->
+  });
+  $('.nameautosuggest').html(div);
+ }
   $("[rel='tooltip']").tooltip();
   $('label.btn').click(function(){
     $('#searchbox').attr("placeholder",this.getAttribute("rel"));
