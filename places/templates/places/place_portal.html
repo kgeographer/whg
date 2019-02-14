@@ -14,7 +14,7 @@
 <div class="container">
   <div id="place_title">
     <h4>{{ place.title }}
-      <span class="small"> (<i>whg:{purl}</i>)
+      <span class="smaller float-right"> <i>{{ purl }}</i>)
         {% if place.dataset in spine %}<a href="" rel="tooltip" title="WHG spine record">
           <img src="{% static 'images/whg_logo_38h.png' %}" height="25px" class="textsub ml-2"/></a>
         {% endif %}
@@ -38,14 +38,30 @@
           <div class="row">
             <div id="place_home_l" class="col-sm-5">
               <div id="place_names" class="col-content">
-              <p>{% for name in names %}
-              {% if not forloop.first %}|{% endif %}
-                <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} ({{ name.json|parse:'citation/id' }})">
-                  <i>{{ name.json|parse:"toponym" }}</i></a>
-              {% endfor %}</p>
+                <p class="small mb-0">
+                  {% for name in names %}
+                  {% if not forloop.first %};{% endif %}
+                    <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} 
+                    ({{ name.json|parse:'citation/id' }})"><i>{{ name.json|parse:"toponym" }}</i></a>
+                  {% endfor %}
+                </p>
               </div>
-              <div id="place_descriptions" class="col-content mt-1">{ descriptions }</div>
-              <div id="place_attestations" class="col-content mt-1">{ attestations }</div>
+              {% if descriptions|length > 0 %}
+                <div id="place_types" class="col-content mt-1 small">
+                  <p class="mb-0">PLACE TYPE(S)</p>
+                  {% for t in types %}
+                    {{ t.json|parse:'label' }} ({{ t.json|parse:'src_label' }})
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% if descriptions|length > 0 %}
+                <div id="place_descriptions" class="col-content mt-1 small truncate ">
+                  {% for d in descriptions %}
+                    <div class="info-header pl-1">{{ d.json|parse:'id'}}</div>
+                    <div class="bg-white pl-1">{{ d.json|parse:'value' }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
             <div id="place_home_r" class="col-sm-7">
               <div id="place_temporal" class="col-content">

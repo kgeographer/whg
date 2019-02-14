@@ -16,7 +16,7 @@ class PlacePortalView(DetailView):
         return '/places/'+str(id_)+'/detail'
 
     def get_object(self):
-        print('kwargs:',self.kwargs)
+        print('args',self.args,'kwargs:',self.kwargs)
         id_ = self.kwargs.get("id")
         return get_object_or_404(Place, id=id_)
 
@@ -27,14 +27,14 @@ class PlacePortalView(DetailView):
         spinedata = Dataset.objects.filter(id__in=[1,2])
 
         context['names'] = place.names.all()
-        context['links'] = place.links.all()
-        context['whens'] = place.whens.all()
-        context['geoms'] = place.geoms.all()
         context['types'] = place.types.all()
+        context['links'] = place.links.all()
+        context['geoms'] = place.geoms.all()
+        context['whens'] = place.whens.all()
         context['related'] = place.related.all()
         context['descriptions'] = place.descriptions.all()
         context['depictions'] = place.depictions.all()
-
+        context['purl'] = 'http://whgazetteer/places/'+str(id_)
         context['spine'] = spinedata
         print('place context',str(context))
         return context

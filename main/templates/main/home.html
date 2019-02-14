@@ -7,7 +7,7 @@
 
 <div class="container">
   <div class="d-flex justify-content-center pt-2">
-    <img src="{% static 'images/whg_logo_notext_400w.png'%}"  height="200"/>
+    <img src="{% static 'images/whg_logo_notext_400w.png'%}"  height="200" onclick="javascript:console.log('boo')"/>
   </div>
   <div class="d-flex justify-content-center">
     <!--<form class="mt-3 w-50" action="{# url 'searchy' #}">-->
@@ -60,15 +60,40 @@
       });
    }
    
-  $('.nameautosuggest').on('click', '.suggestion', function(){
-    <!--console.log('navigate to:',$(this).attr('ref'));-->
-    location.href = 'places/'+$(this).attr('ref')+'/portal'
-   });
+  <!--$('.nameautosuggest').on('click', '.suggestion', function(){-->
+    <!--console.log('$(this) on click',$(this))-->
+    <!--var url = "{# url 'place-portal' id=$(this).attr('ref') toponym=$(this).attr('name') #}"-->
 
+    <!--location.href = url-->
+    <!--location.href = 'places/'+$(this).attr('ref')+'/portal'-->
+    <!--$.ajax({-->
+      <!--<!--beforeSend: function(xhr, settings) {-->-->
+        <!--<!--if (!csrfSafeMethod(settings.type) && !this.crossDomain) {-->-->
+            <!--<!--xhr.setRequestHeader("X-CSRFToken", csrftoken);-->-->
+        <!--<!--}-->-->
+      <!--<!--},-->-->
+      <!--type: "GET",-->
+      <!--url: url,-->
+      <!--data: {-->
+          <!--'ds' : $(this).attr('ds'),-->
+          <!--'url' : url-->
+      <!--},-->
+      <!--success: function(result){-->
+         <!--console.log(result);-->
+         <!--window.location.href = url;-->
+      <!--}-->
+    <!--});-->
+   <!--});-->
+<!--onclick="javascript:console.log('+msg+')"-->
   function sugLister(sug) {
-    <!--console.log(sug)-->
+    console.log(sug)
+    var url = "{% url 'places:place-portal' 123 %}";
+    url = url.replace('123',sug['pid'])
+    msg='time for lunch'
     variants = sug['variants'].length > 0 ? '; <i>variants</i>: ['+sug['variants']+']' : ''
-    item = ('<li ref="'+sug['pid']+'" class="suggestion"><b>' + sug['name'] + 
+    item = ('<li ref="'+sug['pid']+'" name='+sug['name']+
+            <!--'" class="suggestion" onclick="javascript:alert(\''+msg+'\')"><b>' + sug['name'] + -->
+            '" class="suggestion" onclick="javascript:location.href=\''+url+'\'"><b>' + sug['name'] + 
             '</b> ('+sug['type'] + variants + ')<span class="float-right small">'+sug['pid']+
             '('+sug['dataset']+')</span></li>');
     return item
