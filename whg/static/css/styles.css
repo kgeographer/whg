@@ -9,16 +9,22 @@ body, html {
   home, search
 **/
 .nameautosuggest {
+  /*padding: 5px;*/
+  margin-top: -6px;
+  margin-bottom: 6px;
   padding: 5px;
-  background-color: ghostwhite;
+  /*background-color: lightsteelblue;*/
+  background-color: white;
+  border: 1px solid  #80bfff;
 }
 .nameautosuggest li {
   list-style-type: none;
-  margin-bottom: 3px;
-  background-color: lightsteelblue;
+  margin-top: 5px;
+  background-color: #f2f2f2;
   padding-left: 5px;
   font-size: small;
   cursor: pointer;
+  min-height: 30px;
   
 }
 /*  ?? */

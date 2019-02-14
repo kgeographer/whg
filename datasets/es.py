@@ -56,14 +56,19 @@ def indexDataset(dataset,scheme):
                     print(qobj['place_id'], ' broke it')
                     print("error:", sys.exc_info()[0])
             elif scheme=='flat':
+                # it's a parent
                 count_seeds +=1
-                child_obj = makeDoc(place,'none')
-                child_obj['relation']={"name":"parent"}
-                for n in child_obj['names']:
-                    child_obj['suggest']['input'].append(n['toponym'])                
-                res = es.index(index=idx, doc_type='place', id=place.id, body=json.dumps(child_obj))
+                parent_obj = makeDoc(place,'none')
+                parent_obj['relation']={"name":"parent"}
+                
+                # add its names to the suggest field
+                for n in parent_obj['names']:
+                    parent_obj['suggest']['input'].append(n['toponym']) 
+                    
+                # index it
+                res = es.index(index=idx, doc_type='place', id=place.id, body=json.dumps(parent_obj))
         else:
-            # 1 or more matches
+            # 1 or more matches, it's a child
             for pid in matches['parents']:
                 if scheme=='conflate':
                     count_kids +=1                    
@@ -73,8 +78,7 @@ def indexDataset(dataset,scheme):
                     count_kids +=1                
                     child_obj = makeDoc(place,pid)
                     child_obj['relation']={"name":"child","parent":pid}
-                    #for n in child_obj['names']:
-                        #child_obj['suggest']['input'].append(n['toponym'])                                    
+                    # index it
                     try:
                         res = es.index(index=idx,doc_type='place',id=place.id,
                             routing=1,body=json.dumps(child_obj))
@@ -82,7 +86,8 @@ def indexDataset(dataset,scheme):
                         print('failed indexing '+str(place.id), child_obj)
                         sys.exit(sys.exc_info()[0])
                         
-                    # add child's names to parent's suggest{"input":[]}
+                    # add its names to parent's suggest{"input":[]}
+                    # TODO: ?? add its place_id, geometries to parent for home page disambiguation?
                     q_update = {
                         "script": {
                           "source": "ctx._source.suggest.input.addAll(params.names)",

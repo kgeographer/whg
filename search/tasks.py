@@ -20,14 +20,15 @@ def findName():
         for h in hits:
             hit_id = h['_id']
             if 'parent' in h['_source']['relation'].keys():
-                # it's a child, get siblings and add to all_hits[]
-                pid = h['_source']['relation']['parent']
-                #print('child, has parent:',pid)
-                q_parent = {"query":{"parent_id":{"type":"child","id":pid}}}
-                res = es.search(index='whg_flat', doc_type='place', body=q_parent)
-                kids = res['hits']['hits']
-                for k in kids:
-                    all_hits.append(k['_source'])
+                print('forget it, not a parent')
+                ## it's a child, get siblings and add to all_hits[]
+                #pid = h['_source']['relation']['parent']
+                ##print('child, has parent:',pid)
+                #q_parent = {"query":{"parent_id":{"type":"child","id":pid}}}
+                #res = es.search(index='whg_flat', doc_type='place', body=q_parent)
+                #kids = res['hits']['hits']
+                #for k in kids:
+                    #all_hits.append(k['_source'])
             else:
                 # it's a parent, add to all_hits[] and get kids if any
                 all_hits.append(h['_source'])

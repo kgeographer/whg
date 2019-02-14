@@ -5,6 +5,16 @@ import simplejson as json
 
 from elasticsearch import Elasticsearch
 
+def suggestionItem(s):
+    print('sug item',s)
+    item = { "name":s['title'],
+             "type":s['types'][0]['label'],
+             "pid":s['place_id'],
+             "variants":[n for n in s['suggest']['input'] if n != s['title']],
+             "dataset":s['dataset']
+        }
+    return item
+    
 class NameSuggestView(View):
     """ Returns place name suggestions """
     @staticmethod
@@ -23,10 +33,12 @@ class NameSuggestView(View):
             "suggest":{"suggest":{"prefix":text,"completion":{"field":"suggest"}}}
         }
         suggestions = nameSuggest(idx, doctype, q_initial)
-        suggestions = [{"name":s['title'],"type":s['types'][0]['label'],"pid":s['place_id']} for s in suggestions]
+        suggestions = [ suggestionItem(s) for s in suggestions]
         return JsonResponse(suggestions, safe=False)
 
 def nameSuggest(idx,doctype,q_initial):
+    # return only parents; children will be retrieved in portal page
+    # TODO: return child IDs, geometries?
     es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
     suggestions = []
     res = es.search(index=idx, doc_type=doctype, body=q_initial)
@@ -35,29 +47,10 @@ def nameSuggest(idx,doctype,q_initial):
     if len(hits) > 0:
         for h in hits:
             hit_id = h['_id']
-            print('h in nameSuggest',h)
-            if 'parent' in h['_source']['relation'].keys():
-                # it's a child, get siblings and add to suggestions[]
-                pid = h['_source']['relation']['parent']
-                q_parent = {"query":{"parent_id":{"type":"child","id":pid}}}
-                res = es.search(index='whg_flat', doc_type='place', body=q_parent)
-                kids = res['hits']['hits']
-                for k in kids:
-                    suggestions.append(k['_source'])
-            else:
-                # it's a parent, add to all_hits[] and get kids if any
+            if 'parent' not in h['_source']['relation'].keys():
+                # it's a parent, add to suggestions[]
                 suggestions.append(h['_source'])
-                q_parent = {"query":{"parent_id":{"type":"child","id":hit_id}}}
-                res = es.search(index='whg_flat', doc_type='place', body=q_parent)
-                if len(res['hits']['hits']) > 0:
-                    for i in res['hits']['hits']:
-                        suggestions.append(i['_source'])
         
-        print(json.dumps(suggestions,indent=2))
-        print('got '+str(len(suggestions))+' results, like any?\n')
-    #else:
-        #print('got nothing for that string, sorry!')
-
     return suggestions
 
 
