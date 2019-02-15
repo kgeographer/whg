@@ -46,7 +46,7 @@
                   {% endfor %}
                 </p>
               </div>
-              {% if descriptions|length > 0 %}
+              {% if types|length > 0 %}
                 <div id="place_types" class="col-content mt-1 small">
                   <p class="mb-0">PLACE TYPE(S)</p>
                   {% for t in types %}
@@ -59,6 +59,13 @@
                   {% for d in descriptions %}
                     <div class="info-header pl-1">{{ d.json|parse:'id'}}</div>
                     <div class="bg-white pl-1">{{ d.json|parse:'value' }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% if hits|length > 0 %}
+                <div id="place_descriptions" class="col-content mt-1 small ">
+                  {% for h in hits %}
+                    <p>{{ h }}</p>
                   {% endfor %}
                 </div>
               {% endif %}

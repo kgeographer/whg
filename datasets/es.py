@@ -25,7 +25,9 @@ scheme='flat'
 # 1428 dplace records; 1364 new, 64 into is_conflation_of
 # e.g. 97829 (Calusa) into 12347200
 # index dataset ('conflate','flat')
-def indexDataset(dataset,scheme):
+#def indexDataset(dataset,scheme):
+def indexDataset():
+    dataset = 'dplace'; scheme='flat'
     qs = Place.objects.all().filter(dataset_id=dataset)
     count = 0
     
@@ -35,16 +37,18 @@ def indexDataset(dataset,scheme):
             res = es.search(index="whg_"+scheme, size=0, body = q)
             return int(res['aggregations']['max_whgid']['value'])   
         whgid = maxID(); print('max whgid:',whgid)  
-    count_seeds = count_kids = 0
+    count_seeds = count_kids = 0; i = 0
     for place in qs:
-        #place=get_object_or_404(Place,id=118432) # dbp:Calusa
-        #links=place.links.first().json
+        i +=1
+        #place = qs[13]
+        # 85924/118445; 81224 / 118507; 85924 / 118445; 118432 = !Kung
+        #place=get_object_or_404(Place,id=118661) # Calusa/119778 (dplace)
         # build query object
         qobj = queryObject(place)
 
         # if it has links, look for matches in existing
         matches = findMatch(qobj,scheme,es) if 'links' in qobj.keys() else {"scheme":scheme, "parents":[], "names":[]}
-    
+        #print(place.id,matches)
         if len(matches['parents']) == 0:
             if scheme=='conflate':
                 whgid +=1
@@ -69,6 +73,8 @@ def indexDataset(dataset,scheme):
                 res = es.index(index=idx, doc_type='place', id=place.id, body=json.dumps(parent_obj))
         else:
             # 1 or more matches, it's a child
+            # TODO: can't have 2 parents though!!!!
+            if len(matches['parents'])>1: print(i-1, place.id, place.title, matches)
             for pid in matches['parents']:
                 if scheme=='conflate':
                     count_kids +=1                    
@@ -86,27 +92,29 @@ def indexDataset(dataset,scheme):
                         print('failed indexing '+str(place.id), child_obj)
                         sys.exit(sys.exc_info()[0])
                         
-                    # add its names to parent's suggest{"input":[]}
-                    # TODO: ?? add its place_id, geometries to parent for home page disambiguation?
+                    # add its id, names to parent's children, suggest
+                    # TODO: ?? add its geometries to parent for home page disambiguation?
                     q_update = {
                         "script": {
-                          "source": "ctx._source.suggest.input.addAll(params.names)",
+                          "source": "ctx._source.suggest.input.addAll(params.names);ctx._source.children.add(params.id)",
                           "lang": "painless",
-                          "params":{"names": matches['names']}
+                          "params":{"names": matches['names'],"id": str(place.id)}
                         },
                         "query": {"match":{"_id": pid}}
                       }
                     try:
                         es.update_by_query(index=idx,doc_type='place',body=q_update)
                     except:
-                        print('failed updating suggest for parent '+str(pid)+' from child '+str(place.id))
-                        #print(sys.exc_info()[0])                            
+                        print('failed updating '+place.title+'('+str(pid)+') from child '+str(place.id))
+                        print(count_kids-1)
+                        sys.exit(sys.exc_info()[0])
+                                                
                         
     print(str(count_seeds)+' fresh records added, '+str(count_kids)+' child records added')
 
-def init(dataset):
+def init():
     global es, idx, scheme, rows
-    scheme='flat'
+    dataset = 'dplace'; scheme='flat'
     idx = 'whg_'+scheme # 'conflate' or 'flat' (parent-child)
 
     from elasticsearch import Elasticsearch
@@ -120,5 +128,5 @@ def init(dataset):
     except Exception as ex:
         print(ex)
     
-    indexDataset(dataset,scheme)
+#indexDataset(dataset,scheme)
     

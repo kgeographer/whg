@@ -11,7 +11,7 @@ def suggestionItem(s):
              "type":s['types'][0]['label'],
              "pid":s['place_id'],
              "variants":[n for n in s['suggest']['input'] if n != s['title']],
-             "dataset":s['dataset']
+             "children":s['children']
         }
     return item
     

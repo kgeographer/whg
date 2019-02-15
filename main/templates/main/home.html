@@ -60,12 +60,13 @@
       });
    }
    
-  <!--$('.nameautosuggest').on('click', '.suggestion', function(){-->
-    <!--console.log('$(this) on click',$(this))-->
-    <!--var url = "{# url 'place-portal' id=$(this).attr('ref') toponym=$(this).attr('name') #}"-->
+  $('.nameautosuggest').on('click', '.suggestion', function(){
+    console.log('$(this) on click',$(this))
+    pid=$(this).attr('ref')
+    <!--kids=id=$(this).attr('children')-->
+    <!--var url = "{# url 'places:place-portal' pid #}"-->
 
-    <!--location.href = url-->
-    <!--location.href = 'places/'+$(this).attr('ref')+'/portal'-->
+    location.href = 'places/'+pid+'/portal'
     <!--$.ajax({-->
       <!--<!--beforeSend: function(xhr, settings) {-->-->
         <!--<!--if (!csrfSafeMethod(settings.type) && !this.crossDomain) {-->-->
@@ -75,37 +76,41 @@
       <!--type: "GET",-->
       <!--url: url,-->
       <!--data: {-->
-          <!--'ds' : $(this).attr('ds'),-->
-          <!--'url' : url-->
+          <!--'children' : kids-->
       <!--},-->
       <!--success: function(result){-->
          <!--console.log(result);-->
          <!--window.location.href = url;-->
       <!--}-->
     <!--});-->
-   <!--});-->
+  });
 <!--onclick="javascript:console.log('+msg+')"-->
   function sugLister(sug) {
     console.log(sug)
-    var url = "{% url 'places:place-portal' 123 %}";
-    url = url.replace('123',sug['pid'])
-    msg='time for lunch'
+    <!--var url = "{% url 'places:place-portal' 123 %}";-->
+    <!--var params = 'id='+sug['pid']+' children='+sug['children']-->
+    <!--url = url.replace('123', params)-->
+    <!--url = url.replace('123', sug['pid'])-->
+    <!--console.log('url',url)-->
     variants = sug['variants'].length > 0 ? '; <i>variants</i>: ['+sug['variants']+']' : ''
-    item = ('<li ref="'+sug['pid']+'" name='+sug['name']+
-            <!--'" class="suggestion" onclick="javascript:alert(\''+msg+'\')"><b>' + sug['name'] + -->
-            '" class="suggestion" onclick="javascript:location.href=\''+url+'\'"><b>' + sug['name'] + 
-            '</b> ('+sug['type'] + variants + ')<span class="float-right small">'+sug['pid']+
+    item = ('<li ref="'+sug['pid']+
+            '" children="'+sug['children']+
+            '" class="suggestion" ">'+
+            '<b>'+sug['name']+'</b> ('+sug['type'] + variants + 
+            ')<span class="float-right small">'+sug['pid']+
             '('+sug['dataset']+')</span></li>');
     return item
   }
+  <!--onclick="javascript:location.href=\''+url+'\'-->
   //Creates the Suggestion dropdown
- function showSuggestions(data){
-  var div = '';
-  data.forEach(function(sug){
-    div += sugLister(sug)
-  });
-  $('.nameautosuggest').html(div);
- }
+  function showSuggestions(data){
+    var div = '';
+    data.forEach(function(sug){
+      div += sugLister(sug)
+    });
+    $('.nameautosuggest').html(div);
+  }
+ 
   $("[rel='tooltip']").tooltip();
   $('label.btn').click(function(){
     $('#searchbox').attr("placeholder",this.getAttribute("rel"));

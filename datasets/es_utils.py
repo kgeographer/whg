@@ -1,27 +1,6 @@
 # es_utils.py 7 Feb 2019
 # misc supporting eleasticsearch tasks (es.py)
 
-class SeedPlace(object):
-    def __init__(self, whgid, place_id, dataset, src_id, title):
-        self.whgid = whgid
-        self.representative_title = title
-        self.seed_dataset = dataset
-        self.representative_point = []
-        self.representative_shape = []
-        self.suggest = {"input":[]}
-        self.minmax = []
-        self.is_conflation_of = []
-
-    def __str__(self):
-        import json
-        #return str(self.__class__) + ": " + str(self.__dict__)    
-        return json.dumps(self.__dict__)
-
-    def toJSON(self):
-        import json
-        #return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=2)    
-        return json.dumps(self, default=jsonDefault, sort_keys=True, indent=2)            
-
 def uriMaker(place):
     from django.shortcuts import get_object_or_404
     from datasets.models import Dataset
@@ -52,7 +31,8 @@ def findMatch(qobj,scheme,es):
     q_links_f = {"query": { 
      "bool": {
        "must": [
-         {"terms": {"links.identifier": qobj['links'] }}
+         {"terms": {"links.identifier": qobj['links'] }},
+         {"terms": {"types.id": qobj['types'] }}
         ]
      }
     }}
@@ -63,7 +43,7 @@ def findMatch(qobj,scheme,es):
         if len(hits) > 0:
             for h in hits:
                 #print(h['_source']['names'])
-                matches['parents'].append( h['_source']['whgid'] if scheme=='conflate' else h['_id'])
+                matches['parents'].append( h['_id'] if scheme=='flat' else h['_source']['whgid'] )
                 for n in h['_source']['names']:
                     matches['names'].append(n['toponym'])
         # else: create seed (and/or parent+child)
@@ -77,16 +57,17 @@ def makeDoc(place,parentid):
             "relation": {},
             "title": place.title,
             "uri": uriMaker(place),
+            "children": [],
             "ccodes": place.ccodes,
             "suggest": {"input":[]},
             "names": parsePlace(place,'names'),
             "types": parsePlace(place,'types'),
             "links": parsePlace(place,'links'),
             "geoms": parsePlace(place,'geoms'),
-            "descriptions": parsePlace(place,'descriptions')
-            #"relations": [],
-            #"depictions": [], 
-            #"timespans": []
+            "descriptions": parsePlace(place,'descriptions'),
+            "relations": [],
+            "depictions": [], 
+            "timespans": []
         }
     return cc_obj
 
@@ -190,20 +171,6 @@ def makeSeed(place, dataset, whgid):
     # whgid, place_id, dataset, src_id, title
     sobj = SeedPlace(whgid, place.id, dataset, place.src_id, place.title )
     
-    # top level properties
-    # TODO: geometry, defer for now
-    #if len(place.geoms.all()) > 0:
-        #for g in place.geoms.all():
-            #if g['type'] in ('Point'):
-                ## aggregate in MultiPoint
-                #sobj['representative_point'] = place.geoms.first().json
-            #elif g['type'] == 'MultiLineString':
-                ## aggregate
-                #sobj['representative_shape'] = hully(ls_agg)
-            #elif g['type'] == 'MultiPolygon':
-                ## aggregate
-                #sobj['representative_shape'] = hully(poly_agg)
-                    
     # pull from name.json
     for n in place.names.all():
         sobj.suggest['input'].append(n.json['toponym'])
@@ -213,10 +180,6 @@ def makeSeed(place, dataset, whgid):
         sobj['minmax'] = []
     
     sobj.is_conflation_of.append(makeChildConflate(place))
-    
-    # TODO update sobj['suggest']['input']
-    # TODO update sobj['minmax']
-    # TODO ?? update global geometry
     
     return sobj
 
@@ -249,3 +212,25 @@ def insertChildConflate(parentid, child_obj, es):
     }}
     es.update(index="whg_conflate",doc_type="place",id=parentid, body=q_insert)
     print('added ',child_obj['place_id'],' to ',parentid)
+
+# abandoned for makeDoc()
+class SeedPlace(object):
+    def __init__(self, whgid, place_id, dataset, src_id, title):
+        self.whgid = whgid
+        self.representative_title = title
+        self.seed_dataset = dataset
+        self.representative_point = []
+        self.representative_shape = []
+        self.suggest = {"input":[]}
+        self.minmax = []
+        self.is_conflation_of = []
+
+    def __str__(self):
+        import json
+        #return str(self.__class__) + ": " + str(self.__dict__)    
+        return json.dumps(self.__dict__)
+
+    def toJSON(self):
+        import json
+        return json.dumps(self, default=jsonDefault, sort_keys=True, indent=2)            
+
