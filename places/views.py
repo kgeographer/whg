@@ -31,6 +31,7 @@ class PlacePortalView(DetailView):
         #spinedata = Dataset.objects.filter(id__in=[1,2])
         
         context['names'] = place.names.all()
+        context['ccodes'] = place.ccodes
         context['types'] = place.types.all()
         context['links'] = place.links.all()
         context['geoms'] = place.geoms.all()

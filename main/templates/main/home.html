@@ -46,10 +46,8 @@
   var searchoption = null;
   var doctype = $("input[name='class']:checked").val();
   
-  // starts query on first character
-  
-  $("#searchbox").on('input', function(){
-    <!--console.log('heard',$(this).val())-->
+  // queries at each character
+    $("#searchbox").on('input', function(){
     autosuggest($(this).val());
    });
   
@@ -61,48 +59,30 @@
    }
    
   $('.nameautosuggest').on('click', '.suggestion', function(){
-    console.log('$(this) on click',$(this))
+    // console.log('$(this) on click',$(this))
     pid=$(this).attr('ref')
-    <!--kids=id=$(this).attr('children')-->
-    <!--var url = "{# url 'places:place-portal' pid #}"-->
 
+    // clear the dropdown
+    $(".nameautosuggest").html('')
+    
+    // go
     location.href = 'places/'+pid+'/portal'
-    <!--$.ajax({-->
-      <!--<!--beforeSend: function(xhr, settings) {-->-->
-        <!--<!--if (!csrfSafeMethod(settings.type) && !this.crossDomain) {-->-->
-            <!--<!--xhr.setRequestHeader("X-CSRFToken", csrftoken);-->-->
-        <!--<!--}-->-->
-      <!--<!--},-->-->
-      <!--type: "GET",-->
-      <!--url: url,-->
-      <!--data: {-->
-          <!--'children' : kids-->
-      <!--},-->
-      <!--success: function(result){-->
-         <!--console.log(result);-->
-         <!--window.location.href = url;-->
-      <!--}-->
-    <!--});-->
   });
-<!--onclick="javascript:console.log('+msg+')"-->
+
   function sugLister(sug) {
-    console.log(sug)
-    <!--var url = "{% url 'places:place-portal' 123 %}";-->
-    <!--var params = 'id='+sug['pid']+' children='+sug['children']-->
-    <!--url = url.replace('123', params)-->
-    <!--url = url.replace('123', sug['pid'])-->
-    <!--console.log('url',url)-->
-    variants = sug['variants'].length > 0 ? '; <i>variants</i>: ['+sug['variants']+']' : ''
+    // console.log(sug)
+    variants = sug['variants'].length > 0 ? '<i class="text-secondary">'+sug['variants']+'</i>' : ''
     item = ('<li ref="'+sug['pid']+
             '" children="'+sug['children']+
             '" class="suggestion" ">'+
-            '<b>'+sug['name']+'</b> ('+sug['type'] + variants + 
-            ')<span class="float-right small">'+sug['pid']+
-            '('+sug['dataset']+')</span></li>');
+            <!--'<b>'+sug['name']+'</b> ('+sug['type']+')'+ sug['ccodes']+-->
+            '<b>'+sug['name']+'</b> ('+sug['ccodes']+') '+ sug['type']+
+            '<span class="float-right small">'+'('+sug['dataset']+':'+sug['pid']+')</span><br/>'+
+            variants+'</li>');
     return item
   }
-  <!--onclick="javascript:location.href=\''+url+'\'-->
-  //Creates the Suggestion dropdown
+
+  //creates suggestion dropdown
   function showSuggestions(data){
     var div = '';
     data.forEach(function(sug){

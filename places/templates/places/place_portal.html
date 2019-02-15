@@ -13,8 +13,9 @@
 {% block content %}
 <div class="container">
   <div id="place_title">
-    <h4>{{ place.title }}
-      <span class="smaller float-right"> <i>{{ purl }}</i>)
+    <h4>{{ place.title }} 
+      <span class="small">{% if ccodes|length > 0 %} ({% for c in ccodes %}{{ c }} {% endfor %}){% endif %}</span>
+      <span class="smaller float-right"> <i>{{ purl }}</i>
         {% if place.dataset in spine %}<a href="" rel="tooltip" title="WHG spine record">
           <img src="{% static 'images/whg_logo_38h.png' %}" height="25px" class="textsub ml-2"/></a>
         {% endif %}
@@ -48,7 +49,7 @@
               </div>
               {% if types|length > 0 %}
                 <div id="place_types" class="col-content mt-1 small">
-                  <p class="mb-0">PLACE TYPE(S)</p>
+                  <p class="mb-0 allcap-heading">PLACE TYPE(S)</p>
                   {% for t in types %}
                     {{ t.json|parse:'label' }} ({{ t.json|parse:'src_label' }})
                   {% endfor %}
@@ -71,18 +72,39 @@
               {% endif %}
             </div>
             <div id="place_home_r" class="col-sm-7">
-              <div id="place_temporal" class="col-content">
-                <p>{temporal summary/visualization}</p></div>
-              <div class="row mt-1">
-                <div class="col-sm-6"><div class="col-content">
-                  <p>{map}</p>
-                  </div></div>
-                <div class="col-sm-6"><div class="col-content">
-                  <p>{graph visualization}</p>
-                  </div></div>
+              <div id="place_temporal" class="col-content small">
+                {% if whens|length > 0 %}
+                  <p class="mb-0 allcap-heading">TEMPORAL</p>
+                  <p><i>visualize this: </i>
+                  {% for w in whens %}
+                    {{ w.json|parse:'timespans'}}
+                  {% endfor %}
+                  </p>
+                {% else %}
+                  <p>No record-wide temporal information yet</p>
+                {% endif %}
               </div>
-            </div>
-          </div>
+              <div class="row mt-1">
+                <div class="col-sm-6">
+                  <div class="col-content small">
+                    <p class="mb-0 allcap-heading">MAP</p>
+                    {% if geoms|length > 0 %}
+                      {% for g in geoms %}
+                        {{ g.json|parse:'geowkt'}}
+                      {% endfor %}
+                    {% else %}
+                      <p>No geometry for parent; get from children if exist</p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="col-content small">
+                    <p class="mb-0 allcap-heading">GRAPH</p>
+                  </div>
+                </div>
+              </div> <!-- row -->
+            </div> <!-- place_home_r -->
+          </div> <!-- row -->
       </div>
       <div class="tab-pane fade" id="place_traces">
         <div class="container pt-2">

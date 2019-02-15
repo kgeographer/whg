@@ -5,13 +5,15 @@ import simplejson as json
 
 from elasticsearch import Elasticsearch
 
+# these are what's available in autocomplete dropdown
 def suggestionItem(s):
     print('sug item',s)
     item = { "name":s['title'],
              "type":s['types'][0]['label'],
              "pid":s['place_id'],
              "variants":[n for n in s['suggest']['input'] if n != s['title']],
-             "children":s['children']
+             "dataset":s['dataset'],
+             "ccodes":s['ccodes']
         }
     return item
     

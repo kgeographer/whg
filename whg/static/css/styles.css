@@ -15,6 +15,7 @@ body, html {
 }
 .bg-white { background-color: white; }
 .info-header { background-color: #4d4dff; color: white; padding-left: 2px;}
+.allcap-heading {color: #993330;}
 /**
   home, search
 **/
