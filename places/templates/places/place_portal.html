@@ -38,8 +38,9 @@
       <div class="tab-pane fade show active" id="place_core">
           <div class="row">
             <div id="place_home_l" class="col-sm-5">
-              <div id="place_names" class="col-content">
-                <p class="small mb-0">
+              <div id="place_names" class="col-content small">
+                <p class="mb-0 allcap-heading">NAME VARIANTS</p>
+                <p class="mb-0">
                   {% for name in names %}
                   {% if not forloop.first %};{% endif %}
                     <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} 
@@ -64,9 +65,9 @@
                 </div>
               {% endif %}
               {% if hits|length > 0 %}
-                <div id="place_descriptions" class="col-content mt-1 small ">
+                <div id="place_hits" class="col-content mt-1 small ">
                   {% for h in hits %}
-                    <p>{{ h }}</p>
+                    parseHit({{ h }})
                   {% endfor %}
                 </div>
               {% endif %}
@@ -86,7 +87,7 @@
               </div>
               <div class="row mt-1">
                 <div class="col-sm-6">
-                  <div class="col-content small">
+                  <div id="place_map" class="col-content small">
                     <p class="mb-0 allcap-heading">MAP</p>
                     {% if geoms|length > 0 %}
                       {% for g in geoms %}
@@ -98,7 +99,7 @@
                   </div>
                 </div>
                 <div class="col-sm-6">
-                  <div class="col-content small">
+                  <div id="place_graph" class="col-content small">
                     <p class="mb-0 allcap-heading">GRAPH</p>
                   </div>
                 </div>
