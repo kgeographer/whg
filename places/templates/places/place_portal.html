@@ -184,7 +184,7 @@
   function parseChild(c) {
     // names{toponym,citation{id,label}},types{label,src_label,identifier}, 
     // descriptions{value}, geoms{geowkt,type,coordinates},
-    html = '<div><p class="font-weight-bold">'+c['place_id']+' ('+c['dataset']+':'+c['src_id']+')</p>'+
+    html = '<div class="child-record"><p class="font-weight-bold">'+c['place_id']+' ('+c['dataset']+':'+c['src_id']+')</p>'+
       '<p><i>title</i>: '+c['title']+'('+c['ccodes']+')</p>'
     if (c['types'].length > 0) {
       html += '<p><i>type(s)</i>: '
@@ -194,15 +194,13 @@
       html += '</p>'
     }
     if (c['descriptions'].length > 0) {
-      html += '<p><i>description(s)</i>: '
+      html += '<p><i>description(s)</i>: </p><div style="max-height:75px; overflow:scroll;">'
       for (d in c['descriptions']) {
-        html += c['descriptions'][d]['value'].substring(0,100)+' ...'
+        <!--html += c['descriptions'][d]['value'].substring(0,100)+' ...'-->
+        html += c['descriptions'][d]['value']
       }
       html += '</p>'
     }
-      <!--'<p><i>type(s)</i>: '+c['types']+'</p>'+-->
-      <!--'<p><i>description(s)</i>: '+c['descriptions']+'</p>'-->
-      
     html+='</div>'
     return html
   }
