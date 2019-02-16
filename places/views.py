@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.views.generic import DetailView
 from django.utils.safestring import SafeString
 from elasticsearch import Elasticsearch
+import simplejson as json
 
 from .models import *
 from datasets.models import Dataset
@@ -25,9 +26,13 @@ class PlacePortalView(DetailView):
         context = super(PlacePortalView, self).get_context_data(*args, **kwargs)
         id_ = self.kwargs.get("id")
         place = get_object_or_404(Place, id=id_)
+        # get child records from index
         q = {"query": {"parent_id": {"type": "child","id": id_ }}}
         es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-        hits = es.search(index='whg_flat', doc_type='place', body=q)['hits']['hits']
+        children = es.search(index='whg_flat', doc_type='place', body=q)['hits']
+        print('kids, type',type(children),children)
+        #children = json.loads(str(children).replace("'",'"'))
+        #print('children type',type(children))
         #spinedata = Dataset.objects.filter(id__in=[1,2])
         
         context['names'] = place.names.all()
@@ -40,7 +45,7 @@ class PlacePortalView(DetailView):
         context['descriptions'] = place.descriptions.all()
         context['depictions'] = place.depictions.all()
         context['purl'] = 'http://whgazetteer/places/'+str(id_)
-        context['hits'] = hits
+        context['children'] = children
         #context['spine'] = spinedata
         print('place context',str(context))
         return context

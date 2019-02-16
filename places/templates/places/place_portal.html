@@ -36,7 +36,7 @@
     </ul>
     <div class="tab-content" id="myTabContent">
       <div class="tab-pane fade show active" id="place_core">
-          <div class="row">
+          <div class="row pt-1">
             <div id="place_home_l" class="col-sm-5">
               <div id="place_names" class="col-content small">
                 <p class="mb-0 allcap-heading">NAME VARIANTS</p>
@@ -64,13 +64,11 @@
                   {% endfor %}
                 </div>
               {% endif %}
-              {% if hits|length > 0 %}
-                <div id="place_hits" class="col-content mt-1 small ">
-                  {% for h in hits %}
-                    parseHit({{ h }})
-                  {% endfor %}
+                <div id="place_children" class="col-content mt-1 small ">
+                  <p class="mb-0 allcap-heading">LINKED RECORDS</p>
+                  {{ children|json_script:"kid-data" }}
+                  <div id="child_content"></div>
                 </div>
-              {% endif %}
             </div>
             <div id="place_home_r" class="col-sm-7">
               <div id="place_temporal" class="col-content small">
@@ -183,6 +181,41 @@
 </div> <!-- top container -->
 <script type="text/javascript">
   $("[rel='tooltip']").tooltip();
+  function parseChild(c) {
+    // names{toponym,citation{id,label}},types{label,src_label,identifier}, 
+    // descriptions{value}, geoms{geowkt,type,coordinates},
+    html = '<div><p class="font-weight-bold">'+c['place_id']+' ('+c['dataset']+':'+c['src_id']+')</p>'+
+      '<p><i>title</i>: '+c['title']+'('+c['ccodes']+')</p>'
+    if (c['types'].length > 0) {
+      html += '<p><i>type(s)</i>: '
+      for (t in c['types']) {
+        html += c['types'][t]['src_label']
+      }
+      html += '</p>'
+    }
+    if (c['descriptions'].length > 0) {
+      html += '<p><i>description(s)</i>: '
+      for (d in c['descriptions']) {
+        html += c['descriptions'][d]['value'].substring(0,100)+' ...'
+      }
+      html += '</p>'
+    }
+      <!--'<p><i>type(s)</i>: '+c['types']+'</p>'+-->
+      <!--'<p><i>description(s)</i>: '+c['descriptions']+'</p>'-->
+      
+    html+='</div>'
+    return html
+  }
+  $(function() {
+    html=''
+    window.children = JSON.parse(document.getElementById('kid-data').textContent)['hits'];
+    for(i in children) {
+      var c = children[i]['_source']
+      html += parseChild(c)
+    }
+    $("#child_content").html(html)
+  })
+
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
     console.log('in map_init()')
