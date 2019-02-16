@@ -84,23 +84,25 @@
                 {% endif %}
               </div>
               <div class="row mt-1">
-                <div class="col-sm-6">
+                <div class="col-sm-12">
                   <div id="place_map" class="col-content small">
-                    <p class="mb-0 allcap-heading">MAP</p>
                     {% if geoms|length > 0 %}
                       {% for g in geoms %}
+                        {{ g.json|json_script:place.id }}
                         {{ g.json|parse:'geowkt'}}
                       {% endfor %}
                     {% else %}
                       <p>No geometry for parent; get from children if exist</p>
                     {% endif %}
+                    <p class="mb-0 allcap-heading">GEOGRAPHY</p>
+                    <div id="map">{% leaflet_map "map" callback="map_init" %}</map>
                   </div>
                 </div>
-                <div class="col-sm-6">
-                  <div id="place_graph" class="col-content small">
-                    <p class="mb-0 allcap-heading">GRAPH</p>
-                  </div>
-                </div>
+                <!--<div class="col-sm-6">-->
+                  <!--<div id="place_graph" class="col-content small">-->
+                    <!--<p class="mb-0 allcap-heading">GRAPH</p>-->
+                  <!--</div>-->
+                <!--</div>-->
               </div> <!-- row -->
             </div> <!-- place_home_r -->
           </div> <!-- row -->
@@ -181,6 +183,11 @@
 </div> <!-- top container -->
 <script type="text/javascript">
   $("[rel='tooltip']").tooltip();
+  
+  window.addEventListener('map:init', function (e) {
+    window.mappy = e.detail.map
+  }, false);
+  
   function parseChild(c) {
     // names{toponym,citation{id,label}},types{label,src_label,identifier}, 
     // descriptions{value}, geoms{geowkt,type,coordinates},
@@ -202,8 +209,70 @@
       html += '</p>'
     }
     html+='</div>'
+    <!--console.log(c['geoms'])-->
+    if (c['geoms'].length > 0) {
+      // make a GeometryCollection
+      
+    }
+    if (c['geoms'].length > 0){
+      geom = {"type":"FeatureCollecton","features":[]}
+      for (g in c['geoms']){
+        c['geoms'][g]['properties'] = {"id": c['place_id'], "dataset": c['dataset']}
+        geom.features.push(c['geoms'][g])
+      }
+      renderMap(geom)
+    } 
+
     return html
   }
+  
+  function renderMap(geom){
+    <!--clear out the previous if any-->
+    if(typeof(features)!=='undefined'){
+      mappy.removeLayer(features)
+    }
+    function fill(dataset) {
+       if (dataset == 'tgn')
+         return "#ff7800"
+       else if (dataset == 'dbp')
+         return "#98E2FA"
+       else
+         return "#7AFF7A"
+     }
+    idToFeature = {}  // for feature lookup
+    features = L.geoJSON(geom, {
+    // TODO: for some reason linestrings are parsed and rendered here
+     pointToLayer: function (feature, latlng) {
+       matchid = feature.properties.dataset+':'+feature.properties.id
+       marker = L.circleMarker(latlng,
+         {
+           radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+           color: "#000", fillColor: fill(feature.properties.dataset)
+         }
+       ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+    
+       idToFeature[matchid] = marker
+       return marker
+     }
+    }).addTo(mappy);
+    
+    if (geom['features'].length > 1) {
+      mappy.fitBounds(features.getBounds().pad(1))
+    } else {
+      feat0 = geom['features'][0]
+      if (feat0.type == 'Point') {
+        latlng = L.latLng(
+          feat0.coordinates[1],
+          feat0.coordinates[0])
+        mappy.setView(latlng, 4)
+      } else if (['MultiLineString','MultiPolygon'].includes(feat0.type)) {
+        mappy.fitBounds(features.getBounds())
+      }
+    }
+  }
+
+  
+  
   $(function() {
     html=''
     window.children = JSON.parse(document.getElementById('kid-data').textContent)['hits'];
@@ -213,10 +282,31 @@
     }
     $("#child_content").html(html)
   })
+  
+  function cleanJson(text) {
+    z=text.replace(/'/g,'\\"')
+    y=z.replace(/point/,'Point')
+    return JSON.parse(JSON.parse(y))
+  }
 
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
     console.log('in map_init()')
+    geom = {"type":"FeatureCollecton","features":[]}
+    // gather geom script from html body
+    window.gelems = $('script').filter(function() {
+      return this.id.match(/[0-9]/) && this.text != '"null"';
+    });
+
+    // 
+    for (i=0;i<gelems.length;i++){
+      <!--let t_geom = cleanJson(gelems[i].text)-->
+      let g = JSON.parse(gelems[i].text)
+      g['properties'] = {"id": gelems[i].id}
+      geom['features'].push(g)
+    }
+    console.log('geom on init',geom)
+    renderMap(geom)
   } // end map_init
 </script>
 {% endblock %}
