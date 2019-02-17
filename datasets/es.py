@@ -1,5 +1,5 @@
-# index dataset from database
-# 7 Feb 2019
+# es.py; index named dataset from database
+# 7 Feb 2019; rev 16 Feb 2019
 from __future__ import absolute_import, unicode_literals
 import sys, os, re, json, codecs, datetime, time, csv, random
 from geopy import distance
@@ -17,8 +17,6 @@ from datasets.regions import regions as region_hash
 from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
 from places.models import Place
 ##
-#from elasticsearch import Elasticsearch
-#es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 dataset='dplace'
 scheme='flat'
@@ -42,7 +40,7 @@ def indexDataset():
         i +=1
         #place = qs[13]
         # 85924/118445; 81224 / 118507; 85924 / 118445; 118432 = !Kung
-        #place=get_object_or_404(Place,id=118661) # Calusa/119778 (dplace)
+        #place=get_object_or_404(Place,id=122473) # Calusa/119778 (dplace)
         # build query object
         qobj = queryObject(place)
 

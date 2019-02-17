@@ -66,8 +66,8 @@
             {% endif %}
               <div id="place_children" class="col-content mt-1 small ">
                 <p class="mb-0 allcap-heading">LINKED RECORDS</p>
-                {{ children|json_script:"kid-data" }}
-                <div id="child_content"></div>
+                  {{ children|json_script:"kid-data" }}
+                  <div id="child_content"><p>none yet</p></div>
               </div>
           </div>
           <div id="place_home_r" class="col-sm-7">
@@ -89,10 +89,11 @@
                     {% if geoms|length > 0 %}
                       {% for g in geoms %}
                         {{ g.json|json_script:place.id }}
-                        {{ g.json|parse:'geowkt'}}
                       {% endfor %}
                     {% endif %}
-                    <p class="mb-0 allcap-heading">GEOGRAPHY</p>
+                    <p class="mb-0 allcap-heading">GEOGRAPHY
+                      <span class="float-right"><a href="javascript:getClose()">{% fontawesome_icon 'search-plus' color='#336699' %}</a>
+                    </p>
                     <div id="map">{% leaflet_map "map" callback="map_init" %}</map>
                   </div>
                 </div>
@@ -189,7 +190,8 @@
   function parseChild(c) {
     // names{toponym,citation{id,label}},types{label,src_label,identifier}, 
     // descriptions{value}, geoms{geowkt,type,coordinates},
-    html = '<div class="child-record"><p class="font-weight-bold">'+c['place_id']+' ('+c['dataset']+':'+c['src_id']+')</p>'+
+    html = '<div class="child-record"><p class="font-weight-bold">'+
+      c['place_id']+' ('+c['dataset']+':'+c['src_id']+')</p>'+
       '<p><i>title</i>: '+c['title']+'('+c['ccodes']+')</p>'
     if (c['types'].length > 0) {
       html += '<p><i>type(s)</i>: '
@@ -201,17 +203,12 @@
     if (c['descriptions'].length > 0) {
       html += '<p><i>description(s)</i>: </p><div style="max-height:75px; overflow:scroll;">'
       for (d in c['descriptions']) {
-        <!--html += c['descriptions'][d]['value'].substring(0,100)+' ...'-->
         html += c['descriptions'][d]['value']
       }
       html += '</p>'
     }
     html+='</div>'
     <!--console.log(c['geoms'])-->
-    if (c['geoms'].length > 0) {
-      // make a GeometryCollection
-      
-    }
     if (c['geoms'].length > 0){
       geom = {"type":"FeatureCollecton","features":[]}
       for (g in c['geoms']){
@@ -223,7 +220,10 @@
 
     return html
   }
-  
+  function getClose() {
+    <!--mappy.setZoom(mappy.getZoom()+2)-->
+    mappy.fitBounds(features.getBounds().pad(3))
+  }
   function renderMap(geom){
     <!--clear out the previous if any-->
     if(typeof(features)!=='undefined'){
@@ -254,21 +254,26 @@
      }
     }).addTo(mappy);
     
-    if (geom['features'].length > 1) {
-      mappy.fitBounds(features.getBounds().pad(1))
-    } else {
-      feat0 = geom['features'][0]
-      if (feat0.type == 'Point') {
-        latlng = L.latLng(
-          feat0.coordinates[1],
-          feat0.coordinates[0])
-        mappy.setView(latlng, 3)
-      } else if (['MultiLineString','MultiPolygon'].includes(feat0.type)) {
-        mappy.fitBounds(features.getBounds())
-      }
-    }
+    // TODO: better zoomto choices
+    <!--zoom_point = centroid(features.getBounds())-->
+    center=features.getBounds().getCenter()
+    mappy.setView(center, 5)
+    <!--if (geom['features'].length > 1) {-->
+      <!--mappy.fitBounds(features.getBounds().pad(1))-->
+    <!--} else {-->
+      <!--feat0 = geom['features'][0]-->
+      <!--if (['Point','MultiPoint'].includes(feat0.type)) {-->
+        <!--latlng = L.latLng(-->
+          <!--feat0.coordinates[1],-->
+          <!--feat0.coordinates[0])-->
+        <!--mappy.setView(latlng, 3)-->
+      <!--} else if (['MultiLineString','MultiPolygon'].includes(feat0.type)) {-->
+        <!--mappy.fitBounds(features.getBounds())-->
+      <!--}-->
+    <!--}-->
   }
 
+  
   
   
   $(function() {

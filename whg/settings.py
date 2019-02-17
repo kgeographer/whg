@@ -121,17 +121,14 @@ LEAFLET_CONFIG = {
     'DEFAULT_CENTER': (35.0, 13.0),
     'DEFAULT_ZOOM': 1,
     'MIN_ZOOM': 1,
-    'MAX_ZOOM': 18,
+    'MAX_ZOOM': 14,
     'RESET_VIEW': False,
     'ATTRIBUTION_PREFIX': "Tiles and Data &copy; 2013 <a href='http://www.awmc.unc.edu' target='_blank'>AWMC</a> | " +
     "Tiles &copy; <a href='http://mapbox.com/' target='_blank'>MapBox</a> | "+
     "<a href='http://creativecommons.org/licenses/by-nc/3.0/deed.en_US' target='_blank'> CC-BY-NC 3.0</a>"
 }
 # mapbox.light; isawnyu.map-knmctlkh
-# ('Streets', 'http://server/b/...', {'attribution': '&copy; Contributors'})
-{'attribution': "Tiles &copy; <a href='http://mapbox.com/' target='_blank'>MapBox</a> | " +
- " Tiles and Data &copy; 2013 <a href='http://www.awmc.unc.edu' target='_blank'>AWMC</a>" +
-    " <a href='http://creativecommons.org/licenses/by-nc/3.0/deed.en_US' target='_blank'>CC-BY-NC 3.0</a>"}
+
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
