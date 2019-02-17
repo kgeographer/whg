@@ -74,10 +74,10 @@
               <div id="place_temporal" class="col-content small">
                 {% if whens|length > 0 %}
                   <p class="mb-0 allcap-heading">TEMPORAL</p>
-                  <p><i>visualize this: </i>
-                  {% for w in whens %}
-                    {{ w.json|parse:'timespans'}}
-                  {% endfor %}
+                    {% for w in whens %}
+                      <p><i>min/max: </i> {{ w.minmax }}
+                      <p><i>timespans: </i> {{ w.json|parse:'timespans'}}
+                    {% endfor %}
                   </p>
                 {% else %}
                   <p>No record-wide temporal information yet</p>
@@ -91,8 +91,6 @@
                         {{ g.json|json_script:place.id }}
                         {{ g.json|parse:'geowkt'}}
                       {% endfor %}
-                    {% else %}
-                      <p>No geometry for parent; get from children if exist</p>
                     {% endif %}
                     <p class="mb-0 allcap-heading">GEOGRAPHY</p>
                     <div id="map">{% leaflet_map "map" callback="map_init" %}</map>
@@ -264,7 +262,7 @@
         latlng = L.latLng(
           feat0.coordinates[1],
           feat0.coordinates[0])
-        mappy.setView(latlng, 4)
+        mappy.setView(latlng, 3)
       } else if (['MultiLineString','MultiPolygon'].includes(feat0.type)) {
         mappy.fitBounds(features.getBounds())
       }

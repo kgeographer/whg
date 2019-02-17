@@ -113,6 +113,7 @@ class PlaceWhen(models.Model):
     # timespans[{start{}, end{}}], periods[{name,id}], label, duration
 
     src_id = models.CharField(max_length=24,default='') # contributor's identifier
+    minmax = ArrayField(models.IntegerField(blank=True,null=True))
 
     class Meta:
         managed = True

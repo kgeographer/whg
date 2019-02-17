@@ -117,14 +117,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'whg.wsgi.application'
 
 LEAFLET_CONFIG = {
-    'TILES':'https://api.mapbox.com/v4/isawnyu.map-knmctlkh/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg',
+    'TILES':('https://api.mapbox.com/v4/isawnyu.map-knmctlkh/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg'),
     'DEFAULT_CENTER': (35.0, 13.0),
     'DEFAULT_ZOOM': 1,
     'MIN_ZOOM': 1,
     'MAX_ZOOM': 18,
     'RESET_VIEW': False,
+    'ATTRIBUTION_PREFIX': "Tiles and Data &copy; 2013 <a href='http://www.awmc.unc.edu' target='_blank'>AWMC</a> | " +
+    "Tiles &copy; <a href='http://mapbox.com/' target='_blank'>MapBox</a> | "+
+    "<a href='http://creativecommons.org/licenses/by-nc/3.0/deed.en_US' target='_blank'> CC-BY-NC 3.0</a>"
 }
 # mapbox.light; isawnyu.map-knmctlkh
+# ('Streets', 'http://server/b/...', {'attribution': '&copy; Contributors'})
+{'attribution': "Tiles &copy; <a href='http://mapbox.com/' target='_blank'>MapBox</a> | " +
+ " Tiles and Data &copy; 2013 <a href='http://www.awmc.unc.edu' target='_blank'>AWMC</a>" +
+    " <a href='http://creativecommons.org/licenses/by-nc/3.0/deed.en_US' target='_blank'>CC-BY-NC 3.0</a>"}
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
