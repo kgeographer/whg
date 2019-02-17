@@ -34,49 +34,49 @@
         <a class="nav-link" data-toggle="tab" href="#place_comments">Comments</a>
       </li>
     </ul>
-    <div class="tab-content" id="myTabContent">
-      <div class="tab-pane fade show active" id="place_core">
-          <div class="row pt-1">
-            <div id="place_home_l" class="col-sm-5">
-              <div id="place_names" class="col-content small">
-                <p class="mb-0 allcap-heading">NAME VARIANTS</p>
-                <p class="mb-0">
-                  {% for name in names %}
-                  {% if not forloop.first %};{% endif %}
-                    <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} 
-                    ({{ name.json|parse:'citation/id' }})"><i>{{ name.json|parse:"toponym" }}</i></a>
-                  {% endfor %}
-                </p>
-              </div>
-              {% if types|length > 0 %}
-                <div id="place_types" class="col-content mt-1 small">
-                  <p class="mb-0 allcap-heading">PLACE TYPE(S)</p>
-                  {% for t in types %}
-                    {{ t.json|parse:'label' }} ({{ t.json|parse:'src_label' }})
-                  {% endfor %}
-                </div>
-              {% endif %}
-              {% if descriptions|length > 0 %}
-                <div id="place_descriptions" class="col-content mt-1 small truncate ">
-                  {% for d in descriptions %}
-                    <div class="info-header pl-1">{{ d.json|parse:'id'}}</div>
-                    <div class="bg-white pl-1">{{ d.json|parse:'value' }}</div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-                <div id="place_children" class="col-content mt-1 small ">
-                  <p class="mb-0 allcap-heading">LINKED RECORDS</p>
-                  {{ children|json_script:"kid-data" }}
-                  <div id="child_content"></div>
-                </div>
+    <div id="myTabContent" class="tab-content">
+      <div id="place_core" class="tab-pane fade show active" >
+        <div class="row pt-1">
+          <div id="place_home_l" class="col-sm-5">
+            <div id="place_names" class="col-content small">
+              <p class="mb-0 allcap-heading">NAME VARIANTS</p>
+              <p class="mb-0">
+                {% for name in names %}
+                {% if not forloop.first %};{% endif %}
+                  <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} 
+                  ({{ name.json|parse:'citation/id' }})"><i>{{ name.json|parse:"toponym" }}</i></a>
+                {% endfor %}
+              </p>
             </div>
-            <div id="place_home_r" class="col-sm-7">
+            {% if types|length > 0 %}
+              <div id="place_types" class="col-content mt-1 small">
+                <p class="mb-0 allcap-heading">PLACE TYPE(S)</p>
+                {% for t in types %}
+                  {{ t.json|parse:'label' }} ({{ t.json|parse:'src_label' }})
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% if descriptions|length > 0 %}
+              <div id="place_descriptions" class="col-content mt-1 small truncate ">
+                {% for d in descriptions %}
+                  <div class="info-header pl-1">{{ d.json|parse:'id'}}</div>
+                  <div class="bg-white pl-1">{{ d.json|parse:'value' }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+              <div id="place_children" class="col-content mt-1 small ">
+                <p class="mb-0 allcap-heading">LINKED RECORDS</p>
+                {{ children|json_script:"kid-data" }}
+                <div id="child_content"></div>
+              </div>
+          </div>
+          <div id="place_home_r" class="col-sm-7">
               <div id="place_temporal" class="col-content small">
                 {% if whens|length > 0 %}
                   <p class="mb-0 allcap-heading">TEMPORAL</p>
                     {% for w in whens %}
-                      <p><i>min/max: </i> {{ w.minmax }}
-                      <p><i>timespans: </i> {{ w.json|parse:'timespans'}}
+                      <p class="mb-1" ><i>min/max: </i> {{ w.minmax }}
+                      <p><i>timespans: </i> {{ w.json|parse:'timespans'|truncatechars:200 }}
                     {% endfor %}
                   </p>
                 {% else %}
@@ -104,15 +104,11 @@
               </div> <!-- row -->
             </div> <!-- place_home_r -->
           </div> <!-- row -->
-      </div>
-      <div class="tab-pane fade" id="place_traces">
+          
+        </div>
+      </div>    
+      <div id="place_traces" class="tab-pane fade">
         <div class="container pt-2">
-          <h5>Traces
-            <span class="ml-1 small">
-              <a href="" title="historical entities for which this place is relevant" rel="tooltip">
-              {% fontawesome_icon 'question-circle' color='#336699' %}</a></span>
-          </h5>
-          <p>{ if None } No trace annotations for this place yet...<a href="">learn about contributing trace data</a> { endif }<p>
           <div id="traces">
             <div class="card">
               <div class="card-header" id="headingOne">
@@ -124,10 +120,11 @@
               </div>
               <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#traces">
                 <div class="card-body">
-                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. 
                 </div>
               </div>
             </div>
+          
             <div class="card">
               <div class="card-header" id="headingTwo">
                 <h5 class="mb-0">
@@ -138,7 +135,7 @@
               </div>
               <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#traces">
                 <div class="card-body">
-                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                  Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et.
                 </div>
               </div>
             </div>
@@ -152,7 +149,7 @@
               </div>
               <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#traces">
                 <div class="card-body">
-                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                  Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
                 </div>
               </div>
             </div>
@@ -171,14 +168,17 @@
               </div>
             </div>
           </div>
-        </div></div>
-      <div class="tab-pane fade" id="place_comments">
+        </div> <!-- container -->
+      </div> <!-- place_traces -->
+      <div  id="place_comments" class="tab-pane fade">
         <div class="container pt-2">
           <h5>Comments</h5>
-        </div></div>
-    </div>
-  </div>
+        </div>
+      </div> <!-- place_comments 
+    </div> <!-- myTabContent -->
+  </div> <!-- place_tabset -->
 </div> <!-- top container -->
+
 <script type="text/javascript">
   $("[rel='tooltip']").tooltip();
   
