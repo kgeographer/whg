@@ -51,6 +51,7 @@ python-dateutil==2.7.3
 pytz==2018.5
 PyYAML==3.13
 redis==2.10.6
+Shapely==1.6.4.post2
 simplejson==3.16.0
 six==1.11.0
 topojson==1.0.1+2.g581c6b4
