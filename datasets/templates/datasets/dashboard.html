@@ -15,7 +15,7 @@
       </h4>
       <div class="list-box">
         <table class="table table-striped">
-          <thead>
+          <thead class="small">
             <th></th>
             <th>id</th>
             <th>name</th>
@@ -61,7 +61,7 @@
             {% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
         <div class="list-box">
           <table class="table table-striped">
-            <thead>
+            <thead class="small">
                 <th>id</th>
                 <th>title</th>
                 <th>type</th>
@@ -86,28 +86,27 @@
         <h4 class="mt-3">Reconciliation tasks</h4>
         <div class="list-box">
             <table class="table table-striped">
-              <thead>
+              <thead class="small">
+                  <th></th>
                   <th>id</th>
                   <th>dataset</th>
                   <th>authority</th>
                   <th>date</th>
-                  <th></th>
               </thead>
               <tbody>
                 {% for r in review_list %}
                   <tr class="place-row">
-                    <!-- <td><span class="edit-row" style="cursor:pointer;">
-                      {# fontawesome_icon 'edit' color='#336699' #}</span</td> -->
-                    <td>{{ r.id }}</td>
-                    <td>{{ r.task_kwargs|parsejson:"dslabel" }}</td>
-                    <td><b>{{ r.task_name|cut:"align_" }}</b></td>
-                    <td class="small">{{ r.date_done|date:"d-M-Y, H:i (e)" }}</td>
                     <td>
-                      <a href="{% url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id passnum='pass1' %}"
+                      <!--<a href="{# url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id passnum='pass1' #}"-->
+                      <a href="{% url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id %}"
                         title="Review hits" rel="tooltip">
                         {% fontawesome_icon 'search' color='#336699' %}
                       </a>
                     </td>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.task_kwargs|parsejson:"dslabel" }}</td>
+                    <td><b>{{ r.task_name|cut:"align_" }}</b></td>
+                    <td class="small">{{ r.date_done|date:"d-M-Y, H:i (e)" }}</td>
                   </tr>
                 {% endfor %}
               </tbody>

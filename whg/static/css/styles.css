@@ -56,6 +56,8 @@ body, html {
 .ghostbox {
   background-color: ghostwhite;
 }
+.inline {display:inline-block;}
+.inline ul {margin-bottom:0;}
 
 .ds-detail p { margin-bottom: .3rem;}
 
@@ -87,20 +89,21 @@ body, html {
 .pagination {
   background-color: oldlace;
 }
-.match_radio {background-color: #e0e0e0;}
-.match_radio li {display:inline; margin-left:5px;}
-.match_radio ul {list-style-type: none; float: right;}
 
-.matchbar {
-  background-color: #f5d089;
+#tgn_match p {
+  margin-bottom: .6rem;
+  font-size: small;
 }
-.notefield {
-  /* background-color: cornsilk; */
-  height:100;
-  display: none;
-}
+.match_radio {background-color: #e0e0e0; padding-left:0; max-height:24px}
+/*.match_radio li {display:inline; margin-left:5px;}*/
+.match_radio li {display:inline; margin-right:4px;}
+/*.match_radio ul {list-style-type: none; float: right;}*/
+.match_radio ul {list-style-type: none; padding-left:3px;}
+.matchbar {  background-color: #f7d9a1;}
+.notefield {  height:100;  display: none;}
 .noteicon {margin-left: 4px;}
 .noteicon:hover {cursor: pointer;}
+
 
 .list-box {
   border: 1px solid #ccc;
@@ -179,13 +182,17 @@ span.edit-row {
 /**
   element IDs
 **/
+#review_list {
+  height:100vh;
+  overflow:scroll;
+}
 #map_area, #map_home, #map_view {
   height: 100%;
   /* position:absolute;top:0;left:0; */
 }
 #grid_detail, #place_record p {
-  font-size: .8pem;
-  margin-bottom:0;
+  font-size: small;
+  margin-bottom:.5rem;
 }
 #area_options {
   background-color: ghostwhite;

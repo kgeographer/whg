@@ -76,15 +76,20 @@ def augmenter(placeid, auth, tid, hitjson):
         return
 
 # present reconciliation hits for review, execute augmenter() for valid ones
-def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
+def review(request, pk, tid): # dataset pk, celery recon task_id
     # print('pk, tid:', pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
     # TODO: also filter by reviewed, per authority
 
-    # filter place records for those with unreviewed hits on this task AND requested passnum
-    #hitplaces = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False).exclude(query_pass=passnum)
-    hitplaces = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False,query_pass=passnum)
+    # filter place records for those with unreviewed hits on this task
+    # TODO: make this a single sql query
+    cnt_pass1 = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass='pass1').count()
+    cnt_pass2 = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass='pass2').count()
+    cnt_pass3 = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass='pass3').count()
+    passnum = 'pass1' if cnt_pass1>0 else 'pass2' if cnt_pass2>0 else 'pass3'
+    hitplaces = Hit.objects.values('place_id').filter(task_id=tid,reviewed=False,query_pass=passnum)
+    
     record_list = Place.objects.order_by('title').filter(pk__in=hitplaces)
     # record_list = Place.objects.order_by('title').filter(dataset=ds)
     paginator = Paginator(record_list, 1)
@@ -102,7 +107,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list':hit_list, 'authority': task.task_name,
-        'records': records,
+        'records': records, 'passnum': passnum,
         'page': page if request.method == 'GET' else str(int(page)-1)
     }
     # Hit model fields = ['task_id','authority','dataset','place_id',

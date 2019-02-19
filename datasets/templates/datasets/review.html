@@ -12,27 +12,13 @@
 <div class="container">
   <!-- incoming: ds, hit_list -->
   <h4 class="mb-3 mt-3">
-    {{ authority }} <span class="text-danger small">[ #{{ ds_label }} ]</span>
+    {{ authority }} <span class="text-danger small">( {{ ds_label }} ) <b>{{ passnum }}</b></span>
     <span class="half float-right">
-      <select id="select_pass" name="pass" class="custom-select-sm mr-2" style="width:auto;">
-        <option value="pass1" selected = "selected">Query pass 1</option>
-        <option value="pass2">Query pass 2</option>
-        <option value="pass3">Query pass 3</option>
-      </select>
-      <!--<div class="btn-group">-->
-        <!--<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" -->
-          <!--data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
-          <!--Filter query pass-->
-        <!--</button>-->
-        <!--<div class="dropdown-menu">-->
-          <!--<a class="dropdown-item" -->
-            <!--href="{% url 'datasets:review' pk=ds_id tid=task_id passnum='pass1' %}">Pass 1</a>-->
-          <!--<a class="dropdown-item" -->
-            <!--href="{% url 'datasets:review' pk=ds_id tid=task_id passnum='pass2' %}">Pass 2</a>-->
-          <!--<a class="dropdown-item" -->
-            <!--href="{% url 'datasets:review' pk=ds_id tid=task_id passnum='pass3' %}">Pass 3</a>-->
-        <!--</div>-->
-      <!--</div>-->
+      <!--<select id="select_pass" name="pass" class="custom-select-sm mr-2" style="width:auto;">-->
+        <!--<option value="pass1">Query pass 1&nbsp;</option>-->
+        <!--<option value="pass2">Query pass 2&nbsp;</option>-->
+        <!--<option value="pass3">Query pass 3&nbsp;</option>-->
+      <!--</select>-->
       task id: {{ task_id }}
     </span></h4>
   <div class="pagination d-flex justify-content-center">
@@ -62,7 +48,7 @@
       <div class="row mt-2">
         <div id="review_record" class="col-sm-4 pl-0">
           <div class="bg-secondary font-weight-bold pl-2 text-light">{{ dataset_label }}</div>
-          <div id="place_record">
+          <div id="place_record" class="mb-2">
             <div>
               <input type="hidden" name="place_id" value="{{ record.id }}" />
               <span><h4 class="text-danger">{{ record.title }} </h4></span>
@@ -93,21 +79,25 @@
         <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
               <div class="pl-2 pr-2 mb-2 matchbar">
-                <span class="custom-control custom-radio match_radio">
-                  {{ form.match }}
+                <div class="custom-control custom-radio match_radio">
+                  <span class="ml-2">
                   {% if form.json.value|get:"location" != Null %}
                     {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}
-                    {{ form.flag_geom }} flag
-                    <a class="geolink" id="{{ form.authrecord_id.value }}" href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">geometry</a>
+                    <!--{ form.flag_geom }} flag-->
+                    <a class="geolink" id="{{ form.authrecord_id.value }}" 
+                      href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">
+                      {% fontawesome_icon 'globe' color='#000099' %}</a>
                   {% endif %}
-                  <span class="noteicon">{% fontawesome_icon 'comment' color='#666666' %}</span>
-                </span>
-                <div class="notefield">{{ form.review_note}}</div>
+                  </span>
+                  <span class="inline">{{ form.match }}</span>
+                  <!--<span class="noteicon">{# fontawesome_icon 'comment' color='#666666' %}</span>-->
+                </div>
+                <!--<div class="notefield">{ form.review_note}}</div>-->
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
                   <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
-                    <span class="float-right">{{ form.query_pass.value }} ({{ form.score.value }})</span>
+                    <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
                   </p>
                   <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
                     <p><strong>Variants</strong>:
@@ -134,11 +124,10 @@
 </div> <!-- .container -->
 <script type="text/javascript">
     $(function(){
+      // set pass dropdown as next set with any reviewed=False rows
+      $( "#select_pass" ).val("{{ passnum }}")
       // defaults to string 'None' - no idea why
       $('.textarea').html('')
-      // set pass dropdown
-      z=window.location.href
-      $( "#select_pass" ).val(z.substring([z.length -5],))
     })
     // expose leaflet map for events, call it 'mappy'
     window.addEventListener('map:init', function (e) {
