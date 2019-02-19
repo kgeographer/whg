@@ -2,13 +2,7 @@ import codecs, datetime
 import simplejson as json
 from shapely import wkt
 from shapely.geometry import MultiLineString, mapping
-from datasets.static.hashes import aat
-
-#fin = codecs.open('whg/static/js/parents.json', 'r', 'utf8')
-fin = codecs.open('/Users/karlg/Documents/Repos/_whg/whg/static/js/parents.json', 'r', 'utf8')
-parent_hash = json.loads(fin.read())
-fin.close()
-
+from datasets.static.hashes import aat, parents
 
 def aat_lookup(id):
     label = aat.types[id]['term_full']
@@ -42,12 +36,12 @@ def elapsed(delta):
 
 def bestParent(qobj, flag=False):
     # TODO: region only applicable for black, right?
-    global parent_hash
+    #global parent_hash
     best = []
     # merge parent country/ies & parents
     if len(qobj['countries']) > 0:
         for c in qobj['countries']:
-            best.append(parent_hash['ccodes'][c]['tgnlabel'])
+            best.append(parents.ccodes[0][c]['tgnlabel'])
     if len(qobj['parents']) > 0:
         for p in qobj['parents']:
             best.append(p)
