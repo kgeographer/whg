@@ -41,6 +41,13 @@ body, html {
   min-height: 30px;
   
 }
+
+/**
+  maps
+**/
+#map_app.leaflet-container { height: 550px}
+
+
 /*  ?? */
 @media (min-width: 768px) {
     #sidebar { position: fixed;}
