@@ -66,6 +66,10 @@
                {{ name.json.toponym }};
               {% endfor %}</p>
             <p><strong>Modern countries</strong>: {{ record.ccodes }} </p>
+            <p><strong>Relations</strong>: 
+              {% for rel in record.related.all %}
+                {{ rel.json.label }} ({{ rel.json.relation_type }}); 
+              {% endfor %}</p>
             <p><strong>Place type(s)</strong>:
               {% for type in record.types.all %}
                 {{ type.json.label }} ({{ type.json.src_label }}); 

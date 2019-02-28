@@ -6,7 +6,7 @@ from celery import Celery
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "whg.settings")
 
-app = Celery('proj')
+app = Celery('whg')
 
 # Using a string here means the worker don't have to serialize
 # the configuration object to child processes.

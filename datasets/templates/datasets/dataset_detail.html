@@ -64,21 +64,27 @@
         </h5>
         {% for t in tasks %}
         <div class="task-box">
-          <p class="mb-0">{{ t.task_name }} <span class="small">({{ t.date_done|date:"d-M-Y, H:i (e)" }})</span>
+          <p><b>Task (date)</b>: {{ t.task_name }} <span class="small">({{ t.date_done|date:"d-M-Y, H:i (e)" }})</span></p>
+          <p><b>ID</b>: {{ t.task_id }}</p>
+             <!-- TODO: confirm, select which to delete -->
+          </p>
+          {{ t.result.hits }}
+          <p><b>Result</b>: {{ t.result|get:"total"|safe }} total hits for {{ t.result|get:"got_hits"|safe }} of
+              {{ t.result|get:"count"|safe }} records</p>
+          <ul>
+            <li><i>pass 1</i>: {{ t.result|get:"pass1" }}</li>
+            <li><i>pass 2</i>: {{ t.result|get:"pass2" }}</li>
+            <li><i>pass 3</i>: {{ t.result|get:"pass3" }}</li>
              <!--<a href="{# url 'datasets:review' pk=object.id tid=t.task_id passnum='pass1' #}">-->
              <a href="{% url 'datasets:review' pk=object.id tid=t.task_id %}">
                <i>review hits</i></a>&nbsp;
+          <p>
+          <p></p>
+          <p>elapsed: {{ t.result|get:"elapsed"|safe }}</p>
              <a href="{% url 'datasets:task-delete' tid=t.task_id scope='matches'%}">
                <i>clear matches</i></a>&nbsp;
-             <!-- TODO: confirm, select which to delete -->
              <a href="{% url 'datasets:task-delete' tid=t.task_id scope='task' %}">
                {% fontawesome_icon 'trash' color='#336699' %}</a>
-          </p>
-          <p> <b>Result</b>:
-              {{ t.result|get:"total_hits"|safe }} hits for {{ t.result|get:"got_hits"|safe }} of
-              {{ t.result|get:"count"|safe }} records; elapsed: {{ t.result|get:"elapsed"|safe }}
-          </p>
-          <!-- {{ form.json.value|get:"location"|safe -->
           <!-- <p><b>{{ t.result.total_hits }}</b> hits for {{ t.result.got_hits }} of {{ t.result.count }} records. Elapsed: {{ t.result.elapsed }}</p> -->
         </div>
         {% endfor %}

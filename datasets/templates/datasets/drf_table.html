@@ -226,14 +226,14 @@
     }
 
     // RELATED
-    // if (data.related.length > 0) {
-    //   if (data.related[0].relation_type == 'gvp:broaderPartitive'){
-    //     html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
-    //   }
-    //   else {
-    //     html+='<p><b>Related</b>: '+ data.related[0].label +'</p>'
-    //   }
-    // }
+    if (data.related.length > 0) {
+      if (data.related[0].relation_type == 'gvp:broaderPartitive'){
+        html+='<p><b>Parent</b>: '+ data.related[0].label +'</p>'
+      }
+      else {
+        html+='<p><b>Related</b>: '+ data.related[0].label +'</p>'
+      }
+    }
 
     html += '</div>'
     return html

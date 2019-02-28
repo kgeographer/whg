@@ -211,6 +211,7 @@ def es_lookup(qobj, *args, **kwargs):
 
     # pass1: name, type, parent, study_area, geom if provided
     print('q1',q1)
+    print('es',es)
     res1 = es.search(index="tgn", body = q1)
     hits1 = res1['hits']['hits']
     # 1 or more hits
@@ -257,7 +258,7 @@ def align_tgn(pk, *args, **kwargs):
     hit_parade = {"summary": {}, "hits": []}
     nohits = [] # place_id list for 0 hits
     features = []
-    [count, count_hit, count_nohit, total_hits] = [0,0,0,0]
+    [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3] = [0,0,0,0,0,0,0]
     # print('celery task id:', align_tgn.request.id)
     start = datetime.datetime.now()
 
@@ -300,7 +301,7 @@ def align_tgn(pk, *args, **kwargs):
                 query_obj['geom'] = hully(geom)
 
         print('query_obj:', query_obj)
-
+        
         # run ES query on query_obj, with bounds
         # regions.regions
         result_obj = es_lookup(query_obj, bounds=bounds)
@@ -313,6 +314,12 @@ def align_tgn(pk, *args, **kwargs):
             total_hits += result_obj['hit_count']
             # TODO: differentiate hits from passes
             for hit in result_obj['hits']:
+                if hit['pass'] == 'pass1': 
+                    count_p1+=1 
+                elif hit['pass'] == 'pass2': 
+                    count_p2+=1
+                elif hit['pass'] == 'pass3': 
+                    count_p3+=1
                 hit_parade["hits"].append(hit)
                 # print('creating hit:',hit)
                 loc = hit['_source']['location'] if 'location' in hit['_source'].keys() else None
@@ -338,7 +345,10 @@ def align_tgn(pk, *args, **kwargs):
     hit_parade['summary'] = {
         'count':count,
         'got_hits':count_hit,
-        'total_hits': total_hits,
+        'total': total_hits, 
+        'pass1': count_p1, 
+        'pass2': count_p2, 
+        'pass3': count_p3,
         'no_hits': {'count': count_nohit },
         'elapsed': elapsed(end-start)
     }

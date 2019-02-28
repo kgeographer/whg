@@ -1,12 +1,16 @@
-import codecs, datetime
+import codecs, datetime, sys
 import simplejson as json
 from shapely import wkt
 from shapely.geometry import MultiLineString, mapping
 from datasets.static.hashes import aat, parents
 
 def aat_lookup(id):
-    label = aat.types[id]['term_full']
-    return label
+    try:
+        label = aat.types[id]['term_full']
+        return label
+    except:
+        print(id,' broke it')
+        print("error:", sys.exc_info()[0])        
 
 def hully(geom):
     hull = mapping(MultiLineString(geom['coordinates']).convex_hull)

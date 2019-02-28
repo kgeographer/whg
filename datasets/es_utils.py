@@ -31,8 +31,8 @@ def findMatch(qobj,scheme,es):
     q_links_f = {"query": { 
      "bool": {
        "must": [
-         {"terms": {"links.identifier": qobj['links'] }},
-         {"terms": {"types.id": qobj['types'] }}
+         {"terms": {"links.identifier": qobj['links'] }}
+         #,{"terms": {"types.id": qobj['types'] }}
         ]
      }
     }}

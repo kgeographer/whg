@@ -206,7 +206,7 @@ def ds_recon(request, pk):
             "id": [region if region !="0" else userarea]
         }
         print('bounds',bounds)
-        # run celery/redis tasks
+        # run celery/redis tasks e.g. align_tgn, align_whg
         result = func.delay(
             ds.id,
             ds=ds.id,
@@ -230,7 +230,7 @@ def ds_recon(request, pk):
         # context['ccodes'] = request.POST['ccodes']
         # context['hits'] = '?? not wired yet'
         context['result'] = result.get()
-        # context['summary'] = result.get().summary
+        #context['summary'] = result.get().summary
         pprint(locals())
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
@@ -310,6 +310,7 @@ def ds_insert(request, pk):
     #for i, r in zip(range(100), reader):
         # TODO: should columns be required even if blank?
         # required
+        #print('r',r)
         src_id = r[header.index('id')]
         title = r[header.index('title')]
         # for PlaceName insertion, strip anything in parens
@@ -326,7 +327,6 @@ def ds_insert(request, pk):
             if 'aat_types' in header else ''
         parent = r[header.index('parent')] if 'parent' in header else ''
         #standardize on ';' for name and ccode arrays in tab-delimited files
-        #ccodes = r[header.index('ccodes')][2:-2].split(', ') \
         ccodes = r[header.index('ccodes')].split(';') \
             if 'ccodes' in header else []
         coords = [
@@ -345,7 +345,7 @@ def ds_insert(request, pk):
         depiction = r[header.index('depiction')] \
             if 'depiction' in header else []
 
-        #print('variants:',variants)
+        #print('types (src_, aat_)',src_type,aat_types)
         # build and save Place object
         newpl = Place(
             # placeid = nextpid,
@@ -374,7 +374,7 @@ def ds_insert(request, pk):
                 ))
 
         # PlaceTypes()
-        if len(aat_types) > 0:
+        if len(aat_types) > 0 and aat_types[0] !='':
             print('aat_types',aat_types)
             for t in aat_types:
                 objs['PlaceType'].append(PlaceType(place_id=newpl,
@@ -413,7 +413,7 @@ def ds_insert(request, pk):
                 ))
 
         # PlaceRelated()
-        if 'parent' in header:
+        if 'parent' in header and parent !='':
             objs['PlaceRelated'].append(PlaceRelated(place_id=newpl,
                 json={
                     "relation_type": "gvp:broaderPartitive",
@@ -502,7 +502,7 @@ class DashboardView(ListView):
             context['review_list'] = TaskResult.objects.filter(task_id__in=teamtasks).order_by('-date_done')
 
         # TODO: user place collections
-        print('DashboardView context:', context)
+        #print('DashboardView context:', context)
         return context
 
 
@@ -511,12 +511,11 @@ class DatasetCreateView(CreateView):
     form_class = DatasetModelForm
     template_name = 'datasets/dataset_create.html'
     queryset = Dataset.objects.all()
-    #epirus:  id	name	name_src	variants	type	aat_type	ccodes	lon	lat	min	max
     def form_valid(self, form):
         context={}
         if form.is_valid():
             print('form is valid')
-            print('cleaned_data: before ->', form.cleaned_data)
+            #print('cleaned_data: before ->', form.cleaned_data)
 
             # open & write tempf to a temp location;
             # call it tempfn for reference
