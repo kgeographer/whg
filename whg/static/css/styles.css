@@ -1,10 +1,72 @@
-body, html {
+html, body {
   margin: 0;
   padding: 0;
-  /* overflow: hidden; */
   height: 100%;
 }
 
+/**
+  home, search
+**/
+
+.btn-default:not(:disabled):not(.disabled):active:focus,
+.btn-default:focus, .btn-default.focus
+{
+    box-shadow:none;
+}
+
+input[type="text"] {
+   height: 1.5rem;
+   font-size: .8rem;
+   /*line-height: rem;*/
+}
+#map_home.leaflet-container { height: calc(100vh - 90px);}
+#home_map {
+  position:relative;
+}
+#home_search {
+  z-index:500; 
+  position:absolute; 
+  top:0; left:0;
+  margin:5px; padding:5px;
+  background-color: #fff;
+  min-width: 30%;
+  max-width: 30%;
+  border-radius: 8px;
+  box-shadow: 2px 2px #999;
+}
+#search_type {
+  height: 1.5rem;
+  z-index:500;
+}
+#search_type label {
+  font-size:.9rem;
+}
+.tooltip { z-index: 600;}
+.nameautosuggest {
+  /*padding: 5px;*/
+  margin-top: -12px;
+  margin-bottom: 6px;
+  padding: 5px;
+  /*background-color: lightsteelblue;*/
+  background-color: white;
+  /*border: 1px solid  #80bfff;*/
+  z-index: 600;
+}
+.nameautosuggest li {
+  list-style-type: none;
+  margin-top: 5px;
+  background-color: #f2f2f2;
+  padding-left: 5px;
+  font-size: small;
+  cursor: pointer;
+  min-height: 30px;
+  
+}
+
+/*.form-control:focus {*/
+        /*border-color: #28a745 !important;*/
+        /*box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);*/
+    /*} */
 /**
   place portal
 **/
@@ -20,32 +82,9 @@ body, html {
 .child-record p {margin-bottom:.3rem;}
 
 /**
-  home, search
-**/
-.nameautosuggest {
-  /*padding: 5px;*/
-  margin-top: -12px;
-  margin-bottom: 6px;
-  padding: 5px;
-  /*background-color: lightsteelblue;*/
-  background-color: white;
-  border: 1px solid  #80bfff;
-}
-.nameautosuggest li {
-  list-style-type: none;
-  margin-top: 5px;
-  background-color: #f2f2f2;
-  padding-left: 5px;
-  font-size: small;
-  cursor: pointer;
-  min-height: 30px;
-  
-}
-
-/**
   maps
 **/
-#map_app.leaflet-container { height: 550px}
+#map_app.leaflet-container { height: 550px;}
 
 
 /*  ?? */
