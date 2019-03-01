@@ -5,15 +5,24 @@ import simplejson as json
 
 from elasticsearch import Elasticsearch
 
-# these are what's available in autocomplete dropdown
+def makeGeom(geom):
+    # TODO: account for non-point
+    geomset = []
+    if len(geom) > 0:    
+        for g in geom:
+            geomset.append({"type":g['type'],"coordinates":g['coords_point']})
+    return geomset
+        
+# make stuff available in autocomplete dropdown
 def suggestionItem(s):
-    print('sug item',s)
+    print('sug geom',s['geometries'])
     item = { "name":s['title'],
              "type":s['types'][0]['label'],
              "pid":s['place_id'],
              "variants":[n for n in s['suggest']['input'] if n != s['title']],
              "dataset":s['dataset'],
-             "ccodes":s['ccodes']
+             "ccodes":s['ccodes'],
+             "geom": makeGeom(s['geometries'])
         }
     return item
     
