@@ -24,6 +24,7 @@ scheme='flat'
 # e.g. 97829 (Calusa) into 12347200
 # index dataset ('conflate','flat')
 #def indexDataset(dataset,scheme):
+# TODO: handle multiple parents (4 in dplace: 124883,124900,125065,125132)
 def indexDataset():
     dataset = 'dplace'; scheme='flat'
     qs = Place.objects.all().filter(dataset_id=dataset)

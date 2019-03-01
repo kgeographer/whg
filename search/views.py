@@ -1,3 +1,4 @@
+# search.views
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -5,24 +6,27 @@ import simplejson as json
 
 from elasticsearch import Elasticsearch
 
-def makeGeom(geom):
+def makeGeom(pid,geom):
     # TODO: account for non-point
     geomset = []
     if len(geom) > 0:    
         for g in geom:
-            geomset.append({"type":g['type'],"coordinates":g['coords_point']})
+            geomset.append(
+                {"type":g['type'],"coordinates":g['coords_point'],"properties":{"whgid": pid}}
+            )
     return geomset
         
 # make stuff available in autocomplete dropdown
 def suggestionItem(s):
-    print('sug geom',s['geometries'])
+    #print('sug geom',s['geometries'])
+    print('sug', s)
     item = { "name":s['title'],
              "type":s['types'][0]['label'],
              "pid":s['place_id'],
              "variants":[n for n in s['suggest']['input'] if n != s['title']],
              "dataset":s['dataset'],
              "ccodes":s['ccodes'],
-             "geom": makeGeom(s['geometries'])
+             "geom": makeGeom(s['place_id'],s['geoms'])
         }
     return item
     

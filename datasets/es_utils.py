@@ -82,6 +82,11 @@ def parsePlace(place,attr):
     qs = eval('place.'+attr+'.all()')
     arr = []
     for obj in qs:
+        if attr == 'geoms':
+            if obj.json['type'] == 'Point':
+                obj.json['coords_point'] = obj.json['coordinates']
+            else:
+                obj.json['coords_shape'] = obj.json['coordinates']            
         arr.append(obj.json)
     return arr
     

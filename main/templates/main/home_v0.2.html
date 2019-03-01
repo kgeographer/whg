@@ -63,8 +63,8 @@
     <!--console.log(options)-->
     mappy.setView([30.45, 0], 2)
     mappy.zoomControl.setPosition('topright')
-  // empty features[]
-  geom = {"type":"FeatureCollecton","features":[]}
+    // empty features[]
+    geom = {"type":"FeatureCollecton","features":[]}
 
   } // end map_init
 
@@ -121,9 +121,16 @@
     data.forEach(function(sug){
       // load suggestion div
       div += sugLister(sug)
-      if (sug['geom'].length > 0) {
-        console.log(sug['geom'])
-      }
+      <!--if (sug['geom'].length > 0) {-->
+        <!--<!--console.log(sug['geom'])-->-->
+        <!--for (i in sug['geom']){-->
+          <!--console.log(sug['geom'][i])-->
+          <!--<!--for (j in sug['geom'][i][j]) {-->-->
+            <!--<!--console.log('g',geom[j])-->-->
+            <!--<!--<!--var marker = L.marker([g['coordinates'][1],g['coordinates'][0]]).addTo(mappy)-->-->-->
+          <!--<!--}-->-->
+        <!--}-->
+      <!--}-->
 
     });
     $('.nameautosuggest').html(div);
