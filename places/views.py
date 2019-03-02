@@ -26,7 +26,6 @@ class PlacePortalView(DetailView):
         context = super(PlacePortalView, self).get_context_data(*args, **kwargs)
         id_ = self.kwargs.get("id")
         place = get_object_or_404(Place, id=id_)
-        ds = get_object_or_404(Dataset,id=place.dataset.id)
         # get child records from index
         q = {"query": {"parent_id": {"type": "child","id": id_ }}}
         es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
@@ -45,12 +44,14 @@ class PlacePortalView(DetailView):
         # parent and children in one queryset
         qs=Place.objects.filter(id__in=ids)
         print("ids, qs",ids,qs)
-        for place in qs:
+        for place in qs:        
+            ds = get_object_or_404(Dataset,id=place.dataset.id)
             record = {
-                "whg_id":place.id,
                 "dataset":{"id":ds.id,"label":ds.label},
+                "whg_id":place.id,
                 "src_id":place.src_id, 
                 "purl":ds.uri_base+str(place.id) if 'whgaz' in ds.uri_base else ds.uri_base+place.src_id,
+                "title":place.title,
                 "ccodes":place.ccodes, 
                 "names":[name.json for name in place.names.all()], 
                 "types":[type.json for type in place.types.all()], 

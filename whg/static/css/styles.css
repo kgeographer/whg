@@ -63,13 +63,12 @@ input[type="text"] {
   
 }
 
-/*.form-control:focus {*/
-        /*border-color: #28a745 !important;*/
-        /*box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);*/
-    /*} */
 /**
   place portal
 **/
+#place_home_l tr, th {
+  line-height: .2rem;
+}
 .truncate {
   max-height: 125px;
   overflow:  scroll;
@@ -109,9 +108,14 @@ input[type="text"] {
   border-bottom: #eeeee0 1px solid;
 }
 
-.col-content { background-color: ghostwhite; padding:4px;}
-
+.col-content { 
+  background-color: ghostwhite; padding:4px;
+  border-right: #eee 2px solid;
+  border-bottom: #eee 2px solid;
+}
+.col-content p { margin-bottom: .5rem; }
 .overlap { position:relative; }
+.abbrev { max-height: 60px; overflow:scroll;}
 
 .even, .odd {
   cursor:pointer;
