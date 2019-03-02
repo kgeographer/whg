@@ -26,27 +26,77 @@ class PlacePortalView(DetailView):
         context = super(PlacePortalView, self).get_context_data(*args, **kwargs)
         id_ = self.kwargs.get("id")
         place = get_object_or_404(Place, id=id_)
+        ds = get_object_or_404(Dataset,id=place.dataset.id)
         # get child records from index
         q = {"query": {"parent_id": {"type": "child","id": id_ }}}
         es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
         children = es.search(index='whg_flat', doc_type='place', body=q)['hits']
-        print('kids, type',type(children),children)
-        #children = json.loads(str(children).replace("'",'"'))
-        #print('children type',type(children))
-        #spinedata = Dataset.objects.filter(id__in=[1,2])
-        
-        context['names'] = place.names.all()
-        context['ccodes'] = place.ccodes
-        context['types'] = place.types.all()
-        context['links'] = place.links.all()
-        context['geoms'] = place.geoms.all()
-        context['whens'] = place.whens.all()
-        context['related'] = place.related.all()
-        context['descriptions'] = place.descriptions.all()
-        context['depictions'] = place.depictions.all()
-        context['purl'] = 'http://whgazetteer/places/'+str(id_)
-        context['children'] = children
-        #context['spine'] = spinedata
+        #print('kids, type',type(children),children)
+        print("id",id_)
+        # build context['payload'] (parent and children if any)
+        # here or in portal page?
+        context['payload'] = []
+
+        #
+        # alt 2: get all from database
+        ids = [id_]
+        for hit in children['hits']:
+            ids.append(int(hit['_id']))
+        # parent and children in one queryset
+        qs=Place.objects.filter(id__in=ids)
+        print("ids, qs",ids,qs)
+        for place in qs:
+            record = {
+                "whg_id":place.id,
+                "dataset":{"id":ds.id,"label":ds.label},
+                "src_id":place.src_id, 
+                "purl":ds.uri_base+str(place.id) if 'whgaz' in ds.uri_base else ds.uri_base+place.src_id,
+                "ccodes":place.ccodes, 
+                "names":[name.json for name in place.names.all()], 
+                "types":[type.json for type in place.types.all()], 
+                "links":[link.json for link in place.links.all()], 
+                "geoms":[geom.json for geom in place.geoms.all()],
+                "whens":[when.json for when in place.whens.all()], 
+                "related":[rel.json for rel in place.related.all()], 
+                "descriptions":[descr.json for descr in place.descriptions.all()], 
+                "depictions":[depict.json for depict in place.depictions.all()]
+            }
+            context['payload'].append(record)
+        # alt 2: parent from db, children from index
+        #parent = {
+            #"whg_id":str(id_),
+            #"dataset":{"id":ds.id,"label":ds.label},
+            #"src_id":place.src_id, 
+            #"purl":ds.uri_base+str(id_),
+            #"ccodes":place.ccodes, 
+            #"names":[name.json for name in place.names.all()], 
+            #"types":[type.json for type in place.types.all()], 
+            #"links":[link.json for link in place.links.all()], 
+            #"geoms":[geom.json for geom in place.geoms.all()],
+            #"whens":[when.json for when in place.whens.all()], 
+            #"related":[rel.json for rel in place.related.all()], 
+            #"descriptions":[descr.json for descr in place.descriptions.all()], 
+            #"depictions":[depict.json for depict in place.depictions.all()]
+        #}
+        #payload.append(parent)
+        #for hit in children['hits']:
+            #src= hit['_source']
+            #child = {
+                #"whg_id":src['place_id'],
+                #"dataset":{"id":ds.id,"label":ds.label},
+                #"src_id":child.src_id, 
+                #"purl":ds.uri_base+str(id_) if 'whgaz' in ds.uri_base else ds.uri_base+child.src_id,
+                #"ccodes":place.ccodes, 
+                #"names":[name for name in src['names']], 
+                #"types":[typ for typ in src['types']], 
+                #"links":[link for link in src['links']], 
+                #"geoms":[geom for geom in src['geoms']],
+                ##"whens":[when for when in src['whens']], # sometimes only timespans[]
+                #"related":[rel for rel in src['relations']], 
+                #"descriptions":[descr for descr in src['descriptions']], 
+                #"depictions":[depict for depict in src['depictions']]            
+            #}
+            #payload.append(child)        
         print('place context',str(context))
         return context
 

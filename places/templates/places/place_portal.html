@@ -25,22 +25,19 @@
   <div id="place_tabset">
     <ul class="nav nav-tabs" id="myTab">
       <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#place_core" selected>Place Attestations</a>
+        <a class="nav-link active" data-toggle="tab" href="#place_core" selected>Attestations</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#place_traces">Related Traces</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#place_comments">Comments</a>
+        <a class="nav-link" data-toggle="tab" href="#place_discussion">Discussion</a>
       </li>
     </ul>
-    <div id="myTabContent" class="tab-content">
+    <div id="place_content" class="tab-content">
       <div id="place_core" class="tab-pane fade show active" >
         <div class="row pt-1">
           <div id="place_home_l" class="col-sm-5">
             <div id="place_names" class="col-content small">
-              <p class="mb-0 allcap-heading">NAME VARIANTS</p>
-              <p class="mb-0">
+              <p class="mb-0 allcap-heading">NAME VARIANTS
+              <!--<p class="mb-0">-->
                 {% for name in names %}
                 {% if not forloop.first %};{% endif %}
                   <a href="" rel="tooltip" title="{{ name.json|parse:'citation/label' }} 
@@ -48,135 +45,22 @@
                 {% endfor %}
               </p>
             </div>
-            {% if types|length > 0 %}
-              <div id="place_types" class="col-content mt-1 small">
-                <p class="mb-0 allcap-heading">PLACE TYPE(S)</p>
-                {% for t in types %}
-                  {{ t.json|parse:'label' }} ({{ t.json|parse:'src_label' }})
-                {% endfor %}
-              </div>
-            {% endif %}
-            {% if descriptions|length > 0 %}
-              <div id="place_descriptions" class="col-content mt-1 small truncate ">
-                {% for d in descriptions %}
-                  <div class="info-header pl-1">{{ d.json|parse:'id'}}</div>
-                  <div class="bg-white pl-1">{{ d.json|parse:'value' }}</div>
-                {% endfor %}
-              </div>
-            {% endif %}
-              <div id="place_children" class="col-content mt-1 small ">
-                <p class="mb-0 allcap-heading">LINKED RECORDS</p>
-                  {{ children|json_script:"kid-data" }}
-                  <div id="child_content"><p>none yet</p></div>
-              </div>
-          </div>
+            <div class="col-content small mt-1"><p>{ auto-generated description }</p></div>
+            {% for rec in payload %}
+            <div>rec: {{ rec }}</div>
+            {% endfor %}
+          </div> <!-- place_home_l-->
           <div id="place_home_r" class="col-sm-7">
-              <div id="place_temporal" class="col-content small">
-                {% if whens|length > 0 %}
-                  <p class="mb-0 allcap-heading">TEMPORAL</p>
-                    {% for w in whens %}
-                      <p class="mb-1" ><i>min/max: </i> {{ w.minmax }}
-                      <p><i>timespans: </i> {{ w.json|parse:'timespans'|truncatechars:200 }}
-                    {% endfor %}
-                  </p>
-                {% else %}
-                  <p>No record-wide temporal information yet</p>
-                {% endif %}
-              </div>
-              <div class="row mt-1">
-                <div class="col-sm-12">
-                  <div id="place_map" class="col-content small">
-                    {% if geoms|length > 0 %}
-                      {% for g in geoms %}
-                        {{ g.json|json_script:place.id }}
-                      {% endfor %}
-                    {% endif %}
-                    <p class="mb-0 allcap-heading">GEOGRAPHY
-                      <span class="float-right"><a href="javascript:getClose()">{% fontawesome_icon 'search-plus' color='#336699' %}</a>
-                    </p>
-                    <div id="map">{% leaflet_map "map" callback="map_init" %}</map>
-                  </div>
-                </div>
-                <!--<div class="col-sm-6">-->
-                  <!--<div id="place_graph" class="col-content small">-->
-                    <!--<p class="mb-0 allcap-heading">GRAPH</p>-->
-                  <!--</div>-->
-                <!--</div>-->
-              </div> <!-- row -->
-            </div> <!-- place_home_r -->
-          </div> <!-- row -->
-          
-        </div>
-      </div>    
-      <div id="place_traces" class="tab-pane fade">
+            <p>place_home_r</p>
+          </div> <!-- place_home_r -->
+        </div> <!-- row -->          
+      </div> <!-- place_core -->
+      <div id="place_discussion" class="tab-pane fade">
         <div class="container pt-2">
-          <div id="traces">
-            <div class="card">
-              <div class="card-header" id="headingOne">
-                <h5 class="mb-0">
-                  <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    People
-                  </button>
-                </h5>
-              </div>
-              <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#traces">
-                <div class="card-body">
-                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. 
-                </div>
-              </div>
-            </div>
-          
-            <div class="card">
-              <div class="card-header" id="headingTwo">
-                <h5 class="mb-0">
-                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    Events
-                  </button>
-                </h5>
-              </div>
-              <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#traces">
-                <div class="card-body">
-                  Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et.
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header" id="headingThree">
-                <h5 class="mb-0">
-                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                    Datasets
-                  </button>
-                </h5>
-              </div>
-              <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#traces">
-                <div class="card-body">
-                  Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header" id="headingFour">
-                <h5 class="mb-0">
-                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseThree">
-                    Works/Texts
-                  </button>
-                </h5>
-              </div>
-              <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#traces">
-                <div class="card-body">
-                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- container -->
-      </div> <!-- place_traces -->
-      <div  id="place_comments" class="tab-pane fade">
-        <div class="container pt-2">
-          <h5>Comments</h5>
+          <h5>Discussion</h5>
         </div>
-      </div> <!-- place_comments 
-    </div> <!-- myTabContent -->
+      </div> <!-- place_discussion -->
+    </div> <!-- place_content -->
   </div> <!-- place_tabset -->
 </div> <!-- top container -->
 

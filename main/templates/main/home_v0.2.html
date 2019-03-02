@@ -4,7 +4,7 @@
 {% load fontawesome %}
 {% load static %}
 
-{% block title %}<title>WHG::Maps</title>{% endblock %}
+{% block title %}<title>WHGazetteer</title>{% endblock %}
 {% block extra_head %}
   {% leaflet_js %}
   {% leaflet_css %}
@@ -54,6 +54,7 @@
     </div>
   </div>
 </div>
+
 <script type="text/javascript">
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map
@@ -114,7 +115,23 @@
             variants+'</li>');
     return item
   }
+  function renderFeatures(geom){
+    idToFeature = {} // for feature lookup
+    features = L.geoJSON(geom, {
+      pointToLayer: function (feature, latlng) {
+        matchid = feature.properties.dataset+':'+feature.properties.id
+        marker = L.circleMarker(latlng,
+          {
+            radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+            color: "#000", fillColor: fill(feature.properties.dataset)
+          }
+        ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
 
+        idToFeature[matchid] = marker
+        return marker
+      }
+    }).addTo(mappy);    
+  }
   //creates suggestion dropdown
   function showSuggestions(data){
     var div = '';
@@ -122,13 +139,8 @@
       // load suggestion div
       div += sugLister(sug)
       <!--if (sug['geom'].length > 0) {-->
-        <!--<!--console.log(sug['geom'])-->-->
         <!--for (i in sug['geom']){-->
-          <!--console.log(sug['geom'][i])-->
-          <!--<!--for (j in sug['geom'][i][j]) {-->-->
-            <!--<!--console.log('g',geom[j])-->-->
-            <!--<!--<!--var marker = L.marker([g['coordinates'][1],g['coordinates'][0]]).addTo(mappy)-->-->-->
-          <!--<!--}-->-->
+          <!--console.log("sug['geom'][i]",sug['geom'][i])-->
         <!--}-->
       <!--}-->
 
