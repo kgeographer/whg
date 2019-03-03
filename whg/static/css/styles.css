@@ -63,6 +63,17 @@ input[type="text"] {
   
 }
 
+.col-content { 
+  background-color: white; padding:4px;
+  border-top: #ddd 1px solid;
+  border-left: #ddd 1px solid;
+  border-right: #999 2px solid;
+  border-bottom: #999 2px solid;
+}
+.col-content p { margin-bottom: .5rem; }
+.overlap { position:relative; }
+.abbrev { max-height: 60px; overflow:scroll;}
+
 /**
   place portal
 **/
@@ -74,11 +85,16 @@ input[type="text"] {
   overflow:  scroll;
   padding: 0 2px;
 }
+#place_traces ul {  margin: 0; padding-left: 1rem; text-decoration:none; list-style:square; }
+
 .bg-white { background-color: white; }
-.info-header { background-color: #4d4dff; color: white; padding-left: 2px;}
+.attest-header { background-color: antiquewhite; padding: 0 2px;}
 .allcap-heading {color: #993330;}
 .child-record {background-color:white; padding:3px;}
 .child-record p {margin-bottom:.3rem;}
+.maxhi {max-height: 50px; overflow:hidden; margin-bottom:3px;}
+.attest-element { border-bottom: 1px dashed #ccc;}
+.ttip { text-decoration: underline dashed; color: brown;}
 
 /**
   maps
@@ -107,15 +123,6 @@ input[type="text"] {
   border-right: #eeeee0 1px solid;
   border-bottom: #eeeee0 1px solid;
 }
-
-.col-content { 
-  background-color: ghostwhite; padding:4px;
-  border-right: #eee 2px solid;
-  border-bottom: #eee 2px solid;
-}
-.col-content p { margin-bottom: .5rem; }
-.overlap { position:relative; }
-.abbrev { max-height: 60px; overflow:scroll;}
 
 .even, .odd {
   cursor:pointer;

@@ -38,73 +38,72 @@
             <div class="col-content small mt-1"><p>{ auto-generated description } <i>future</i></p></div>
             {% for rec in payload %}
             <div class="col-content small mt-1">
-              <table class="table table-striped">
-                <thead class="small">
-                  <th>dataset</th>
-                  <th>whg_id</th>
-                  <th>src_id</th>
-                  <th>title</th>
-                </thead>
-                <tbody>
-                  <tr class="place-row">
-                    <td>{{ rec.dataset.label }} ({{rec.dataset.id}})</td>
-                    <td>{{ rec.whg_id }}</td>
-                    <td>{{ rec.src_id }}</td>
-                    <td>{{ rec.title }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p><b>Variants</b>: {% for name in rec.names %}<i>
-                {{name.toponym}} (<a href="" rel="tooltip" title="{{name.citation.label}}">src</a>) </i>
-                {% if not forloop.last %}; {% endif %}{% endfor %}</p>
-              <p><b>Types</b>: {% for type in rec.types %}<i>{{type.label}}/{{type.src_label}}</i>
-                {% if not forloop.last %}; {% endif %}{% endfor %}</p>
+              <div class="attest-header">
+                <b>{{ rec.title }}</b> (<a href="/api/places/{{ rec.whg_id }}/" target="_blank">whg:{{ rec.whg_id }}</a>)
+                <span class="float-right">
+                  dataset: <a href="#" rel="tooltip" title="{ full title }" class="ttip">{{rec.dataset.label}}</a>
+                </span>
+              </div>
+              <div class="attest-element">Variants: 
+                {% for name in rec.names %}<i>{{name.toponym}}</i>
+                {% if "http" in name.citation.id %}
+                  (<a href="{{ name.citation.id }}" rel="tooltip"
+                  title="{{name.citation.label}}" target="_blank">src</a>)
+                {% endif %}
+                {% if not forloop.last %}; {% endif %}
+                {% endfor %}
+              </div>
+              <div class="attest-element">Types: {% for type in rec.types %}<i>{{type.label}}/{{type.src_label}}</i>
+                {% if not forloop.last %}; {% endif %}{% endfor %}</div>
               <!-- put geoms into script -->
               {% if rec.geoms|length > 0 %}
                 {% for g in rec.geoms %}
                   {{ g|json_script:rec.whg_id }}
                 {% endfor %}
               {% endif %}
-              {% if rec.whens %}
-              <p><b>Temporal</b>: {% for when in rec.whens %}{{when}}{% endfor %}</p>
-              {% endif %}
-              <p><b>Links</b>: {% for link in rec.links %}<i>{{link.identifier}} ({{link.type}})</i>
-                {% if not forloop.last %}; {% endif %}{% endfor %}</p>
+              <div class="attest-element">Links: {% for link in rec.links %}<i>{{link.identifier}} ({{link.type}})</i>
+                {% if not forloop.last %}; {% endif %}{% endfor %}</div>
               {% if rec.descriptions %}
-              <div class="abbrev">
-              <p><b>Descriptions</b>: {% for desc in rec.descriptions %}<i>{{desc.value}}</i>
-                {% if not forloop.last %}; {% endif %}{% endfor %}</p>
+              <div class="attest-element abbrev">
+              <div>Descriptions: {% for desc in rec.descriptions %}<i>{{desc.value}}</i>
+                {% if not forloop.last %}; {% endif %}{% endfor %}</div>
               </div>
               {% endif %}
-              
+              {% if rec.whens %}
+              <div class="attest-element">Temporal: {% for when in rec.whens %}{{when|truncatechars:130}}{% endfor %}</div>
+              {% endif %}              
             </div>
-            {% endfor %}
-
-<!--rec: {'dataset': {'id': 1, 'label': 'black'}, 'whg_id': 82499, 'src_id': '11548', 'purl': 'http://whgazetteer.org/api/places/82499', 'title': 'Calusa', 'ccodes': [], 'names': [{'lang': None, 'toponym': 'Calusa', 'citation': {'id': 'black', 'label': 'DK Atlas of World History'}}], 'types': [{'label': 'cultural group', 'src_label': 'people', 'identifier': 'aat:300387171'}], 'links': [{'type': 'closeMatch', 'identifier': 'dplace:B46'}, {'type': 'closeMatch', 'identifier': 'dbp:Calusa'}], 'geoms': [], 'whens': [{'timespans': [{'end': {'in': 1600}, 'start': {'in': 1492}}, {'end': {'in': 1750}, 'start': {'in': 1600}}]}], 'related': [], 'descriptions': [], 'depictions': []} -->
-
+            {% endfor %} <!-- rec in payload-->
+            <div id="place_traces" class="col-content small mt-1">
+              <p class="mb-0 allcap-heading">RELATED</p>
+              <!-- auto-generate this-->
+              <ul>
+                <li>{ some relation }</li>
+                <li>{ another relation }</li>
+              </ul>
+            </div>
           </div> <!-- place_home_l-->
           <div id="place_home_r" class="col-sm-7">
             <div id="place_temporal" class="col-content small">
-                {% if rec.whens|length > 0 %}
-                    <p class="mb-0 allcap-heading">TEMPORAL</p>
-                        {% for w in rec.whens %}
-                            <p class="mb-1" ><i>min/max: </i> {{ w.minmax }}
-                            <p><i>timespans: </i> {{ w.json|parse:'timespans'|truncatechars:200 }}
-                        {% endfor %}
-                    </p>
-                {% else %}
-                    <p> { summing temporal visualization } <i>future</i></p>
-                {% endif %}
+              <p class="mb-0 allcap-heading">TEMPORAL ATTESTATIONS</p>
+              <p> { summing temporal visualization } <i>future</i></p>
             </div>
-            <!--<div class="row mt-1">-->
-              <div id="place_map" class="col-content small">
-                  <p class="mb-0 allcap-heading">GEOGRAPHY
-                      <span class="float-right"><a href="javascript:getClose()">
-                        {% fontawesome_icon 'search-plus' color='#336699' %}</a>
-                  </p>
-                  <div id="map">{% leaflet_map "map" callback="map_init" %}</map>
-              </div>
-            <!--</div> <!-- row -->
+            <div id="place_map" class="col-content small">
+                <p class="mb-0 allcap-heading">GEOGRAPHY
+                    <span class="float-right"><a href="javascript:getClose()">
+                      {% fontawesome_icon 'search-plus' color='#336699' %}</a>
+                </p>
+                <div id="map">{% leaflet_map "map" callback="map_init" %}</div>
+            </div>
+            <div id="place_traces" class="col-content small mt-1">
+              <p class="mb-0 allcap-heading">TRACES</p>
+              <!-- auto-generate this-->
+              <ul>
+                <li>{ some event trace }</li>
+                <li>{ some person trace }</li>
+                <li>{ some document trace }</li>
+              </ul>
+            </div>
           </div> <!-- place_home_r -->
         </div> <!-- row -->          
       </div> <!-- place_core -->
@@ -123,7 +122,7 @@
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map
   }, false);
-  
+
   function parseChild(c) {
     // names{toponym,citation{id,label}},types{label,src_label,identifier}, 
     // descriptions{value}, geoms{geowkt,type,coordinates},
@@ -173,22 +172,23 @@
          return "#98E2FA"
        else
          return "#7AFF7A"
-     }
+    }
     idToFeature = {}  // for feature lookup
     features = L.geoJSON(geom, {
     // TODO: for some reason linestrings are parsed and rendered here
-     pointToLayer: function (feature, latlng) {
-       matchid = feature.properties.dataset+':'+feature.properties.id
-       marker = L.circleMarker(latlng,
-         {
-           radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
-           color: "#000", fillColor: fill(feature.properties.dataset)
-         }
-       ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
-    
-       idToFeature[matchid] = marker
-       return marker
-     }
+      pointToLayer: function (feature, latlng) {
+        console.log(feature)
+        identifier = 'whg:'+feature.properties.id
+        marker = L.circleMarker(latlng,
+          {
+            radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+            color: "#000", fillColor: fill(feature.properties.dataset)
+          }
+        ).bindPopup(identifier);
+     
+        idToFeature[feature.properties.id] = marker
+        return marker
+      }
     }).addTo(mappy);
     
     // TODO: better zoomto choices
@@ -214,13 +214,6 @@
   
   
   $(function() {
-    <!--html=''-->
-    <!--window.children = JSON.parse(document.getElementById('kid-data').textContent)['hits'];-->
-    <!--for(i in children) {-->
-      <!--var c = children[i]['_source']-->
-      <!--html += parseChild(c)-->
-    <!--}-->
-    <!--$("#child_content").html(html)-->
   })
   
   function cleanJson(text) {
@@ -231,7 +224,7 @@
 
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
-    console.log('in map_init()')
+    <!--console.log('in map_init()')-->
     geom = {"type":"FeatureCollecton","features":[]}
     // gather geom script from html body
     window.gelems = $('script').filter(function() {
@@ -245,8 +238,10 @@
       g['properties'] = {"id": gelems[i].id}
       geom['features'].push(g)
     }
-    console.log('geom on init',geom)
     renderMap(geom)
   } // end map_init
 </script>
 {% endblock %}
+
+<!--rec: {'dataset': {'id': 1, 'label': 'black'}, 'whg_id': 82499, 'src_id': '11548', 'purl': 'http://whgazetteer.org/api/places/82499', 'title': 'Calusa', 'ccodes': [], 'names': [{'lang': None, 'toponym': 'Calusa', 'citation': {'id': 'black', 'label': 'DK Atlas of World History'}}], 'types': [{'label': 'cultural group', 'src_label': 'people', 'identifier': 'aat:300387171'}], 'links': [{'type': 'closeMatch', 'identifier': 'dplace:B46'}, {'type': 'closeMatch', 'identifier': 'dbp:Calusa'}], 'geoms': [], 'whens': [{'timespans': [{'end': {'in': 1600}, 'start': {'in': 1492}}, {'end': {'in': 1750}, 'start': {'in': 1600}}]}], 'related': [], 'descriptions': [], 'depictions': []} -->
+
