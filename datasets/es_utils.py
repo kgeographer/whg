@@ -132,6 +132,7 @@ def deleteDataset(ds):
 
 
 def queryObject(place):
+    from utils import hully
     qobj = {"place_id":place.id,"src_id":place.src_id,"title":place.title}
     variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]; links=[]
     

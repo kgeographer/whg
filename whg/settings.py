@@ -127,10 +127,11 @@ LEAFLET_CONFIG = {
     'MIN_ZOOM': 1,
     'MAX_ZOOM': 14,
     'RESET_VIEW': False,
-    'ATTRIBUTION_PREFIX': "Tiles and Data &copy; 2013 <a href='http://www.awmc.unc.edu' target='_blank'>AWMC</a> | " +
+    'ATTRIBUTION_PREFIX': 
     "Tiles &copy; <a href='http://mapbox.com/' target='_blank'>MapBox</a> | "+
     "<a href='http://creativecommons.org/licenses/by-nc/3.0/deed.en_US' target='_blank'> CC-BY-NC 3.0</a>"
 }
+#"Tiles and Data &copy; 2013 <a href='http://www.awmc.unc.edu' target='_blank'>AWMC</a> | " +
 # mapbox://styles/kgeographer/cjstfpenh6o1e1fldz95w8m6p
 # pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiUmVralBPcyJ9.mJegAI1R6KR21x_CVVTlqw
 

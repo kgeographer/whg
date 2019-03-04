@@ -1,5 +1,5 @@
 # es.py; index named dataset from database
-# 7 Feb 2019; rev 16 Feb 2019
+# 7 Feb 2019; rev 04 Mar 2019
 from __future__ import absolute_import, unicode_literals
 import sys, os, re, json, codecs, datetime, time, csv, random
 from geopy import distance
@@ -18,15 +18,12 @@ from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
 from places.models import Place
 ##
 
-dataset='dplace'
-scheme='flat'
 # 1428 dplace records; 1364 new, 64 into is_conflation_of
 # e.g. 97829 (Calusa) into 12347200
-# index dataset ('conflate','flat')
-#def indexDataset(dataset,scheme):
 # TODO: handle multiple parents (4 in dplace: 124883,124900,125065,125132)
 def indexDataset():
-    dataset = 'dplace'; scheme='flat'
+    dataset = input('dataset: ')
+    scheme='flat'
     qs = Place.objects.all().filter(dataset_id=dataset)
     count = 0
     
@@ -113,7 +110,8 @@ def indexDataset():
 
 def init():
     global es, idx, scheme, rows
-    dataset = 'dplace'; scheme='flat'
+    dataset = input('dataset: ')
+    scheme='flat'
     idx = 'whg_'+scheme # 'conflate' or 'flat' (parent-child)
 
     from elasticsearch import Elasticsearch
