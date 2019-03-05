@@ -22,6 +22,7 @@ def suggestionItem(s):
     print('sug', s)
     item = { "name":s['title'],
              "type":s['types'][0]['label'],
+             "whg_id":s['whg_id'],
              "pid":s['place_id'],
              "variants":[n for n in s['suggest']['input'] if n != s['title']],
              "dataset":s['dataset'],

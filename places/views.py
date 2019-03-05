@@ -13,19 +13,25 @@ class PlacePortalView(DetailView):
     # TODO: get conflated record data from ES index
     template_name = 'places/place_portal.html'
 
+    def get_object(self):
+        id_ = self.kwargs.get("id")
+        print('args',self.args,'kwargs:',self.kwargs)
+        es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+        q = {"query":{"bool": {"must": [{"match":{"_id": id_}}]}}}
+        pid=es.search(index='whg_flat', doc_type='place', body=q)['hits']['hits'][0]['_source']['place_id']
+        self.kwargs['pid'] = pid
+        return get_object_or_404(Place, id=pid)
+
     def get_success_url(self):
         id_ = self.kwargs.get("id")
         return '/places/'+str(id_)+'/detail'
 
-    def get_object(self):
-        print('args',self.args,'kwargs:',self.kwargs)
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Place, id=id_)
-
     def get_context_data(self, *args, **kwargs):
         context = super(PlacePortalView, self).get_context_data(*args, **kwargs)
         id_ = self.kwargs.get("id")
-        place = get_object_or_404(Place, id=id_)
+        pid = self.kwargs.get("pid")
+        #place = get_object_or_404(Place, id=id_)
+        place = get_object_or_404(Place, id=pid)
         # get child records from index
         q = {"query": {"parent_id": {"type": "child","id": id_ }}}
         es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
@@ -35,18 +41,20 @@ class PlacePortalView(DetailView):
         # build context['payload'] (parent and children if any)
         # here or in portal page?
         context['payload'] = []
-
+        context['whg_id'] = id_
         #
         # alt 1: get all from database
-        ids = [id_]
+        #ids = [id_]
+        ids = [pid]
         for hit in children['hits']:
             ids.append(int(hit['_id']))
         # parent and children in one queryset
         qs=Place.objects.filter(id__in=ids)
-        print("ids, qs",ids,qs)
+        #print("ids, qs",ids,qs)
         for place in qs:        
             ds = get_object_or_404(Dataset,id=place.dataset.id)
             record = {
+                "whg_id":id_,
                 "dataset":{"id":ds.id,"label":ds.label},
                 "place_id":place.id,
                 "src_id":place.src_id, 

@@ -15,7 +15,7 @@
   <div id="place_title">
     <h4>{{ place.title }} 
       <span class="small">{% if ccodes|length > 0 %} ({% for c in ccodes %}{{ c }} {% endfor %}){% endif %}</span>
-      <span class="smaller float-right"> <i>{{ purl }}</i>
+      <span class="smaller float-right"> <i>whg:{{ whg_id }}</i>
         {% if place.dataset in spine %}<a href="" rel="tooltip" title="WHG spine record">
           <img src="{% static 'images/whg_logo_38h.png' %}" height="25px" class="textsub ml-2"/></a>
         {% endif %}

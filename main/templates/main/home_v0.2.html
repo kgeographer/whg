@@ -127,14 +127,16 @@
   });
 
   function sugLister(sug) {
-    // console.log(sug)
+    <!--console.log(sug)-->
     variants = sug['variants'].length > 0 ? '<i class="text-secondary">'+sug['variants']+'</i>' : ''
-    item = ('<li ref="'+sug['pid']+
+    <!--item = ('<li ref="'+sug['pid']+-->
+    item = ('<li ref="'+sug['whg_id']+
             '" children="'+sug['children']+
             '" class="suggestion" ">'+
             <!--'<b>'+sug['name']+'</b> ('+sug['type']+')'+ sug['ccodes']+-->
             '<b>'+sug['name']+'</b> ('+sug['ccodes']+') '+ sug['type']+
-            '<span class="float-right small">'+'('+sug['dataset']+':'+sug['pid']+')</span><br/>'+
+            <!--'<span class="float-right small">'+'('+sug['dataset']+':'+sug['whg_id']+')</span><br/>'+-->
+            '<span class="float-right small">'+'(whg:'+sug['whg_id']+')</span><br/>'+
             variants+'</li>');
     return item
   }

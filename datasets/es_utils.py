@@ -34,8 +34,8 @@ def findMatch(qobj,es):
         if len(hits) > 0:
             for h in hits:
                 #print(h['_source']['names'])
-                #matches['parents'].append( h['_id'] )
-                matches['parents'].append( h['_source']['place_id'] )
+                matches['parents'].append( h['_id'] )
+                #matches['parents'].append( h['_source']['place_id'] )
                 for n in h['_source']['names']:
                     matches['names'].append(n['toponym'])
         # else: create seed (and/or parent+child)
