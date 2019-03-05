@@ -37,7 +37,7 @@ class PlacePortalView(DetailView):
         context['payload'] = []
 
         #
-        # alt 2: get all from database
+        # alt 1: get all from database
         ids = [id_]
         for hit in children['hits']:
             ids.append(int(hit['_id']))
@@ -48,7 +48,7 @@ class PlacePortalView(DetailView):
             ds = get_object_or_404(Dataset,id=place.dataset.id)
             record = {
                 "dataset":{"id":ds.id,"label":ds.label},
-                "whg_id":place.id,
+                "place_id":place.id,
                 "src_id":place.src_id, 
                 "purl":ds.uri_base+str(place.id) if 'whgaz' in ds.uri_base else ds.uri_base+place.src_id,
                 "title":place.title,
@@ -63,41 +63,6 @@ class PlacePortalView(DetailView):
                 "depictions":[depict.json for depict in place.depictions.all()]
             }
             context['payload'].append(record)
-        # alt 2: parent from db, children from index
-        #parent = {
-            #"whg_id":str(id_),
-            #"dataset":{"id":ds.id,"label":ds.label},
-            #"src_id":place.src_id, 
-            #"purl":ds.uri_base+str(id_),
-            #"ccodes":place.ccodes, 
-            #"names":[name.json for name in place.names.all()], 
-            #"types":[type.json for type in place.types.all()], 
-            #"links":[link.json for link in place.links.all()], 
-            #"geoms":[geom.json for geom in place.geoms.all()],
-            #"whens":[when.json for when in place.whens.all()], 
-            #"related":[rel.json for rel in place.related.all()], 
-            #"descriptions":[descr.json for descr in place.descriptions.all()], 
-            #"depictions":[depict.json for depict in place.depictions.all()]
-        #}
-        #payload.append(parent)
-        #for hit in children['hits']:
-            #src= hit['_source']
-            #child = {
-                #"whg_id":src['place_id'],
-                #"dataset":{"id":ds.id,"label":ds.label},
-                #"src_id":child.src_id, 
-                #"purl":ds.uri_base+str(id_) if 'whgaz' in ds.uri_base else ds.uri_base+child.src_id,
-                #"ccodes":place.ccodes, 
-                #"names":[name for name in src['names']], 
-                #"types":[typ for typ in src['types']], 
-                #"links":[link for link in src['links']], 
-                #"geoms":[geom for geom in src['geoms']],
-                ##"whens":[when for when in src['whens']], # sometimes only timespans[]
-                #"related":[rel for rel in src['relations']], 
-                #"descriptions":[descr for descr in src['descriptions']], 
-                #"depictions":[depict for depict in src['depictions']]            
-            #}
-            #payload.append(child)        
         print('place context',str(context))
         return context
 

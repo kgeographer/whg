@@ -27,9 +27,9 @@
       <li class="nav-item">
         <a class="nav-link active" data-toggle="tab" href="#place_core" selected>Attestations</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#place_discussion">Discussion</a>
-      </li>
+      <!--<li class="nav-item">-->
+        <!--<a class="nav-link" data-toggle="tab" href="#place_discussion">Discussion</a>-->
+      <!--</li>-->
     </ul>
     <div id="place_content" class="tab-content">
       <div id="place_core" class="tab-pane fade show active" >
@@ -39,7 +39,7 @@
             {% for rec in payload %}
             <div class="col-content small mt-1">
               <div class="attest-header">
-                <b>{{ rec.title }}</b> (<a href="/api/places/{{ rec.whg_id }}/" target="_blank">whg:{{ rec.whg_id }}</a>)
+                <b>{{ rec.title }}</b> (<a href="/api/places/{{ rec.place_id }}/" target="_blank">pid:{{ rec.place_id }}</a>)
                 <span class="float-right">
                   dataset: <a href="#" rel="tooltip" title="{ full title }" class="ttip">{{rec.dataset.label}}</a>
                 </span>
@@ -58,10 +58,12 @@
               <!-- put geoms into script -->
               {% if rec.geoms|length > 0 %}
                 {% for g in rec.geoms %}
-                  {{ g|json_script:rec.whg_id }}
+                  {{ g|json_script:rec.place_id }}
                 {% endfor %}
               {% endif %}
-              <div class="attest-element">Links: {% for link in rec.links %}<i>{{link.identifier}} ({{link.type}})</i>
+              <div class="attest-element">Links: 
+              {% for link in rec.links %}
+                <a href="#" class="remote-link"><i>{{link.identifier}}</a> ({{link.type}})</i>
                 {% if not forloop.last %}; {% endif %}{% endfor %}</div>
               {% if rec.descriptions %}
               <div class="attest-element abbrev">
@@ -117,8 +119,14 @@
 </div> <!-- top container -->
 
 <script type="text/javascript">
-  $("[rel='tooltip']").tooltip();
-  
+  $(function() {
+    $("[rel='tooltip']").tooltip();
+    $(".remote-link").click(function(event) {
+      event.preventDefault();
+      console.log($(this).text())
+      console.log(base_urls)
+    })
+  })
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map
     
@@ -133,56 +141,19 @@
       mbtiles_url = 'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={token}';
       mbstyle_url = 'https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={token}';
       
-https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFza290YSIsImEiOiJjaXp0bmI3M3EwMDBvMndzMHJudnlsMDllIn0.jV7rTNmfiqjx57usCu54rQ'
-
-mapbox://styles/kgeographer/cjstfpenh6o1e1fldz95w8m6p
-
     var awmc = L.tileLayer(mbtiles_url, {id:'isawnyu.map-knmctlkh', token:token_awmc, attribution:attrib_awmc}),
-      grayscale = L.tileLayer(mbstyle_url, {id:'kgeographer/cjstfpenh6o1e1fldz95w8m6p', token:token_kg, attribution:attrib_awmc}),
+      grayscale = L.tileLayer(mbstyle_url, {id:'kgeographer/cjstfpenh6o1e1fldz95w8m6p', token:token_kg, attribution:attrib_mb}),
       satellite  = L.tileLayer(mbtiles_url, {id:'mapbox.satellite', token:token_mb, attribution:attrib_mb});
 
     var baseLayers = {
       "AWMC Terrain": awmc,
-      "Grayscale": grayscale,
+      "Spine Data": grayscale,
       "Satellite": satellite
     };
     L.control.layers(baseLayers).addTo(mappy);
-    baseLayers['Grayscale'].addTo(mappy)
+    baseLayers['AWMC Terrain'].addTo(mappy)
   }, false);
 
-  function parseChild(c) {
-    // names{toponym,citation{id,label}},types{label,src_label,identifier}, 
-    // descriptions{value}, geoms{geowkt,type,coordinates},
-    html = '<div class="child-record"><p class="font-weight-bold">'+
-      c['place_id']+' ('+c['dataset']+':'+c['src_id']+')</p>'+
-      '<p><i>title</i>: '+c['title']+'('+c['ccodes']+')</p>'
-    if (c['types'].length > 0) {
-      html += '<p><i>type(s)</i>: '
-      for (t in c['types']) {
-        html += c['types'][t]['src_label']
-      }
-      html += '</p>'
-    }
-    if (c['descriptions'].length > 0) {
-      html += '<p><i>description(s)</i>: </p><div style="max-height:75px; overflow:scroll;">'
-      for (d in c['descriptions']) {
-        html += c['descriptions'][d]['value']
-      }
-      html += '</p>'
-    }
-    html+='</div>'
-    <!--console.log(c['geoms'])-->
-    if (c['geoms'].length > 0){
-      geom = {"type":"FeatureCollecton","features":[]}
-      for (g in c['geoms']){
-        c['geoms'][g]['properties'] = {"id": c['place_id'], "dataset": c['dataset']}
-        geom.features.push(c['geoms'][g])
-      }
-      renderMap(geom)
-    } 
-
-    return html
-  }
   function getClose() {
     <!--mappy.setZoom(mappy.getZoom()+2)-->
     mappy.fitBounds(features.getBounds().pad(3))
@@ -204,7 +175,7 @@ mapbox://styles/kgeographer/cjstfpenh6o1e1fldz95w8m6p
     features = L.geoJSON(geom, {
     // TODO: for some reason linestrings are parsed and rendered here
       pointToLayer: function (feature, latlng) {
-        console.log(feature)
+        <!--console.log(feature)-->
         identifier = 'whg:'+feature.properties.id
         marker = L.circleMarker(latlng,
           {
@@ -240,15 +211,7 @@ mapbox://styles/kgeographer/cjstfpenh6o1e1fldz95w8m6p
   
   
   
-  $(function() {
-  })
-  
-  function cleanJson(text) {
-    z=text.replace(/'/g,'\\"')
-    y=z.replace(/point/,'Point')
-    return JSON.parse(JSON.parse(y))
-  }
-
+ 
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
     <!--console.log('in map_init()')-->
@@ -271,4 +234,3 @@ mapbox://styles/kgeographer/cjstfpenh6o1e1fldz95w8m6p
 {% endblock %}
 
 <!--rec: {'dataset': {'id': 1, 'label': 'black'}, 'whg_id': 82499, 'src_id': '11548', 'purl': 'http://whgazetteer.org/api/places/82499', 'title': 'Calusa', 'ccodes': [], 'names': [{'lang': None, 'toponym': 'Calusa', 'citation': {'id': 'black', 'label': 'DK Atlas of World History'}}], 'types': [{'label': 'cultural group', 'src_label': 'people', 'identifier': 'aat:300387171'}], 'links': [{'type': 'closeMatch', 'identifier': 'dplace:B46'}, {'type': 'closeMatch', 'identifier': 'dbp:Calusa'}], 'geoms': [], 'whens': [{'timespans': [{'end': {'in': 1600}, 'start': {'in': 1492}}, {'end': {'in': 1750}, 'start': {'in': 1600}}]}], 'related': [], 'descriptions': [], 'depictions': []} -->
-
