@@ -1,6 +1,14 @@
-# es_utils.py 7 Feb 2019
+# es_utils.py 7 Feb 2019; rev 5 Mar 2019
 # misc supporting eleasticsearch tasks (es.py)
 
+def maxID(es):
+    q={"query": {"bool": {"must" : {"match_all" : {}} }},
+       "sort": [{"whg_id": {"order": "desc"}}],
+       "size": 1  
+       }
+    res = es.search(index='whg_flat', body=q)
+    maxy = int(res['hits']['hits'][0]['_id'])
+    return maxy
 def uriMaker(place):
     from django.shortcuts import get_object_or_404
     from datasets.models import Dataset
@@ -10,40 +18,24 @@ def uriMaker(place):
     else:
         return ds.uri_base + str(place.src_id)
     
-def findMatch(qobj,scheme,es):
-    matches = {"scheme":scheme, "parents":[], "names":[]}
-    q_links_c = {"query": { 
-        "bool": {
-            "must": [
-                {"nested": {
-                    "path": "is_conflation_of",
-                    "query": {
-                        "nested" : {
-                            "path" :  "is_conflation_of.links",
-                            "query" : {
-                                "terms": {
-                                    "is_conflation_of.links.identifier": qobj['links'] }}
-                    }}
-                }}
-            ]
-        }
-    }}
+def findMatch(qobj,es):
+    matches = {"parents":[], "names":[]}
     q_links_f = {"query": { 
      "bool": {
        "must": [
          {"terms": {"links.identifier": qobj['links'] }}
-         #,{"terms": {"types.id": qobj['types'] }}
         ]
      }
     }}
     
     if len(qobj['links']) > 0: # if links, terms query
-        res = es.search(index='whg_'+scheme, doc_type='place', body=q_links_c if scheme=='conflate' else q_links_f)
+        res = es.search(index='whg_flat', doc_type='place', body=q_links_f)
         hits = res['hits']['hits']
         if len(hits) > 0:
             for h in hits:
                 #print(h['_source']['names'])
-                matches['parents'].append( h['_id'] if scheme=='flat' else h['_source']['whgid'] )
+                #matches['parents'].append( h['_id'] )
+                matches['parents'].append( h['_source']['place_id'] )
                 for n in h['_source']['names']:
                     matches['names'].append(n['toponym'])
         # else: create seed (and/or parent+child)
@@ -83,13 +75,16 @@ def parsePlace(place,attr):
     arr = []
     for obj in qs:
         if attr == 'geoms':
-            if obj.json['type'] == 'Point':
-                obj.json['coords_point'] = obj.json['coordinates']
-            else:
-                obj.json['coords_shape'] = obj.json['coordinates']            
-        arr.append(obj.json)
+            g = obj.json
+            geom={
+                "location":{"type":g['type'],"coordinates":g['coordinates']},
+                "citation":g['citation'] if 'citation' in g.keys() else '',
+                "geowkt":g['geowkt']} if 'geowkt' in g.keys() else ''
+            arr.append(geom)
+        else:
+            arr.append(obj.json)
     return arr
-    
+        
 def deleteDocs(ids):
     from elasticsearch import Elasticsearch
     es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
@@ -132,7 +127,7 @@ def deleteDataset(ds):
 
 
 def queryObject(place):
-    from utils import hully
+    from datasets.utils import hully
     qobj = {"place_id":place.id,"src_id":place.src_id,"title":place.title}
     variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]; links=[]
     
@@ -188,36 +183,6 @@ def makeSeed(place, dataset, whgid):
     sobj.is_conflation_of.append(makeChildConflate(place))
     
     return sobj
-
-def makeChildConflate(place):
-    cc_obj = {
-            "place_id": place.id,
-            "dataset": place.dataset.label,
-            "src_id": place.src_id,
-            "title": place.title,
-            "uri": uriMaker(place),
-            "ccodes": place.ccodes,
-            "names": parsePlace(place,'names'),
-            "types": parsePlace(place,'types'),
-            "links": parsePlace(place,'links'),
-            "geoms": parsePlace(place,'geoms'),
-            "descriptions": parsePlace(place,'descriptions')
-            #"relations": [],
-            #"depictions": [], 
-            #"timespans": []
-        }
-    return cc_obj
-def insertChildConflate(parentid, child_obj, es):
-    # select parent, add child to is_conflation_of
-    q_insert = {"script" : {
-        "source": "ctx._source.is_conflation_of.add(params.obj)",
-        "lang": "painless",
-        "params" : {
-            "obj" : child_obj
-        }
-    }}
-    es.update(index="whg_conflate",doc_type="place",id=parentid, body=q_insert)
-    print('added ',child_obj['place_id'],' to ',parentid)
 
 # abandoned for makeDoc()
 class SeedPlace(object):

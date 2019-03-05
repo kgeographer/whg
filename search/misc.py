@@ -1,10 +1,39 @@
 # some queries 12 Feb 2019
-import json
-from elasticsearch import Elasticsearch
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+import json, codecs
 
+# working out geo_shape indexing
+def init_geotest():
+    global es, idx, rows
+    idx = 'geotest' 
+    import json, codecs, os
+    from elasticsearch import Elasticsearch
+    es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+    os.chdir('/Users/karlg/Documents/Repos/_whgdata')
+    mappings = codecs.open('data/elastic/mappings/mappings_geo2.json', 'r', 'utf8').read()
+    
+    try:
+        es.indices.delete(idx)
+    except Exception as ex:
+        print(ex)
+    try:
+        es.indices.create(index=idx, ignore=400, body=mappings)
+        print ('index "'+idx+'" created')
+    except Exception as ex:
+        print(ex)
+init_geotest()
+line_obj = {'title': 'Drau', 'geoms': [{'type': 'MultiLineString', 'coordinates': [[[15.828857421875, 46.4545352234316], [15.94228515625, 46.3825869812441]],[[-18.396875, 64.7361514343691], [-18.4327880859375, 64.6947695984316]]]}]}
+res = es.index(index='geotest', doc_type='place', id=98765, body=line_obj)
+point_obj = {'title': 'Drau', 'geoms': [{'type': 'Point', 'coordinates': [12, 60]}]}
+res = es.index(index='geotest', doc_type='place', id=98766, body=point_obj)
+plus_obj = {'title': 'Pushy', 'geoms': [
+    {'location':{'type': 'Point', 'coordinates': [16, 46]},
+    'foo':'bar'}
+]}
+res = es.index(index='geotest', doc_type='place', id=98767, body=plus_obj)
+
+
+## *** ##
 idx="whg_flat"
-
 def findName():
     name = input('name [Calusa]: ') or 'Calusa'
     #print('name: ',name)

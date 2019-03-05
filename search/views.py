@@ -12,7 +12,7 @@ def makeGeom(pid,geom):
     if len(geom) > 0:    
         for g in geom:
             geomset.append(
-                {"type":g['type'],"coordinates":g['coords_point'],"properties":{"whgid": pid}}
+                {"type":g['location']['type'],"coordinates":g['location']['coordinates'],"properties":{"pid": pid}}
             )
     return geomset
         
