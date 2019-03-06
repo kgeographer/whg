@@ -28,6 +28,7 @@ def indexDataset():
     qs = Place.objects.all().filter(dataset_id=dataset)
     count = 0
     multiparents=[]
+    errors=[]
     # what is the last whg_id
     whg_id = maxID(es); print('max whg_id:',whg_id)  
     
@@ -55,7 +56,13 @@ def indexDataset():
             for n in parent_obj['names']:
                 parent_obj['suggest']['input'].append(n['toponym']) 
             # index it
-            res = es.index(index=idx, doc_type='place', id=whg_id, body=json.dumps(parent_obj))
+            try:
+                res = es.index(index=idx, doc_type='place', id=whg_id, body=json.dumps(parent_obj))
+            except:
+                print('failed indexing '+str(place.id), parent_obj)
+                errors.append({"pid":str(place.id), "pobj":parent_obj})
+                pass
+                #sys.exit(sys.exc_info())                
         else:
             # 1 or more matches, it's a child
             # TODO: can't have 2 parents though!!!!
@@ -90,6 +97,7 @@ def indexDataset():
                     sys.exit(sys.exc_info())
                                                 
     print(multiparents)                    
+    print(errors)                    
     print(str(count_seeds)+' fresh records added, '+str(count_kids)+' child records added')
 
 def init():
