@@ -63,28 +63,27 @@ def makeDoc(place,parentid):
         }
     return cc_obj
 
-def jsonDefault(value):
-    import datetime
-    if isinstance(value, datetime.date):
-        return dict(year=value.year, month=value.month, day=value.day)
-    else:
-        return value.__dict__
-    
 def parsePlace(place,attr):
     qs = eval('place.'+attr+'.all()')
     arr = []
     for obj in qs:
         if attr == 'geoms':
             g = obj.json
-            geom={
-                "location":{"type":g['type'],"coordinates":g['coordinates']},
-                "citation":g['citation'] if 'citation' in g.keys() else '',
-                "geowkt":g['geowkt']} if 'geowkt' in g.keys() else ''
+            geom={"location":{"type":g['type'],"coordinates":g['coordinates']}}
+            if 'citation' in g.keys(): geom["citation"] = g['citation']
+            if 'geowkt' in g.keys(): geom["geowkt"] = g['geowkt']
             arr.append(geom)
         else:
             arr.append(obj.json)
     return arr
-        
+
+def jsonDefault(value):
+    import datetime
+    if isinstance(value, datetime.date):
+        return dict(year=value.year, month=value.month, day=value.day)
+    else:
+        return value.__dict__
+
 def deleteDocs(ids):
     from elasticsearch import Elasticsearch
     es = Elasticsearch([{'host': 'localhost', 'port': 9200}])

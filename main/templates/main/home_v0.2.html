@@ -137,7 +137,7 @@
             '<b>'+sug['name']+'</b> ('+sug['ccodes']+') '+ sug['type']+
             <!--'<span class="float-right small">'+'('+sug['dataset']+':'+sug['whg_id']+')</span><br/>'+-->
             '<span class="float-right small">'+'(whg:'+sug['whg_id']+')</span><br/>'+
-            variants+'</li>');
+            variants.substring(0,100)+'</li>');
     return item
   }
   function renderFeatures(geom){

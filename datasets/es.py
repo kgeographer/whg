@@ -18,13 +18,16 @@ from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
 from places.models import Place
 ##
 
-# 1428 dplace records; 1364 new, 64 into is_conflation_of
+# dplace: 1428; 
+# ne_rivers: 1074; 981 new, 110 child (??)
+# 981 fresh records added, 110 child records ad
 # e.g. 97829 (Calusa) into 12347200
-# TODO: handle multiple parents (4 in dplace: 124883,124900,125065,125132)
+# TODO: handle multiple parents (dplace: 124883,124900,125065,125132; ne_rivers: )
 def indexDataset():
     dataset = input('dataset: ')
     qs = Place.objects.all().filter(dataset_id=dataset)
     count = 0
+    multiparents=[]
     # what is the last whg_id
     whg_id = maxID(es); print('max whg_id:',whg_id)  
     
@@ -37,26 +40,26 @@ def indexDataset():
         # build query object
         qobj = queryObject(place)
 
-        # if it has links, look for link matches in existing
+        # match if shared link; 
+        # TODO: reconcile to whg
         matches = findMatch(qobj,es) if 'links' in qobj.keys() else {"parents":[], "names":[]}
         #print(place.id,matches)
         if len(matches['parents']) == 0:
-            # it's a parent
+            # it's a parent (seed)
             whg_id +=1
             count_seeds +=1
             parent_obj = makeDoc(place,'none')
             parent_obj['relation']={"name":"parent"}
-            
-            # add its names to the suggest field
+            parent_obj['whg_id'] = whg_id
+            # add its own names to the suggest field
             for n in parent_obj['names']:
                 parent_obj['suggest']['input'].append(n['toponym']) 
-                
             # index it
             res = es.index(index=idx, doc_type='place', id=whg_id, body=json.dumps(parent_obj))
         else:
             # 1 or more matches, it's a child
             # TODO: can't have 2 parents though!!!!
-            if len(matches['parents'])>1: print(i-1, place.id, place.title, matches)
+            if len(matches['parents'])>1: multiparents.append({"pid":place.id, "title":place.title, "matches":matches})
             for pid in matches['parents']:
                 count_kids +=1                
                 child_obj = makeDoc(place,pid)
@@ -86,7 +89,7 @@ def indexDataset():
                     print(count_kids-1)
                     sys.exit(sys.exc_info())
                                                 
-                        
+    print(multiparents)                    
     print(str(count_seeds)+' fresh records added, '+str(count_kids)+' child records added')
 
 def init():
