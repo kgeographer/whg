@@ -14,18 +14,36 @@ from .forms import AreaModelForm, AreaDetailModelForm
 from .models import Area
 
 class AreaCreateView(CreateView):
-    #print('AreaCreateView()')
     form_class = AreaModelForm
     template_name = 'areas/area_create.html'
-    # template_name = 'areas/area_create_l.html'
     queryset = Area.objects.all()
-    success_url = '/dashboard'
+    
+    # ** commented for referrer redirect
+    #success_url = '/dashboard'
 
+    # ** ADDED for referrer redirect
+    def get_form_kwargs(self, **kwargs):
+        kwargs = super(AreaCreateView, self).get_form_kwargs()
+        redirect = self.request.GET.get('next')
+        print('redirect in get_form_kwargs():',redirect)
+        if redirect != None:
+            self.success_url = redirect
+        else:
+            self.success_url = '/dashboard'
+        #print('cleaned_data in get_form_kwargs()',form.cleaned_data)
+        if redirect:
+            if 'initial' in kwargs.keys():
+                kwargs['initial'].update({'next': redirect})
+            else:
+                kwargs['initial'] = {'next': redirect}
+        print('kwargs in get_form_kwargs():',kwargs)
+        return kwargs
+    # ** END
+    
     def form_valid(self, form):
         context={}
         if form.is_valid():
             print('form is valid')
-            print('cleaned_data:', form.cleaned_data)
         else:
             print('form not valid', form.errors)
             context['errors'] = form.errors
@@ -33,7 +51,9 @@ class AreaCreateView(CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(AreaCreateView, self).get_context_data(*args, **kwargs)
+        #print('args',args,kwargs)
         context['action'] = 'create'
+        #context['referrer'] = self.request.POST.get('referrer')
         return context
 
 # combines detail and update

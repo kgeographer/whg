@@ -180,7 +180,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
     # TODO: handle multipolygons from "#area_load" and "#area_draw"
-    # depends on making es:tgn locations geo_shapes
+    # es:tgn201902 locations are geo_shapes; test with France, e.g
     area_list = Area.objects.all().filter(owner=request.user, type="#areas_codes")
     # area_list = Area.objects.all().filter(owner=request.user)
     # print('request, method:',request, request.method)
@@ -208,6 +208,7 @@ def ds_recon(request, pk):
         print('bounds',bounds)
         # run celery/redis tasks e.g. align_tgn, align_whg
         result = func.delay(
+        #result = func(
             ds.id,
             ds=ds.id,
             dslabel=ds.label,

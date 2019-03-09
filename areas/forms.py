@@ -4,15 +4,21 @@ from django.db import models
 from .models import Area
 
 class AreaModelForm(forms.ModelForm):
+    # ** trying to return to referrer
+    next = forms.CharField(required=False)
+    # **
+    
     class Meta:
         model = Area
-        fields = ('id','type','owner','title','description','ccodes','geojson')
+        #exclude = tuple()
+        fields = ('id','type','owner','title','description','ccodes','geojson','next')
         widgets = {
             'description': forms.Textarea(attrs={
-                'rows':2,'cols': 30,'class':'textarea',
-                'placeholder':'brief description'
+                'rows':2,'cols': 40,'class':'textarea'
             }),
-            # 'geom': LeafletWidget(),
+            'ccodes': forms.TextInput(attrs={
+                'placeholder':'2-letter codes, e.g. br,ar'
+            }),
             'geojson': forms.Textarea(attrs={
                 'rows':2,'cols': 40,'class':'textarea',
                 'placeholder':''

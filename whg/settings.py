@@ -121,7 +121,7 @@ WHG_BASETILES = 'https://api.mapbox.com/styles/v1/kgeographer/cjstfpenh6o1e1fldz
 AWMC_BASETILES = 'https://api.mapbox.com/v4/isawnyu.map-knmctlkh/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg'
 
 LEAFLET_CONFIG = {
-    'TILES':[],
+    'TILES':(AWMC_BASETILES),
     'DEFAULT_CENTER': (35.0, 13.0),
     'DEFAULT_ZOOM': 1,
     'MIN_ZOOM': 1,

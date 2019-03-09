@@ -119,12 +119,17 @@
           <option disabled value="la">- Latin America</option>
           <option disabled value="us">- US & Canada</option>
         </select><span class="ml-2"><b>or...</b></span></p>
-        <p><select id="select_userarea" name="userarea" class="custom-select-sm" style="width:auto;">
-          <option value="0">Select user-defined study area</option>
+        <p>
+          <select id="select_userarea" name="userarea" class="custom-select-sm" style="width:auto;">
+          <option value="0" selected="selected">Select user-defined study area</option>
           {% for a in area_list %}
               <option value="{{ a.id }}">{{ a.title }}</option>
           {% endfor %}
-        </select></p>
+          <option value="create">{ new }</option>
+        </select>
+        <span class="ml-2 small">
+          <a href="{% url 'areas:area-create' %}?next={% url 'datasets:ds_recon' ds.id %}">create one</a>
+        </span></p>
         <p><input type="text" disabled name="search_region" value="" placeholder="Search region data"/></p>
       </div>
       {% if request.method == 'GET' %}
@@ -140,15 +145,21 @@
 </div> <!-- container -->
 
 <script type="text/javascript">
+  $(function(){
+  })
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
     console.log('in map_init()')
   } // end map_init
+  // clear dropdown choice if other is used
   $( "#select_region" ).change(function() {
     $( "#select_userarea option[value=0]" ).prop('selected',true)
   });
   $( "#select_userarea" ).change(function() {
     $( "#select_region option[value=0]" ).prop('selected',true)
+    if ($( "#select_userarea option[value='create']" ).prop('selected') == true) {
+      location.href="{% url 'areas:area-create' %}?next={% url 'datasets:ds_recon' ds.id %}"
+    }
   });
 
 </script>

@@ -99,6 +99,7 @@
           </div>
           <p class="mt-2">GeoJSON<br/>{{ form.geojson }}</p>
         </div> <!-- area_options -->
+        <p id="referrer"></p>
         <input class="btn-sm btn-primary mt-2" type="submit" value="Save" />
         <span title="back"><a href="{% url 'dashboard' %}">Cancel</a></span>
       </form>
@@ -117,7 +118,14 @@
       });
       $("#id_geojson").attr("placeholder","generated from country codes")
       // $("#type_input").val('')
+    
+      // came from recon, insert a "referrer" POST value
+      <!--if(document.referrer.indexOf('recon') !== -1){-->
+        <!--$("#referrer").html('<input id="ref_input" type="hidden" name="referrer" value="'+document.referrer+'"/>')-->
+      // <input id="ref_input" type="hidden" name="referrer" value=""/>
+        <!--document.getElementById("ref_input").value = document.referrer;-->
     })
+
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
       var target = $(e.target).attr("href") // activated tab
       map_clear() // switch create modes? clear the deck

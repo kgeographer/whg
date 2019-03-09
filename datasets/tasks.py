@@ -7,67 +7,677 @@ from django.shortcuts import get_object_or_404, render, redirect
 import sys, os, re, json, codecs, datetime, time, csv
 import random
 from pprint import pprint
-from .models import Dataset, Hit
+from datasets.models import Dataset, Hit
 from places.models import Place
 from areas.models import Area
-from .regions import regions as region_hash
+from datasets.regions import regions as region_hash
 ##
-import shapely.geometry
+import shapely.geometry as sgeo
 from geopy import distance
-from .utils import roundy, fixName, classy, bestParent, elapsed, hully
+from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
 from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 ##
 
 def types(hit):
-    type_array = []
-    for t in hit["_source"]['types']:
-        if bool(t['placetype'] != None):
-            type_array.append(t['placetype']+', '+str(t['display']))
-    return type_array
+  type_array = []
+  for t in hit["_source"]['types']:
+    if bool(t['placetype'] != None):
+      type_array.append(t['placetype']+', '+str(t['display']))
+  return type_array
 
 def names(hit):
-    name_array = []
-    for t in hit["_source"]['names']:
-        if bool(t['name'] != None):
-            name_array.append(t['name']+', '+str(t['display']))
-    return name_array
+  name_array = []
+  for t in hit["_source"]['names']:
+    if bool(t['name'] != None):
+      name_array.append(t['name']+', '+str(t['display']))
+  return name_array
 
 def hitRecord(hit,search_loc=None):
-    hit = hit
-    #print(search_loc,hit)
-    type_array = types(hit)
-    name_array = names(hit)
-    es_loc = hit['_source']['location']
-    if search_loc != None and es_loc['coordinates'][0] != None:
-        # get distance between search_loc and es_loc()
-        # if MultiPoint get centroid
-        s = reverse(shapely.geometry.MultiPoint(search_loc['coordinates']).centroid.coords[0]) \
-            if len(search_loc['coordinates']) > 1 \
+  hit = hit
+  #print(search_loc,hit)
+  type_array = types(hit)
+  name_array = names(hit)
+  es_loc = hit['_source']['location']
+  if search_loc != None and es_loc['coordinates'][0] != None:
+    # get distance between search_loc and es_loc()
+    # if MultiPoint get centroid
+    s = reverse(shapely.geometry.MultiPoint(search_loc['coordinates']).centroid.coords[0]) \
+          if len(search_loc['coordinates']) > 1 \
             else reverse(shapely.geometry.Point(search_loc['coordinates'][0]).coords[0])
-        t = tuple([es_loc['coordinates'][1],es_loc['coordinates'][0]])
-        dist = int(distance.distance(s,t).km)
-        #print(dist)
-    else:
-        dist = '?'
-    hitrec = str(dist) +'km\t'+ "%(tgnid)s\t%(title)s\t%(parents)s\t" % hit['_source'] + \
-        str(type_array) + '\t'
-    #hitrec += "%(lat)s\t%(lon)s\t%(note)s" % hit['_source'] + '\t'
-    hitrec += "%(location)s\t%(note)s" % hit['_source'] + '\t'
-    hitrec += str(name_array) + '\n'
-    return hitrec
+    t = tuple([es_loc['coordinates'][1],es_loc['coordinates'][0]])
+    dist = int(distance.distance(s,t).km)
+    #print(dist)
+  else:
+    dist = '?'
+  hitrec = str(dist) +'km\t'+ "%(tgnid)s\t%(title)s\t%(parents)s\t" % hit['_source'] + \
+      str(type_array) + '\t'
+  #hitrec += "%(lat)s\t%(lon)s\t%(note)s" % hit['_source'] + '\t'
+  hitrec += "%(location)s\t%(note)s" % hit['_source'] + '\t'
+  hitrec += str(name_array) + '\n'
+  return hitrec
 
 def toGeoJSON(hit):
-    src = hit['_source']
-    feat = {"type": "Feature", "geometry": src['location'],
+  src = hit['_source']
+  feat = {"type": "Feature", "geometry": src['location'],
             "aatid": hit['_id'], "tgnid": src['tgnid'],
             "properties": {"title": src['title'], "parents": src['parents'], "names": names(hit), "types": types(hit) } }
-    return feat
+  return feat
 
 def reverse(coords):
-    fubar = [coords[1],coords[0]]
-    return fubar
+  fubar = [coords[1],coords[0]]
+  return fubar
 
+
+def get_bbox_filter(bounds,idx='tgn'):
+  #print('bounds',bounds)
+  id = bounds['id'][0]
+  type = bounds['type'][0]
+  # TODO: no longer geo_bounding_box, now geo_shape/intersects
+  filter_intersects_area = { "geo_shape": {
+    "geoms.location": {
+        "shape": {
+          "type": "polygon",
+            "coordinates" : location['coordinates'] if location['type'] == "Polygon" \
+            else location['coordinates'][0][0]
+        },
+        "relation": "intersects" # within | intersects | contains
+      }
+  }} if location['type'] != "Point" else {}
+  
+  if type == 'region':
+    filter = { "geo_bounding_box" : {"location.coordinates" : region_hash[id]} } \
+          if idx == 'tgn' else \
+            { "geo_bounding_box" : {"geoms.location.coordinates" : region_hash[id]} }
+  elif type == 'userarea':
+    # TODO: rebuild tgn index with geometry type 'geo_shape'
+    # will allow multipolygon constraint footprint?
+    area = Area.objects.get(id = id)
+    filter = {
+          "geo_polygon": {"location.coordinates" : {"points": area.geojson['coordinates'][0]}} \
+            if idx == 'tgn' else \
+            {"geoms.location.coordinates" : {"points": area.geojson['coordinates'][0]}}
+
+            # "geo_shape": {
+            #     "location.coordinates": {
+            #         "shape": {
+            #             "type": "envelope",
+            #             "coordinates" : area.geojson['coordinates']
+            #         },
+            #         "relation": "within"
+            #     }
+            # }
+        }
+  return filter
+
+#@task(name="es_lookup")
+def es_lookup(qobj, *args, **kwargs):
+  # print('qobj',qobj)
+  bounds = kwargs['bounds']
+  hit_count = 0
+  #search_name = fixName(qobj['prefname'])
+
+  # empty result object
+  result_obj = {
+      'place_id': qobj['place_id'], 'hits':[],
+        'missed':-1, 'total_hits':-1
+    }  
+
+  # array (includes title)
+  variants = qobj['variants']
+
+  # bestParent() coalesces mod. country and region; countries.json
+  parent = bestParent(qobj)
+
+  # pre-computed in sql
+  # minmax = row['minmax']
+
+  # getty aat numerical identifiers
+  placetypes = qobj['placetypes']
+
+  # base query: name, type, parent, bounds if specified
+  qbase = {"query": { 
+    "bool": {
+      "must": [
+        {"terms": {"names.name":variants}},
+        {"terms": {"types.id":placetypes}}
+        ],
+      "should":[
+        {"terms": {"parents":parent}}                
+        ],
+      "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
+    }
+  }}
+
+
+  qbare = {"query": { 
+    "bool": {
+      "must": [
+        {"terms": {"names.name":variants}}
+        ],
+      "should":[
+        {"terms": {"parents":parent}}                
+        ],
+      "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
+    }
+  }}
+
+
+  # grab copy of qbase
+  q1 = qbase
+
+  # if geometry is supplied, define spatial filters & apply one to copy of qbase
+  if 'geom' in qobj.keys():
+    # call it location
+    location = qobj['geom']
+
+    filter_within = { "geo_polygon" : {
+          "location.coordinates" : {
+              # extra bracket pair(s), dunno why
+                "points" : location['coordinates'][0] if location['type'] == "Polygon" \
+                else location['coordinates'][0][0]
+            }
+        }}
+
+    filter_dist_100 = {"geo_distance" : {
+          "ignore_unmapped": "true",
+            "distance" : "100km",
+            "location.coordinates" : qobj['geom']['coordinates']
+        }}
+
+    filter_dist_200 = {"geo_distance" : {
+          "ignore_unmapped": "true",
+            "distance" : "200km",
+            "location.coordinates" : qobj['geom']['coordinates']
+        }}
+
+    # selectively add filters to queries
+    if location['type'] == 'Point':
+      q1['query']['bool']['filter'].append(filter_dist_200)
+    elif location['type'] in ('Polygon','MultiPolygon'): # hull
+      q1['query']['bool']['filter'].append(filter_within)
+
+
+  # pass1: name, type, parent, study_area, geom if provided
+  print('q1',q1)
+  res1 = es.search(index="whg_flat", body = q1)
+  res1 = es.search(index="tgn", body = q1)
+  hits1 = res1['hits']['hits']
+  # 1 or more hits
+  if len(hits1) > 0:
+    for hit in hits1:
+      hit_count +=1
+      hit['pass'] = 'pass1'
+      result_obj['hits'].append(hit)
+  elif len(hits1) == 0:
+  # pass2: drop geom (revert to qbase{})
+    q2 = qbase
+    print('q2 (base)',q2)
+    res2 = es.search(index="tgn", body = q2)
+    hits2 = res2['hits']['hits']
+    if len(hits2) > 0:
+      for hit in hits2:
+        hit_count +=1
+        hit['pass'] = 'pass2'
+        result_obj['hits'].append(hit)
+    elif len(hits2) == 0:
+      # drop type, parent using qbare{}
+      q3 = qbare
+      print('q3 (bare)',q3)
+      res3 = es.search(index="tgn", body = q3)
+      hits3 = res3['hits']['hits']
+      if len(hits3) > 0:
+        for hit in hits3:
+          hit_count +=1
+          hit['pass'] = 'pass3'
+          result_obj['hits'].append(hit)
+      else:
+        # no hit at all, name & bounds only
+        result_obj['missed'] = qobj['place_id']
+        # TODO: q4 for fuzzy names?
+  result_obj['hit_count'] = hit_count
+  return result_obj
+
+@task(name="align_tgn")
+def align_tgn(pk, *args, **kwargs):
+  ds = get_object_or_404(Dataset, id=pk)
+  bounds = kwargs['bounds']
+  print('bounds:',bounds,type(bounds))
+  # TODO: system for region creation
+  hit_parade = {"summary": {}, "hits": []}
+  nohits = [] # place_id list for 0 hits
+  features = []
+  [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3] = [0,0,0,0,0,0,0]
+  # print('celery task id:', align_tgn.request.id)
+  start = datetime.datetime.now()
+
+  # build query object, send, save hits
+  # for place in ds.places.all()[:50]:
+  for place in ds.places.all():
+    count +=1
+    query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
+    variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
+
+    # ccodes (2-letter iso codes)
+    for c in place.ccodes:
+      ccodes.append(c)
+    query_obj['countries'] = place.ccodes
+
+    # types (Getty AAT identifiers)
+    for t in place.types.all():
+      print('type',t)
+      types.append(int(t.json['identifier'][4:]))
+    query_obj['placetypes'] = types
+
+    # names
+    for name in place.names.all():
+      variants.append(name.toponym)
+    query_obj['variants'] = variants
+
+    # parents
+    for rel in place.related.all():
+      if rel.json['relation_type'] == 'gvp:broaderPartitive':
+        parents.append(rel.json['label'])
+    query_obj['parents'] = parents
+
+    # geoms
+    # ignore non-point geometry
+    if len(place.geoms.all()) > 0:
+      geom = place.geoms.all()[0].json
+      if geom['type'] in ('Point','MultiPolygon'):
+        query_obj['geom'] = place.geoms.first().json
+      elif geom['type'] == 'MultiLineString':
+        query_obj['geom'] = hully(geom)
+
+    print('query_obj:', query_obj)
+
+    # run ES query on query_obj, with bounds
+    # regions.regions
+    result_obj = es_lookup(query_obj, bounds=bounds)
+
+    if result_obj['hit_count'] == 0:
+      count_nohit +=1
+      nohits.append(result_obj['missed'])
+    else:
+      count_hit +=1
+      total_hits += result_obj['hit_count']
+      # TODO: differentiate hits from passes
+      for hit in result_obj['hits']:
+        if hit['pass'] == 'pass1': 
+          count_p1+=1 
+        elif hit['pass'] == 'pass2': 
+          count_p2+=1
+        elif hit['pass'] == 'pass3': 
+          count_p3+=1
+        hit_parade["hits"].append(hit)
+        # print('creating hit:',hit)
+        loc = hit['_source']['location'] if 'location' in hit['_source'].keys() else None
+        new = Hit(
+                  authority = 'tgn',
+                    authrecord_id = hit['_id'],
+                    dataset = ds,
+                    place_id = get_object_or_404(Place, id=query_obj['place_id']),
+                    task_id = align_tgn.request.id,
+                    # TODO: articulate hit here?
+                    query_pass = hit['pass'],
+                    json = hit['_source'],
+                    src_id = query_obj['src_id'],
+                    score = hit['_score'],
+                    geom = loc,
+                    reviewed = False,
+                )
+        new.save()
+  end = datetime.datetime.now()
+  # ds.status = 'recon_tgn'
+  # TODO: return summary
+  print('features:',features)
+  hit_parade['summary'] = {
+      'count':count,
+        'got_hits':count_hit,
+        'total': total_hits, 
+        'pass1': count_p1, 
+        'pass2': count_p2, 
+        'pass3': count_p3,
+        'no_hits': {'count': count_nohit },
+        'elapsed': elapsed(end-start)
+    }
+  print("hit_parade['summary']",hit_parade['summary'])
+  return hit_parade['summary']
+  # return hit_parade
+
+
+
+#
+def es_lookup_whg(qobj, *args, **kwargs):
+  # print('qobj',qobj)
+  #bounds = kwargs['bounds']
+  bounds = {'type': ['region'], 'id': ['eh']}
+  hit_count = 0
+  #search_name = fixName(qobj['prefname'])
+
+  # empty result object
+  result_obj = {
+      'place_id': qobj['place_id'], 'hits':[],
+        'missed':-1, 'total_hits':-1
+    }  
+
+  # array (includes title)
+  variants = qobj['variants']
+
+  # bestParent() coalesces mod. country and region; countries.json
+  parent = bestParent(qobj)
+
+  # pre-computed in sql
+  # minmax = row['minmax']
+
+  # getty aat numerical identifiers
+  placetypes = qobj['placetypes']
+
+  # base query: name, type, parent, bounds if specified
+  qbase = {"query": { 
+    "bool": {
+      "must": [
+        {"terms": {"names.toponym":variants}},
+        {"terms": {"types.identifier":placetypes}}
+        ],
+      "should":[
+        {"terms": {"parents":parent}}                
+        ],
+      "filter": [get_bbox_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
+    }
+  }}
+
+  qbare = {"query": { 
+    "bool": {
+      "must": [
+        {"terms": {"names.toponym":variants}}
+        ],
+      "should":[
+        {"terms": {"parents":parent}}                
+        ],
+      "filter": [get_bbox_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
+    }
+  }}
+
+  # grab copy of qbase
+  q1 = qbase
+
+  # if geometry is supplied, define spatial filters & apply one to copy of qbase
+  if 'geom' in qobj.keys():
+    # call it location
+    location = qobj['geom']
+
+    filter_intersects_area = { "geo_shape": {
+      "geoms.location": {
+          "shape": {
+            "type": "polygon",
+              "coordinates" : location['coordinates'] if location['type'] == "Polygon" \
+              else location['coordinates'][0][0]
+          },
+          "relation": "intersects" # within | intersects | contains
+        }
+    }} if location['type'] != "Point" else {}
+
+    q1['query']['bool']['filter'].append(filter_intersects_area)
+  
+
+  # pass1: name, type, parent, study_area, geom if provided
+  print('q1',q1)
+  res1 = es.search(index="whg_flat", body = q1)
+  #res1 = es.search(index="tgn", body = q1)
+  hits1 = res1['hits']['hits']
+  # 1 or more hits
+  if len(hits1) > 0:
+    for hit in hits1:
+      hit_count +=1
+      hit['pass'] = 'pass1'
+      result_obj['hits'].append(hit)
+  elif len(hits1) == 0:
+  # pass2: drop geom (revert to qbase{})
+    q2 = qbase
+    print('q2 (base)',q2)
+    res2 = es.search(index="tgn", body = q2)
+    hits2 = res2['hits']['hits']
+    if len(hits2) > 0:
+      for hit in hits2:
+        hit_count +=1
+        hit['pass'] = 'pass2'
+        result_obj['hits'].append(hit)
+    elif len(hits2) == 0:
+      # drop type, parent using qbare{}
+      q3 = qbare
+      print('q3 (bare)',q3)
+      res3 = es.search(index="tgn", body = q3)
+      hits3 = res3['hits']['hits']
+      if len(hits3) > 0:
+        for hit in hits3:
+          hit_count +=1
+          hit['pass'] = 'pass3'
+          result_obj['hits'].append(hit)
+      else:
+        # no hit at all, name & bounds only
+        result_obj['missed'] = qobj['place_id']
+        # TODO: q4 for fuzzy names?
+  result_obj['hit_count'] = hit_count
+  return result_obj
+
+#
+@task(name="align_whg")
+def align_whg(pk, *args, **kwargs):
+  print('align_whg kwargs:', str(kwargs))
+
+  #ds = get_object_or_404(Dataset, id=pk)
+  ds = get_object_or_404(Dataset, id=5)
+
+  #bounds = kwargs['bounds']
+  # dummies for testing
+  #bounds = {'type': ['userarea'], 'id': ['0']}
+  bounds = {'type': ['region'], 'id': ['eh']}
+
+  # TODO: system for region creation
+  hit_parade = {"summary": {}, "hits": []}
+  nohits = [] # place_id list for 0 hits
+  features = []
+  [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3] = [0,0,0,0,0,0,0]
+  #print('align_whg celery task id:', align_whg.request.id)
+  start = datetime.datetime.now()
+
+  # build query object, send, save hits
+  for place in ds.places.all()[:1]:
+  #for place in ds.places.all():
+    #place=ds.places.first()
+    #place=get_object_or_404(Place,id=81655) # Atlas Mountains
+    place=get_object_or_404(Place,id=124653) # !Kung
+    count +=1
+    query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
+    variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
+
+    ## ccodes (2-letter iso codes)
+    for c in place.ccodes:
+      ccodes.append(c)
+    query_obj['countries'] = place.ccodes
+
+    ## types (Getty AAT identifiers)
+    for t in place.types.all():
+      print('type',t)
+      types.append(t.json['identifier'])
+    query_obj['placetypes'] = types
+
+    ## names
+    for name in place.names.all():
+      variants.append(name.toponym)
+    query_obj['variants'] = variants
+
+    ## parents
+    for rel in place.related.all():
+      if rel.json['relation_type'] == 'gvp:broaderPartitive':
+        parents.append(rel.json['label'])
+    query_obj['parents'] = parents
+
+    ## geoms
+    if len(place.geoms.all()) > 0:
+      # any geoms at all...
+      g_list =[g.json for g in place.geoms.all()]
+      if len(g_list) == 1 and geom['type'] == 'MultiPolygon':
+        # single multipolygon -> use as is
+        query_obj['geom']=g_list[0]
+      else:
+        # 1 or more points or multilinestrings -> make polygon hull
+        query_obj['geom'] = hully(g_list)
+
+    print('query_obj:', query_obj)
+
+    ## run ES query on query_obj, with bounds
+    ## regions.regions
+    #result_obj = es_lookup(query_obj, bounds=bounds)
+
+    #if result_obj['hit_count'] == 0:
+      #count_nohit +=1
+      #nohits.append(result_obj['missed'])
+    #else:
+      #count_hit +=1
+      #total_hits += result_obj['hit_count']
+      ## TODO: differentiate hits from passes
+      #for hit in result_obj['hits']:
+        #if hit['pass'] == 'pass1': 
+          #count_p1+=1 
+        #elif hit['pass'] == 'pass2': 
+          #count_p2+=1
+        #elif hit['pass'] == 'pass3': 
+          #count_p3+=1
+        #hit_parade["hits"].append(hit)
+        ## print('creating hit:',hit)
+        #loc = hit['_source']['location'] if 'location' in hit['_source'].keys() else None
+        #new = Hit(
+          #authority = 'tgn',
+          #authrecord_id = hit['_id'],
+          #dataset = ds,
+          #place_id = get_object_or_404(Place, id=query_obj['place_id']),
+          #task_id = align_tgn.request.id,
+          ## TODO: articulate hit here?
+          #query_pass = hit['pass'],
+          #json = hit['_source'],
+          #src_id = query_obj['src_id'],
+          #score = hit['_score'],
+          #geom = loc,
+          #reviewed = False,
+        #)
+        #new.save()
+  #end = datetime.datetime.now()
+  ## ds.status = 'recon_tgn'
+  ## TODO: return summary
+  #print('features:',features)
+  #hit_parade['summary'] = {
+    #'count':count,
+    #'got_hits':count_hit,
+    #'total': total_hits, 
+    #'pass1': count_p1, 
+    #'pass2': count_p2, 
+    #'pass3': count_p3,
+    #'no_hits': {'count': count_nohit },
+    #'elapsed': elapsed(end-start)
+  #}
+  #print("hit_parade['summary']",hit_parade['summary'])
+  #return hit_parade['summary']
+  # return hit_parade
+
+def read_delimited(infile, username):
+  # some WKT is big
+  csv.field_size_limit(100000000)
+  result = {'format':'delimited','errors':{}}
+  # required fields
+  # TODO: req. fields not null or blank
+  # required = ['id', 'title', 'name_src', 'ccodes', 'lon', 'lat']
+  required = ['id', 'title', 'name_src']
+
+  # learn delimiter [',',';']
+  # TODO: falling back to tab if it fails; need more stable approach
+  try:
+    dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
+    result['delimiter'] = 'tab' if dialect.delimiter == '\t' else dialect.delimiter
+  except:
+    dialect = '\t'
+    result['delimiter'] = 'tab'
+
+  reader = csv.reader(infile, dialect)
+  result['count'] = sum(1 for row in reader)
+
+  # get & test header (not field contents yet)
+  infile.seek(0)
+  header = next(reader, None) #.split(dialect.delimiter)
+  result['columns'] = header
+
+  # TODO: specify which is missing
+  if not len(set(header) & set(required)) == 3:
+    result['errors']['req'] = 'missing a required column (id,name,name_src)'
+    return result
+  if ('min' in header and 'max' not in header) \
+       or ('max' in header and 'min' not in header):
+    result['errors']['req'] = 'if a min, must be a max - and vice versa'
+    return result
+  if ('lon' in header and 'lat' not in header) \
+       or ('lat' in header and 'lon' not in header):
+    result['errors']['req'] = 'if a lon, must be a lat - and vice versa'
+    return result
+
+  #print(header)
+  rowcount = 1
+  geometries = []
+  for r in reader:
+    rowcount += 1
+
+    # length errors
+    if len(r) != len(header):
+      if 'rowlength' in result['errors'].keys():
+        result['errors']['rowlength'].append(rowcount)
+      else:
+        result['errors']['rowlength'] = [rowcount]
+
+
+    # TODO: write geojson? make map? so many questions
+    if 'lon' in header:
+      print('type(lon): ', type('lon'))
+      if (r[header.index('lon')] not in ('',None)) and \
+               (r[header.index('lat')] not in ('',None)):
+        feature = {
+                  'type':'Feature',
+                    'geometry': {'type':'Point',
+                                 'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
+                    'properties': {'id':r[header.index('id')], 'name': r[header.index('title')]}
+                }
+        # TODO: add properties to geojson feature?
+        # props = set(header) - set(required)
+        # print('props',props)
+        # for p in props:
+        #     feature['properties'][p] = r[header.index(p)]
+        geometries.append(feature)
+
+  if len(result['errors'].keys()) == 0:
+    # don't add geometries to result
+    # TODO: write them to a user GeoJSON file?
+    # print('got username?', username)
+    # print('2 geoms:', geometries[:2])
+    # result['geom'] = {"type":"FeatureCollection", "features":geometries}
+    print('looks ok')
+  else:
+    print('got errors')
+  return result
+
+def read_lpf(infile):
+  return 'reached tasks.read_lpf()'
+
+# ES geoms filter
+#"filter": {
+  #"geo_shape": {
+      #"location": {
+          #"shape": {
+              #"type": "envelope",
+                #"coordinates" : [[13.0, 53.0], [14.0, 52.0]]
+                #},
+            #"relation": "within" # within | intersects | contains
+        #}
+    #}
+#}
 # ES geo_bounding_box filter
 # {
 #   "top_left" : {"lat" : 40.73, "lon" : -74.1},
@@ -88,359 +698,24 @@ def reverse(coords):
 #     }
 # }
 
-def get_bbox_filter(bounds):
-    print('bounds',bounds)
-    id = bounds['id'][0]
-    type = bounds['type'][0]
-    if type == 'region':
-        # if id.startswith('u_'):
-        #     filter = {
-        #         "geo_polygon": {"location.coordinates" : region_hash[id]}
-        #     }
-        # else:
-        filter = {
-            "geo_bounding_box" : {"location.coordinates" : region_hash[id]}
-        }
-    elif type == 'userarea':
-        # TODO: rebuild tgn index with geometry type 'geo_shape'
-        # will allow multipolygon constraint footprint?
-        area = Area.objects.get(id = id)
-        filter = {
-            "geo_polygon": {
-                "location.coordinates" : {"points": area.geojson['coordinates'][0]}
-            }
-            # "geo_shape": {
-            #     "location.coordinates": {
-            #         "shape": {
-            #             "type": "envelope",
-            #             "coordinates" : area.geojson['coordinates']
-            #         },
-            #         "relation": "within"
-            #     }
-            # }
-        }
-    return filter
+# POINTS ARE GETTING BUFFERED EARLIER
+#def makeBuffer(point,val):
+  #from shapely import geometry as sgeo
+  #from geomet import wkt
+  #buffer = sgeo.Point(point[0],point[1]).buffer(val).to_wkt()
+  #return wkt.loads(buffer)['coordinates']
 
-@task(name="es_lookup")
-def es_lookup(qobj, *args, **kwargs):
-    # print('qobj',qobj)
-    bounds = kwargs['bounds']
-    hit_count = 0
-    #search_name = fixName(qobj['prefname'])
-    
-    # empty result object
-    result_obj = {
-        'place_id': qobj['place_id'], 'hits':[],
-        'missed':-1, 'total_hits':-1
-    }  
+#filter_intersects_point = { "geo_shape": {
+  #"geoms.location": {
+      #"shape": {
+        #"type": "polygon",
+          #"coordinates" : makeBuffer(location['coordinates'], 2.0)
+      #},
+      #"relation": "intersects" # within | intersects | contains
+    #}
+#}} if location['type'] == "Point" else {}
 
-    # array (includes title)
-    variants = qobj['variants']
-
-    # bestParent() coalesces mod. country and region; countries.json
-    parent = bestParent(qobj)
-
-    # pre-computed in sql
-    # minmax = row['minmax']
-
-    # getty aat numerical identifiers
-    placetypes = qobj['placetypes']
-
-    # base query: name, type, parent, bounds if specified
-    qbase = {"query": { 
-            "bool": {
-              "must": [
-                {"terms": {"names.name":variants}},
-                {"terms": {"types.id":placetypes}}
-              ],
-              "should":[
-                {"terms": {"parents":parent}}                
-              ],
-              "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
-            }
-          }}
-
-    
-    qbare = {"query": { 
-            "bool": {
-              "must": [
-                {"terms": {"names.name":variants}}
-              ],
-              "should":[
-                {"terms": {"parents":parent}}                
-              ],
-              "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
-            }
-          }}
-
-    
-    # grab copy of qbase
-    q1 = qbase
-    
-    # if geometry is supplied, define spatial filters & apply one to copy of qbase
-    if 'geom' in qobj.keys():
-        # call it location
-        location = qobj['geom']
-        
-        filter_within = { "geo_polygon" : {
-            "location.coordinates" : {
-                # extra bracket pair(s), dunno why
-                "points" : location['coordinates'][0] if location['type'] == "Polygon" \
-                    else location['coordinates'][0][0]
-            }
-        }}
-        
-        filter_dist_100 = {"geo_distance" : {
-            "ignore_unmapped": "true",
-            "distance" : "100km",
-            "location.coordinates" : qobj['geom']['coordinates']
-        }}
-        
-        filter_dist_200 = {"geo_distance" : {
-            "ignore_unmapped": "true",
-            "distance" : "200km",
-            "location.coordinates" : qobj['geom']['coordinates']
-        }}
-    
-        # selectively add filters to queries
-        if location['type'] == 'Point':
-            q1['query']['bool']['filter'].append(filter_dist_200)
-        elif location['type'] in ('Polygon','MultiPolygon'): # hull
-            q1['query']['bool']['filter'].append(filter_within)
-
-
-    # pass1: name, type, parent, study_area, geom if provided
-    print('q1',q1)
-    print('es',es)
-    res1 = es.search(index="tgn", body = q1)
-    hits1 = res1['hits']['hits']
-    # 1 or more hits
-    if len(hits1) > 0:
-        for hit in hits1:
-            hit_count +=1
-            hit['pass'] = 'pass1'
-            result_obj['hits'].append(hit)
-    elif len(hits1) == 0:
-    # pass2: drop geom (revert to qbase{})
-        q2 = qbase
-        print('q2 (base)',q2)
-        res2 = es.search(index="tgn", body = q2)
-        hits2 = res2['hits']['hits']
-        if len(hits2) > 0:
-            for hit in hits2:
-                hit_count +=1
-                hit['pass'] = 'pass2'
-                result_obj['hits'].append(hit)
-        elif len(hits2) == 0:
-            # drop type, parent using qbare{}
-            q3 = qbare
-            print('q3 (bare)',q3)
-            res3 = es.search(index="tgn", body = q3)
-            hits3 = res3['hits']['hits']
-            if len(hits3) > 0:
-                for hit in hits3:
-                    hit_count +=1
-                    hit['pass'] = 'pass3'
-                    result_obj['hits'].append(hit)
-            else:
-                # no hit at all, name & bounds only
-                result_obj['missed'] = qobj['place_id']
-                # TODO: q4 for fuzzy names?
-    result_obj['hit_count'] = hit_count
-    return result_obj
-
-@task(name="align_tgn")
-def align_tgn(pk, *args, **kwargs):
-    ds = get_object_or_404(Dataset, id=pk)
-    bounds = kwargs['bounds']
-    # print('bounds:',bounds,type(bounds))
-    # TODO: system for region creation
-    hit_parade = {"summary": {}, "hits": []}
-    nohits = [] # place_id list for 0 hits
-    features = []
-    [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3] = [0,0,0,0,0,0,0]
-    # print('celery task id:', align_tgn.request.id)
-    start = datetime.datetime.now()
-
-    # build query object, send, save hits
-    # for place in ds.places.all()[:50]:
-    for place in ds.places.all():
-        count +=1
-        query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
-        variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
-        
-        # ccodes (2-letter iso codes)
-        for c in place.ccodes:
-            ccodes.append(c)
-        query_obj['countries'] = place.ccodes
-        
-        # types (Getty AAT identifiers)
-        for t in place.types.all():
-            print('type',t)
-            types.append(int(t.json['identifier'][4:]))
-        query_obj['placetypes'] = types
-
-        # names
-        for name in place.names.all():
-            variants.append(name.toponym)
-        query_obj['variants'] = variants
-
-        # parents
-        for rel in place.related.all():
-            if rel.json['relation_type'] == 'gvp:broaderPartitive':
-                parents.append(rel.json['label'])
-        query_obj['parents'] = parents
-
-        # geoms
-        # ignore non-point geometry
-        if len(place.geoms.all()) > 0:
-            geom = place.geoms.all()[0].json
-            if geom['type'] in ('Point','MultiPolygon'):
-                query_obj['geom'] = place.geoms.first().json
-            elif geom['type'] == 'MultiLineString':
-                query_obj['geom'] = hully(geom)
-
-        print('query_obj:', query_obj)
-        
-        # run ES query on query_obj, with bounds
-        # regions.regions
-        result_obj = es_lookup(query_obj, bounds=bounds)
-
-        if result_obj['hit_count'] == 0:
-            count_nohit +=1
-            nohits.append(result_obj['missed'])
-        else:
-            count_hit +=1
-            total_hits += result_obj['hit_count']
-            # TODO: differentiate hits from passes
-            for hit in result_obj['hits']:
-                if hit['pass'] == 'pass1': 
-                    count_p1+=1 
-                elif hit['pass'] == 'pass2': 
-                    count_p2+=1
-                elif hit['pass'] == 'pass3': 
-                    count_p3+=1
-                hit_parade["hits"].append(hit)
-                # print('creating hit:',hit)
-                loc = hit['_source']['location'] if 'location' in hit['_source'].keys() else None
-                new = Hit(
-                    authority = 'tgn',
-                    authrecord_id = hit['_id'],
-                    dataset = ds,
-                    place_id = get_object_or_404(Place, id=query_obj['place_id']),
-                    task_id = align_tgn.request.id,
-                    # TODO: articulate hit here?
-                    query_pass = hit['pass'],
-                    json = hit['_source'],
-                    src_id = query_obj['src_id'],
-                    score = hit['_score'],
-                    geom = loc,
-                    reviewed = False,
-                )
-                new.save()
-    end = datetime.datetime.now()
-    # ds.status = 'recon_tgn'
-    # TODO: return summary
-    print('features:',features)
-    hit_parade['summary'] = {
-        'count':count,
-        'got_hits':count_hit,
-        'total': total_hits, 
-        'pass1': count_p1, 
-        'pass2': count_p2, 
-        'pass3': count_p3,
-        'no_hits': {'count': count_nohit },
-        'elapsed': elapsed(end-start)
-    }
-    print("hit_parade['summary']",hit_parade['summary'])
-    return hit_parade['summary']
-    # return hit_parade
-
-
-@task(name="align_whg")
-def align_whg(pk, *args, **kwargs):
-    print('align_whg kwargs:', str(kwargs))
-def read_delimited(infile, username):
-    # some WKT is big
-    csv.field_size_limit(100000000)
-    result = {'format':'delimited','errors':{}}
-    # required fields
-    # TODO: req. fields not null or blank
-    # required = ['id', 'title', 'name_src', 'ccodes', 'lon', 'lat']
-    required = ['id', 'title', 'name_src']
-
-    # learn delimiter [',',';']
-    # TODO: falling back to tab if it fails; need more stable approach
-    try:
-        dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
-        result['delimiter'] = 'tab' if dialect.delimiter == '\t' else dialect.delimiter
-    except:
-        dialect = '\t'
-        result['delimiter'] = 'tab'
-
-    reader = csv.reader(infile, dialect)
-    result['count'] = sum(1 for row in reader)
-
-    # get & test header (not field contents yet)
-    infile.seek(0)
-    header = next(reader, None) #.split(dialect.delimiter)
-    result['columns'] = header
-
-    # TODO: specify which is missing
-    if not len(set(header) & set(required)) == 3:
-        result['errors']['req'] = 'missing a required column (id,name,name_src)'
-        return result
-    if ('min' in header and 'max' not in header) \
-        or ('max' in header and 'min' not in header):
-        result['errors']['req'] = 'if a min, must be a max - and vice versa'
-        return result
-    if ('lon' in header and 'lat' not in header) \
-        or ('lat' in header and 'lon' not in header):
-        result['errors']['req'] = 'if a lon, must be a lat - and vice versa'
-        return result
-
-    #print(header)
-    rowcount = 1
-    geometries = []
-    for r in reader:
-        rowcount += 1
-
-        # length errors
-        if len(r) != len(header):
-            if 'rowlength' in result['errors'].keys():
-                result['errors']['rowlength'].append(rowcount)
-            else:
-                result['errors']['rowlength'] = [rowcount]
-
-
-        # TODO: write geojson? make map? so many questions
-        if 'lon' in header:
-            print('type(lon): ', type('lon'))
-            if (r[header.index('lon')] not in ('',None)) and \
-                (r[header.index('lat')] not in ('',None)):
-                feature = {
-                    'type':'Feature',
-                    'geometry': {'type':'Point',
-                                 'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
-                    'properties': {'id':r[header.index('id')], 'name': r[header.index('title')]}
-                }
-                # TODO: add properties to geojson feature?
-                # props = set(header) - set(required)
-                # print('props',props)
-                # for p in props:
-                #     feature['properties'][p] = r[header.index(p)]
-                geometries.append(feature)
-
-    if len(result['errors'].keys()) == 0:
-        # don't add geometries to result
-        # TODO: write them to a user GeoJSON file?
-        # print('got username?', username)
-        # print('2 geoms:', geometries[:2])
-        # result['geom'] = {"type":"FeatureCollection", "features":geometries}
-        print('looks ok')
-    else:
-        print('got errors')
-    return result
-
-def read_lpf(infile):
-    return 'reached tasks.read_lpf()'
+# selectively add filters to queries
+#if location['type'] == 'Point':
+  #q1['query']['bool']['filter'].append(filter_intersects_point)
+#elif location['type'] in ('Polygon','MultiPolygon'): # hull

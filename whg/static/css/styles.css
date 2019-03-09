@@ -109,6 +109,18 @@ input[type="text"] {
     #sidebar { position: fixed;}
 }
 
+#tldr {
+  background-color:lightyellow;
+  margin-top: 65px;
+  margin-right: 10px;
+  padding: 6px 6px 0 6px;
+  border: grey 1px dashed;
+  max-width:150px;
+  border-radius: 10px;
+  box-shadow: 2px 2px lightgrey;
+  text-align: center;
+}
+
 .ghostbox {
   background-color: ghostwhite;
 }

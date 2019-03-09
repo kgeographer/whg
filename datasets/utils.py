@@ -12,9 +12,16 @@ def aat_lookup(id):
         print(id,' broke it')
         print("error:", sys.exc_info()[0])        
 
-def hully(geom):
-    hull = mapping(MultiLineString(geom['coordinates']).convex_hull)
-    return json.loads(json.dumps(hull))
+def hully(g_list):
+    from django.contrib.gis.geos import GEOSGeometry
+    if g_list[0]['type'] == 'Point':
+        # 1 or more points => make buffer; width 1 = ~200km @ 20deg lat
+        hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).buffer(1).geojson)
+    else:
+        # now only linestrings and multiple multipolygons -> simple convex_hull (unions are precise but bigger)
+        hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull.geojson)
+        #union=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).unary_union.geojson)
+    return hull
     
 def parse_wkt(g):
     gw = wkt.loads(g)
