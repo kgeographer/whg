@@ -69,51 +69,51 @@ def reverse(coords):
   return fubar
 
 
-def get_bbox_filter(bounds,idx='tgn'):
+# used for align_tgn 
+# TODO: implement 'geo_shape' for tgn index
+def get_bbox_filter(bounds):
+  print('bounds',bounds)
+  id = bounds['id'][0]
+  type = bounds['type'][0]
+  if type == 'region':
+    filter = {
+      "geo_bounding_box" : {"location.coordinates" : region_hash[id]}
+    }
+  elif type == 'userarea':
+    area = Area.objects.get(id = id)
+    filter = {
+      "geo_polygon": {
+          "location.coordinates" : {"points": area.geojson['coordinates'][0]}
+        }
+    }
+    return filter
+
+# user-supplied spatial bounds
+def get_bounds_filter(bounds,idx):
   #print('bounds',bounds)
   id = bounds['id'][0]
   type = bounds['type'][0]
-  # TODO: no longer geo_bounding_box, now geo_shape/intersects
-  filter_intersects_area = { "geo_shape": {
-    "geoms.location": {
+  area = Area.objects.get(id = id)
+  # TODO: area always a hull polygon now; test MultiPolygon
+  geofield = "geoms.location" if idx == 'whg' else "location"
+  filter = { "geo_shape": {
+    geofield: {
         "shape": {
           "type": "polygon",
-            "coordinates" : location['coordinates'] if location['type'] == "Polygon" \
-            else location['coordinates'][0][0]
+            "coordinates": area.geojson['coordinates']
+            #"coordinates" : location['coordinates'] if location['type'] == "Polygon" \
+            #else location['coordinates'][0][0]
         },
-        "relation": "intersects" # within | intersects | contains
+        "relation": "intersects" #if idx=='whg' else 'within' # within | intersects | contains
       }
-  }} if location['type'] != "Point" else {}
-  
-  if type == 'region':
-    filter = { "geo_bounding_box" : {"location.coordinates" : region_hash[id]} } \
-          if idx == 'tgn' else \
-            { "geo_bounding_box" : {"geoms.location.coordinates" : region_hash[id]} }
-  elif type == 'userarea':
-    # TODO: rebuild tgn index with geometry type 'geo_shape'
-    # will allow multipolygon constraint footprint?
-    area = Area.objects.get(id = id)
-    filter = {
-          "geo_polygon": {"location.coordinates" : {"points": area.geojson['coordinates'][0]}} \
-            if idx == 'tgn' else \
-            {"geoms.location.coordinates" : {"points": area.geojson['coordinates'][0]}}
-
-            # "geo_shape": {
-            #     "location.coordinates": {
-            #         "shape": {
-            #             "type": "envelope",
-            #             "coordinates" : area.geojson['coordinates']
-            #         },
-            #         "relation": "within"
-            #     }
-            # }
-        }
+  }} 
   return filter
 
-#@task(name="es_lookup")
+#
 def es_lookup(qobj, *args, **kwargs):
   # print('qobj',qobj)
   bounds = kwargs['bounds']
+  print('bounds:',bounds)
   hit_count = 0
   #search_name = fixName(qobj['prefname'])
 
@@ -145,7 +145,7 @@ def es_lookup(qobj, *args, **kwargs):
       "should":[
         {"terms": {"parents":parent}}                
         ],
-      "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
+      "filter": [get_bounds_filter(bounds,'tgn')] if bounds['id'] != ['0'] else []
     }
   }}
 
@@ -158,7 +158,7 @@ def es_lookup(qobj, *args, **kwargs):
       "should":[
         {"terms": {"parents":parent}}                
         ],
-      "filter": [get_bbox_filter(bounds)] if bounds['id'] != ['0'] else []
+      "filter": [get_bounds_filter(bounds,'tgn')] if bounds['id'] != ['0'] else []
     }
   }}
 
@@ -200,8 +200,7 @@ def es_lookup(qobj, *args, **kwargs):
 
   # pass1: name, type, parent, study_area, geom if provided
   print('q1',q1)
-  res1 = es.search(index="whg_flat", body = q1)
-  res1 = es.search(index="tgn", body = q1)
+  res1 = es.search(index="tgn201902", body = q1)
   hits1 = res1['hits']['hits']
   # 1 or more hits
   if len(hits1) > 0:
@@ -213,7 +212,7 @@ def es_lookup(qobj, *args, **kwargs):
   # pass2: drop geom (revert to qbase{})
     q2 = qbase
     print('q2 (base)',q2)
-    res2 = es.search(index="tgn", body = q2)
+    res2 = es.search(index="tgn201902", body = q2)
     hits2 = res2['hits']['hits']
     if len(hits2) > 0:
       for hit in hits2:
@@ -224,7 +223,7 @@ def es_lookup(qobj, *args, **kwargs):
       # drop type, parent using qbare{}
       q3 = qbare
       print('q3 (bare)',q3)
-      res3 = es.search(index="tgn", body = q3)
+      res3 = es.search(index="tgn201902", body = q3)
       hits3 = res3['hits']['hits']
       if len(hits3) > 0:
         for hit in hits3:
@@ -343,15 +342,14 @@ def align_tgn(pk, *args, **kwargs):
     }
   print("hit_parade['summary']",hit_parade['summary'])
   return hit_parade['summary']
-  # return hit_parade
-
 
 
 #
 def es_lookup_whg(qobj, *args, **kwargs):
   # print('qobj',qobj)
-  #bounds = kwargs['bounds']
-  bounds = {'type': ['region'], 'id': ['eh']}
+  bounds = kwargs['bounds']
+  #bounds = {'type': ['region'], 'id': ['eh']}
+  #bounds = {'type': ['userarea'], 'id': [64]}
   hit_count = 0
   #search_name = fixName(qobj['prefname'])
 
@@ -361,48 +359,52 @@ def es_lookup_whg(qobj, *args, **kwargs):
         'missed':-1, 'total_hits':-1
     }  
 
-  # array (includes title)
-  variants = qobj['variants']
-
-  # bestParent() coalesces mod. country and region; countries.json
-  parent = bestParent(qobj)
-
-  # pre-computed in sql
-  # minmax = row['minmax']
-
-  # getty aat numerical identifiers
-  placetypes = qobj['placetypes']
-
+  # initial for pass1
+  # TODO: automatically accept?
+  qlinks = {"query": { 
+     "bool": {
+       "must": [
+          {"terms": {"links.identifier": qobj['links'] }}
+        ],
+        "should": [
+          {"terms": {"names.toponym": qobj['variants']}}
+        ]
+     }
+  }}
+  
   # base query: name, type, parent, bounds if specified
   qbase = {"query": { 
     "bool": {
       "must": [
-        {"terms": {"names.toponym":variants}},
-        {"terms": {"types.identifier":placetypes}}
+        {"terms": {"names.toponym": qobj['variants']}},
+        {"terms": {"types.identifier": qobj['placetypes']}}
         ],
       "should":[
-        {"terms": {"parents":parent}}                
+        {"terms": {"parents":bestParent(qobj)}}                
         ],
-      "filter": [get_bbox_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
+      "filter": [get_bounds_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
     }
   }}
-
+  
+  # last gasp: only name(s) and bounds
   qbare = {"query": { 
     "bool": {
       "must": [
-        {"terms": {"names.toponym":variants}}
+        {"terms": {"names.toponym":qobj['variants']}}
         ],
       "should":[
-        {"terms": {"parents":parent}}                
+        {"terms": {"parents":bestParent(qobj)}}                
         ],
-      "filter": [get_bbox_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
+      "filter": [get_bounds_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
     }
   }}
 
-  # grab copy of qbase
-  q1 = qbase
+  # grab copies
+  q1 = qlinks
+  q2 = qbase
+  q3 = qbare
 
-  # if geometry is supplied, define spatial filters & apply one to copy of qbase
+  # if geometry is supplied, define spatial intersect filter & apply to q2
   if 'geom' in qobj.keys():
     # call it location
     location = qobj['geom']
@@ -418,13 +420,12 @@ def es_lookup_whg(qobj, *args, **kwargs):
         }
     }} if location['type'] != "Point" else {}
 
-    q1['query']['bool']['filter'].append(filter_intersects_area)
+    q2['query']['bool']['filter'].append(filter_intersects_area)
   
 
+  # /\/\/\/\/\/
   # pass1: name, type, parent, study_area, geom if provided
-  print('q1',q1)
   res1 = es.search(index="whg_flat", body = q1)
-  #res1 = es.search(index="tgn", body = q1)
   hits1 = res1['hits']['hits']
   # 1 or more hits
   if len(hits1) > 0:
@@ -433,10 +434,9 @@ def es_lookup_whg(qobj, *args, **kwargs):
       hit['pass'] = 'pass1'
       result_obj['hits'].append(hit)
   elif len(hits1) == 0:
-  # pass2: drop geom (revert to qbase{})
-    q2 = qbase
-    print('q2 (base)',q2)
-    res2 = es.search(index="tgn", body = q2)
+  # /\/\/\/\/\/
+  # pass2 must:name, type; should:parent; filter:geom, bounds
+    res2 = es.search(index="whg_flat", body = q2)
     hits2 = res2['hits']['hits']
     if len(hits2) > 0:
       for hit in hits2:
@@ -444,10 +444,9 @@ def es_lookup_whg(qobj, *args, **kwargs):
         hit['pass'] = 'pass2'
         result_obj['hits'].append(hit)
     elif len(hits2) == 0:
-      # drop type, parent using qbare{}
-      q3 = qbare
-      print('q3 (bare)',q3)
-      res3 = es.search(index="tgn", body = q3)
+      # /\/\/\/\/\/
+      # pass3 must:name; should:parent; filter:bounds
+      res3 = es.search(index="whg_flat", body = q3)
       hits3 = res3['hits']['hits']
       if len(hits3) > 0:
         for hit in hits3:
@@ -457,7 +456,6 @@ def es_lookup_whg(qobj, *args, **kwargs):
       else:
         # no hit at all, name & bounds only
         result_obj['missed'] = qobj['place_id']
-        # TODO: q4 for fuzzy names?
   result_obj['hit_count'] = hit_count
   return result_obj
 
@@ -466,13 +464,13 @@ def es_lookup_whg(qobj, *args, **kwargs):
 def align_whg(pk, *args, **kwargs):
   print('align_whg kwargs:', str(kwargs))
 
-  #ds = get_object_or_404(Dataset, id=pk)
-  ds = get_object_or_404(Dataset, id=5)
+  ds = get_object_or_404(Dataset, id=pk)
+  #ds = get_object_or_404(Dataset, id=5)
 
-  #bounds = kwargs['bounds']
+  bounds = kwargs['bounds']
   # dummies for testing
   #bounds = {'type': ['userarea'], 'id': ['0']}
-  bounds = {'type': ['region'], 'id': ['eh']}
+  #bounds = {'type': ['region'], 'id': ['eh']}
 
   # TODO: system for region creation
   hit_parade = {"summary": {}, "hits": []}
@@ -483,14 +481,19 @@ def align_whg(pk, *args, **kwargs):
   start = datetime.datetime.now()
 
   # build query object, send, save hits
-  for place in ds.places.all()[:1]:
-  #for place in ds.places.all():
+  #for place in ds.places.all()[:100]:
+  for place in ds.places.all():
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=81655) # Atlas Mountains
-    place=get_object_or_404(Place,id=124653) # !Kung
+    #place=get_object_or_404(Place,id=124653) # !Kung
     count +=1
-    query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
-    variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
+    query_obj = {"place_id":place.id, "src_id":place.src_id, "prefname":place.title}
+    links=ccodes=types=variants=parents=geoms=[]
+
+    ## links
+    for l in place.links.all():
+      links.append(l.json['identifier'])
+    query_obj['links'] = links
 
     ## ccodes (2-letter iso codes)
     for c in place.ccodes:
@@ -499,7 +502,6 @@ def align_whg(pk, *args, **kwargs):
 
     ## types (Getty AAT identifiers)
     for t in place.types.all():
-      print('type',t)
       types.append(t.json['identifier'])
     query_obj['placetypes'] = types
 
@@ -527,59 +529,56 @@ def align_whg(pk, *args, **kwargs):
 
     print('query_obj:', query_obj)
 
-    ## run ES query on query_obj, with bounds
-    ## regions.regions
-    #result_obj = es_lookup(query_obj, bounds=bounds)
+    ## run pass1-pass3 ES queries
+    result_obj = es_lookup_whg(query_obj, bounds=bounds)
 
-    #if result_obj['hit_count'] == 0:
-      #count_nohit +=1
-      #nohits.append(result_obj['missed'])
-    #else:
-      #count_hit +=1
-      #total_hits += result_obj['hit_count']
-      ## TODO: differentiate hits from passes
-      #for hit in result_obj['hits']:
-        #if hit['pass'] == 'pass1': 
-          #count_p1+=1 
-        #elif hit['pass'] == 'pass2': 
-          #count_p2+=1
-        #elif hit['pass'] == 'pass3': 
-          #count_p3+=1
-        #hit_parade["hits"].append(hit)
-        ## print('creating hit:',hit)
-        #loc = hit['_source']['location'] if 'location' in hit['_source'].keys() else None
-        #new = Hit(
-          #authority = 'tgn',
-          #authrecord_id = hit['_id'],
-          #dataset = ds,
-          #place_id = get_object_or_404(Place, id=query_obj['place_id']),
-          #task_id = align_tgn.request.id,
-          ## TODO: articulate hit here?
-          #query_pass = hit['pass'],
-          #json = hit['_source'],
-          #src_id = query_obj['src_id'],
-          #score = hit['_score'],
-          #geom = loc,
-          #reviewed = False,
-        #)
-        #new.save()
-  #end = datetime.datetime.now()
-  ## ds.status = 'recon_tgn'
-  ## TODO: return summary
+    if result_obj['hit_count'] == 0:
+      count_nohit +=1
+      nohits.append(result_obj['missed'])
+    else:
+      count_hit +=1
+      total_hits += result_obj['hit_count']
+      for hit in result_obj['hits']:
+        if hit['pass'] == 'pass1': 
+          count_p1+=1 
+        elif hit['pass'] == 'pass2': 
+          count_p2+=1
+        elif hit['pass'] == 'pass3': 
+          count_p3+=1
+        hit_parade["hits"].append(hit)
+        # print('creating hit:',hit)
+        loc = hit['_source']['geoms'] if 'geoms' in hit['_source'].keys() else None
+        new = Hit(
+          authority = 'whg',
+          authrecord_id = hit['_id'],
+          dataset = ds,
+          place_id = get_object_or_404(Place, id=query_obj['place_id']),
+          task_id = align_whg.request.id,
+          #task_id = 'abcxxyyzz',
+          # TODO: articulate hit here ?
+          query_pass = hit['pass'],
+          json = hit['_source'],
+          src_id = query_obj['src_id'],
+          score = hit['_score'],
+          geom = loc,
+          reviewed = False,
+        )
+        new.save()
+  end = datetime.datetime.now()
+  # ds.status = 'recon_whg'
   #print('features:',features)
-  #hit_parade['summary'] = {
-    #'count':count,
-    #'got_hits':count_hit,
-    #'total': total_hits, 
-    #'pass1': count_p1, 
-    #'pass2': count_p2, 
-    #'pass3': count_p3,
-    #'no_hits': {'count': count_nohit },
-    #'elapsed': elapsed(end-start)
-  #}
-  #print("hit_parade['summary']",hit_parade['summary'])
-  #return hit_parade['summary']
-  # return hit_parade
+  hit_parade['summary'] = {
+    'count':count,
+    'got_hits':count_hit,
+    'total': total_hits, 
+    'pass1': count_p1, 
+    'pass2': count_p2, 
+    'pass3': count_p3,
+    'no_hits': {'count': count_nohit },
+    'elapsed': elapsed(end-start)
+  }
+  print("hit_parade['summary']",hit_parade['summary'])
+  return hit_parade['summary']
 
 def read_delimited(infile, username):
   # some WKT is big

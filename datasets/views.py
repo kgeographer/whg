@@ -208,7 +208,6 @@ def ds_recon(request, pk):
         print('bounds',bounds)
         # run celery/redis tasks e.g. align_tgn, align_whg
         result = func.delay(
-        #result = func(
             ds.id,
             ds=ds.id,
             dslabel=ds.label,
