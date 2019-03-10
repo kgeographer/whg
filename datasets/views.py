@@ -11,7 +11,7 @@ import codecs, tempfile, os, re, ipdb, sys
 import simplejson as json
 from pprint import pprint
 from django_celery_results.models import TaskResult
-from .models import Dataset, Hit
+from datasets.models import Dataset, Hit
 from areas.models import Area
 from places.models import *
 from main.choices import AUTHORITY_BASEURI
@@ -75,11 +75,39 @@ def augmenter(placeid, auth, tid, hitjson):
     else:
         return
 
+# build hits payload for display consistent between authorities
+class HitRecord(object):
+    def __init__(self, whg_id, place_id, dataset, src_id, title):
+        self.whg_id = whg_id
+        self.place_id = place_id
+        self.src_id = src_id
+        self.title = title
+        self.dataset = dataset
+
+    def __str__(self):
+        import json
+        return json.dumps(str(self.__dict__))    
+        #return json.dumps(self.__dict__)
+        
+    def toJSON(self):
+        import json
+        return json.loads(json.dumps(self.__dict__,indent=2))
+    
+def hitFactory(hit_list,taskname):
+    incoming = [h.json for h in hit_list]
+    if taskname == 'align_whg':
+        for i in incoming:
+            rec = HitRecord(i['whg_id'], i['place_id'], i['dataset'], i['src_id'], i['title'])
+            
+        
+    
 # present reconciliation hits for review, execute augmenter() for valid ones
 def review(request, pk, tid): # dataset pk, celery recon task_id
     # print('pk, tid:', pk, tid)
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
+    # whg: 5ea5f2ef-0ff2-4b9c-a73e-fb1a941b844a
+    # tgn: 936ef358-5735-49a6-b346-48bbac84f673
     # TODO: also filter by reviewed, per authority
 
     # filter place records for those with unreviewed hits on this task
@@ -101,9 +129,10 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     place = get_object_or_404(Place, id=placeid)
     # print('records[0]',dir(records[0]))
     # recon task hits
-    #hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('query_pass','-score')
+    hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('query_pass','-score')
     #hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).exclude(query_pass=passnum).order_by('-score')
-    hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('-score')
+    #hit_list = hitFactory(Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('-score'),task.task_name)
+    #print('hit package',hit_list[0].json)
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list':hit_list, 'authority': task.task_name,

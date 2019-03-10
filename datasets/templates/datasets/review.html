@@ -105,11 +105,13 @@
                   </p>
                   <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
                     <p><strong>Variants</strong>:
+                      {{form.json.value|get:"names" }}
                       {% for n in form.json.value|get:"names" %}
                         {{ n.name|add:"; " }}
                       {% endfor %}
                     </p>
                     <p class="mt-2"><strong>Types</strong>:
+                      {{ form.json.value|get:"types" }}
                       {% for t in form.json.value|get:"types" %}
                         {{ t.placetype|add:"; " }}
                       {% endfor %}</p>
