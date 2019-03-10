@@ -80,7 +80,11 @@
             {% leaflet_map "map" callback="map_init" %}
           </div>
         </div>
+<!--['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
         <div id="review_list" class="col-sm-8 pr-0">
+            {% for hit in hit_list %}
+              {{ hit }}
+            {% endfor %}
             {% for form in formset %}
               <div class="pl-2 pr-2 mb-2 matchbar">
                 <div class="custom-control custom-radio match_radio">

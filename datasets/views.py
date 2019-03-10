@@ -83,6 +83,14 @@ class HitRecord(object):
         self.src_id = src_id
         self.title = title
         self.dataset = dataset
+        #self.variants = []
+        #self.types = []
+        #self.ccodes = []
+        #self.parents = []
+        #self.descriptions = []
+        #self.geoms = []
+        #self.timespans = []
+        #self.links = []
 
     def __str__(self):
         import json
@@ -92,14 +100,58 @@ class HitRecord(object):
     def toJSON(self):
         import json
         return json.loads(json.dumps(self.__dict__,indent=2))
+
+def parseWhen(when):
+    timespan = 'parse me now'
+    return timespan
+def ccDecode(ccodes):
+    countries = 'parse me now'
+    return countries
     
-def hitFactory(hit_list,taskname):
-    incoming = [h.json for h in hit_list]
+def hitsFactory(raw_hits,taskname):
+    # normalizes reconciliation hit records for review.html template
+    incoming = [h.json for h in raw_hits]
+    outgoing = []
     if taskname == 'align_whg':
+        # title (title), id (whg_id), variants (names.toponym), types (type.label,src_label,identifier), 
+        # mod. country (ccodes[]), parents (relations[];gvp:broaderPartitive), description (descriptions[]), 
+        # geoms.location, 
         for i in incoming:
+            # base instance
             rec = HitRecord(i['whg_id'], i['place_id'], i['dataset'], i['src_id'], i['title'])
             
+            # add elements if non-empty in index record
+            rec.variants = [n['toponym'] for n in i['names']] # always >=1 names
+            rec.types = [t['label']+' ('+t['src_label']+')' for t in i['types']] if len(i['types']) > 0 else []
+            rec.ccodes = ccDecode(i['ccodes']) if len(i['ccodes']) > 0 else []
+            rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in i['relations']] \
+                if len(i['relations']) > 0 else []
+            rec.descriptions = ['[<i>'+d['id']+'</i>] '+d['value'] for d in i['descriptions']] \
+                if len(i['descriptions']) > 0 else []
+            rec.geoms = [g['location'] for g in i['geoms']] \
+                if len(i['geoms']) > 0 else []
+            rec.timespans = [parseWhen(t['timespans']) for t in i['timespans']] \
+                if len(i['timespans']) > 0 else []
+            rec.links = [l['type']+': '+l['identifier'] for l in i['links']] \
+                if len(i['links']) > 0 else []
+
+            outgoing.append(rec.toJSON())
+            return outgoing
         
+    elif taskname == 'align_tgn':
+        # title (title), id (id), variants (names.name), types (type.placetype, id, display order), 
+        # mod. country (none), parents (partitive relations), description (note), location
+        for i in incoming:
+            rec = HitRecord(i['id'], i['place_id'], 'tgn', i['tgnid'], i['title'])
+            for n in i['names']: rec.variants.append(n['name'])
+            for t in i['types']: rec.types.append(t['placetype'])
+            rec.parents = ', '.join(i['parents']).replace(', ',' > ')
+            for d in i['descriptions']: rec.descriptions.append(d)
+            for g in i['geoms']: rec.geoms.append(g)
+            for t in i['timespans']: rec.timespans.append(t)
+            outgoing.append(rec.toJSON())            
+
+    return outgoing
     
 # present reconciliation hits for review, execute augmenter() for valid ones
 def review(request, pk, tid): # dataset pk, celery recon task_id
@@ -129,9 +181,8 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     place = get_object_or_404(Place, id=placeid)
     # print('records[0]',dir(records[0]))
     # recon task hits
-    hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('query_pass','-score')
-    #hit_list = Hit.objects.all().filter(place_id=placeid, task_id=tid).exclude(query_pass=passnum).order_by('-score')
-    #hit_list = hitFactory(Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('-score'),task.task_name)
+    raw_hits = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('query_pass','-score')
+    hit_list = hitsFactory(raw_hits,task.task_name)
     #print('hit package',hit_list[0].json)
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
@@ -143,7 +194,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     #     'query_pass','src_id','authrecord_id','json','geom' ]
     HitFormset = modelformset_factory(
         Hit, fields = ['id','authrecord_id','json','query_pass','score'], form=HitModelForm, extra=0)
-    formset = HitFormset(request.POST or None, queryset=hit_list)
+    formset = HitFormset(request.POST or None, queryset=raw_hits)
     # formset = HitFormset(request.POST, queryset=hit_list)
     context['formset'] = formset
     print('context:',context)
