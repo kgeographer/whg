@@ -15,9 +15,9 @@ from datasets.models import Dataset, Hit
 from areas.models import Area
 from places.models import *
 from main.choices import AUTHORITY_BASEURI
-from .forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
-from .tasks import read_delimited, align_tgn, align_whg, read_lpf
-from .utils import parsejson, myteam, parse_wkt, aat_lookup
+from datasets.forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
+from datasets.tasks import read_delimited, align_tgn, align_whg, read_lpf
+from datasets.utils import parsejson, myteam, parse_wkt, aat_lookup
 
 def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
@@ -76,86 +76,80 @@ def augmenter(placeid, auth, tid, hitjson):
         return
 
 # build hits payload for display consistent between authorities
-class HitRecord(object):
-    def __init__(self, whg_id, place_id, dataset, src_id, title):
-        self.whg_id = whg_id
-        self.place_id = place_id
-        self.src_id = src_id
-        self.title = title
-        self.dataset = dataset
-        #self.variants = []
-        #self.types = []
-        #self.ccodes = []
-        #self.parents = []
-        #self.descriptions = []
-        #self.geoms = []
-        #self.timespans = []
-        #self.links = []
+#class HitRecord(object):
+    #def __init__(self, whg_id, place_id, dataset, src_id, title):
+        #self.whg_id = whg_id
+        #self.place_id = place_id
+        #self.src_id = src_id
+        #self.title = title
+        #self.dataset = dataset
 
-    def __str__(self):
-        import json
-        return json.dumps(str(self.__dict__))    
-        #return json.dumps(self.__dict__)
+    #def __str__(self):
+        #import json
+        #return json.dumps(str(self.__dict__))    
+        ##return json.dumps(self.__dict__)
         
-    def toJSON(self):
-        import json
-        return json.loads(json.dumps(self.__dict__,indent=2))
+    #def toJSON(self):
+        #import json
+        #return json.loads(json.dumps(self.__dict__,indent=2))
 
-def parseWhen(when):
-    timespan = 'parse me now'
-    return timespan
-def ccDecode(ccodes):
-    countries = 'parse me now'
-    return countries
+#def parseWhen(when):
+    #timespan = 'parse me now'
+    #return timespan
+#def ccDecode(ccodes):
+    #countries = 'parse me now'
+    #return countries
     
-def hitsFactory(raw_hits,taskname):
-    # normalizes reconciliation hit records for review.html template
-    incoming = [h.json for h in raw_hits]
-    outgoing = []
-    if taskname == 'align_whg':
-        # title (title), id (whg_id), variants (names.toponym), types (type.label,src_label,identifier), 
-        # mod. country (ccodes[]), parents (relations[];gvp:broaderPartitive), description (descriptions[]), 
-        # geoms.location, 
-        for i in incoming:
-            # base instance
-            rec = HitRecord(i['whg_id'], i['place_id'], i['dataset'], i['src_id'], i['title'])
+#def hitsFactory(raw_hits,taskname):
+    ## normalizes reconciliation hit records for review.html template
+    #incoming = [h.json for h in raw_hits]
+    #outgoing = []
+    #if taskname == 'align_whg':
+        ## title (title), id (whg_id), variants (names.toponym), types (type.label,src_label,identifier), 
+        ## mod. country (ccodes[]), parents (relations[];gvp:broaderPartitive), description (descriptions[]), 
+        ## geoms.location, 
+        #for i in incoming:
+            #print('instance i:',i)
+            ## base instance
+            #rec = HitRecord(i['whg_id'], i['place_id'], i['dataset'], i['src_id'], i['title'])
             
-            # add elements if non-empty in index record
-            rec.variants = [n['toponym'] for n in i['names']] # always >=1 names
-            rec.types = [t['label']+' ('+t['src_label']+')' for t in i['types']] if len(i['types']) > 0 else []
-            rec.ccodes = ccDecode(i['ccodes']) if len(i['ccodes']) > 0 else []
-            rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in i['relations']] \
-                if len(i['relations']) > 0 else []
-            rec.descriptions = ['[<i>'+d['id']+'</i>] '+d['value'] for d in i['descriptions']] \
-                if len(i['descriptions']) > 0 else []
-            rec.geoms = [g['location'] for g in i['geoms']] \
-                if len(i['geoms']) > 0 else []
-            rec.timespans = [parseWhen(t['timespans']) for t in i['timespans']] \
-                if len(i['timespans']) > 0 else []
-            rec.links = [l['type']+': '+l['identifier'] for l in i['links']] \
-                if len(i['links']) > 0 else []
+            ## add elements if non-empty in index record
+            #rec.variants = [n['toponym'] for n in i['names']] # always >=1 names
+            #rec.types = [t['label']+' ('+t['src_label'] +')' \
+                        #for t in i['types']] if len(i['types']) > 0 else []
+            #rec.ccodes = ccDecode(i['ccodes']) if len(i['ccodes']) > 0 else []
+            #rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in i['relations']] \
+                #if len(i['relations']) > 0 else []
+            #rec.descriptions = ['[<i>'+d['id']+'</i>] '+d['value'] for d in i['descriptions']] \
+                #if len(i['descriptions']) > 0 else []
+            #rec.geoms = [g['location'] for g in i['geoms']] \
+                #if len(i['geoms']) > 0 else []
+            #rec.timespans = [parseWhen(t['timespans']) for t in i['timespans']] \
+                #if len(i['timespans']) > 0 else []
+            #rec.links = [l['type']+': '+l['identifier'] for l in i['links']] \
+                #if len(i['links']) > 0 else []
 
-            outgoing.append(rec.toJSON())
-            return outgoing
+            #outgoing.append(rec.toJSON())
+            #return outgoing
         
-    elif taskname == 'align_tgn':
-        # title (title), id (id), variants (names.name), types (type.placetype, id, display order), 
-        # mod. country (none), parents (partitive relations), description (note), location
-        for i in incoming:
-            rec = HitRecord(i['id'], i['place_id'], 'tgn', i['tgnid'], i['title'])
-            for n in i['names']: rec.variants.append(n['name'])
-            for t in i['types']: rec.types.append(t['placetype'])
-            rec.parents = ', '.join(i['parents']).replace(', ',' > ')
-            for d in i['descriptions']: rec.descriptions.append(d)
-            for g in i['geoms']: rec.geoms.append(g)
-            for t in i['timespans']: rec.timespans.append(t)
-            outgoing.append(rec.toJSON())            
+    #elif taskname == 'align_tgn':
+        ## title (title), id (id), variants (names.name), types (type.placetype, id, display order), 
+        ## mod. country (none), parents (partitive relations), description (note), location
+        #for i in incoming:
+            #rec = HitRecord(i['id'], i['place_id'], 'tgn', i['tgnid'], i['title'])
+            #for n in i['names']: rec.variants.append(n['name'])
+            #for t in i['types']: rec.types.append(t['placetype'])
+            #rec.parents = ', '.join(i['parents']).replace(', ',' > ')
+            #for d in i['descriptions']: rec.descriptions.append(d)
+            #for g in i['geoms']: rec.geoms.append(g)
+            #for t in i['timespans']: rec.timespans.append(t)
+            #outgoing.append(rec.toJSON())            
 
-    return outgoing
+    #return outgoing
     
 # present reconciliation hits for review, execute augmenter() for valid ones
 def review(request, pk, tid): # dataset pk, celery recon task_id
-    # print('pk, tid:', pk, tid)
+    print('review() request:', request)
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
     # whg: 5ea5f2ef-0ff2-4b9c-a73e-fb1a941b844a
@@ -182,26 +176,23 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     # print('records[0]',dir(records[0]))
     # recon task hits
     raw_hits = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('query_pass','-score')
-    hit_list = hitsFactory(raw_hits,task.task_name)
+    #hit_list = hitsFactory(raw_hits,task.task_name)
     #print('hit package',hit_list[0].json)
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
-        'hit_list':hit_list, 'authority': task.task_name,
+        'hit_list':raw_hits, 'authority': task.task_name,
         'records': records, 'passnum': passnum,
         'page': page if request.method == 'GET' else str(int(page)-1)
     }
     # Hit model fields = ['task_id','authority','dataset','place_id',
     #     'query_pass','src_id','authrecord_id','json','geom' ]
     HitFormset = modelformset_factory(
-        Hit, fields = ['id','authrecord_id','json','query_pass','score'], form=HitModelForm, extra=0)
+        Hit, fields = ('id','authrecord_id','json','query_pass','score'), form=HitModelForm, extra=0)
     formset = HitFormset(request.POST or None, queryset=raw_hits)
-    # formset = HitFormset(request.POST, queryset=hit_list)
     context['formset'] = formset
     print('context:',context)
     # print('formset',formset)
     method = request.method
-    # required & not being sent
-    # [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label), 'place_id', 'authrecord_id', 'id'}]
     if method == 'GET':
         print('a GET')
         return render(request, 'datasets/review.html', context=context)

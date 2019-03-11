@@ -14,7 +14,7 @@ from datasets.regions import regions as region_hash
 ##
 import shapely.geometry as sgeo
 from geopy import distance
-from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
+from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully, HitRecord
 from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 ##
@@ -264,7 +264,7 @@ def align_tgn(pk, *args, **kwargs):
 
     # types (Getty AAT identifiers)
     for t in place.types.all():
-      print('type',t)
+      #print('type',t)
       types.append(int(t.json['identifier'][4:]))
     query_obj['placetypes'] = types
 
@@ -288,7 +288,7 @@ def align_tgn(pk, *args, **kwargs):
       elif geom['type'] == 'MultiLineString':
         query_obj['geom'] = hully(geom)
 
-    print('query_obj:', query_obj)
+    #print('query_obj:', query_obj)
 
     # run ES query on query_obj, with bounds
     # regions.regions
@@ -301,6 +301,7 @@ def align_tgn(pk, *args, **kwargs):
       count_hit +=1
       total_hits += result_obj['hit_count']
       # TODO: differentiate hits from passes
+      print("hit['_source']: ",result_obj['hits'][0]['_source'])      
       for hit in result_obj['hits']:
         if hit['pass'] == 'pass1': 
           count_p1+=1 
@@ -329,7 +330,7 @@ def align_tgn(pk, *args, **kwargs):
   end = datetime.datetime.now()
   # ds.status = 'recon_tgn'
   # TODO: return summary
-  print('features:',features)
+  #print('features:',features)
   hit_parade['summary'] = {
       'count':count,
         'got_hits':count_hit,
@@ -343,7 +344,36 @@ def align_tgn(pk, *args, **kwargs):
   print("hit_parade['summary']",hit_parade['summary'])
   return hit_parade['summary']
 
+def parseWhen(when):
+  timespan = 'parse me now'
+  return timespan
+def ccDecode(ccodes):
+  countries = 'parse me now'
+  return countries
 
+# create normalized json field for hits from any authority
+def normalize(h,auth):
+  if auth == 'whg':
+    rec = HitRecord(h['whg_id'], h['place_id'], h['dataset'], h['src_id'], h['title'])
+  
+    # add elements if non-empty in index record
+    rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
+    rec.types = [t['label']+' ('+t['src_label'] +')' \
+                for t in h['types']] if len(h['types']) > 0 else []
+    rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
+    rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
+                if 'relations' in h.keys() and len(h['relations']) > 0 else []
+    rec.descriptions = ['[<i>'+d['id']+'</i>] '+d['value'] for d in h['descriptions']] \
+                if len(h['descriptions']) > 0 else []
+    rec.geoms = [g['location'] for g in h['geoms']] \
+                if len(h['geoms']) > 0 else []
+    rec.timespans = [parseWhen(t) for t in h['timespans']] \
+                if len(h['timespans']) > 0 else []
+    rec.links = [l['type']+': '+l['identifier'] for l in h['links']] \
+                if len(h['links']) > 0 else []
+  
+    return rec.toJSON()
+  
 #
 def es_lookup_whg(qobj, *args, **kwargs):
   # print('qobj',qobj)
@@ -462,14 +492,13 @@ def es_lookup_whg(qobj, *args, **kwargs):
 #
 @task(name="align_whg")
 def align_whg(pk, *args, **kwargs):
-  print('align_whg kwargs:', str(kwargs))
+  #print('align_whg kwargs:', str(kwargs))
 
   ds = get_object_or_404(Dataset, id=pk)
-  #ds = get_object_or_404(Dataset, id=5)
 
   bounds = kwargs['bounds']
   # dummies for testing
-  #bounds = {'type': ['userarea'], 'id': ['0']}
+  bounds = {'type': ['userarea'], 'id': ['65']}
   #bounds = {'type': ['region'], 'id': ['eh']}
 
   # TODO: system for region creation
@@ -486,6 +515,7 @@ def align_whg(pk, *args, **kwargs):
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=81655) # Atlas Mountains
     #place=get_object_or_404(Place,id=124653) # !Kung
+    #place=get_object_or_404(Place,id=82630) # Cartagena
     count +=1
     query_obj = {"place_id":place.id, "src_id":place.src_id, "prefname":place.title}
     links=ccodes=types=variants=parents=geoms=[]
@@ -527,7 +557,7 @@ def align_whg(pk, *args, **kwargs):
         # 1 or more points or multilinestrings -> make polygon hull
         query_obj['geom'] = hully(g_list)
 
-    print('query_obj:', query_obj)
+    #print('query_obj:', query_obj)
 
     ## run pass1-pass3 ES queries
     result_obj = es_lookup_whg(query_obj, bounds=bounds)
@@ -538,6 +568,7 @@ def align_whg(pk, *args, **kwargs):
     else:
       count_hit +=1
       total_hits += result_obj['hit_count']
+      print("hit['_source']: ",result_obj['hits'][0]['_source'])
       for hit in result_obj['hits']:
         if hit['pass'] == 'pass1': 
           count_p1+=1 
@@ -557,7 +588,7 @@ def align_whg(pk, *args, **kwargs):
           #task_id = 'abcxxyyzz',
           # TODO: articulate hit here ?
           query_pass = hit['pass'],
-          json = hit['_source'],
+          json = normalize(hit['_source'],'whg'),
           src_id = query_obj['src_id'],
           score = hit['_score'],
           geom = loc,

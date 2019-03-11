@@ -11,6 +11,7 @@ MATCHTYPES = [
     ('none','no match'),]
 
 class HitModelForm(forms.ModelForm):
+    #'id','authrecord_id','json','query_pass','score'
     match = forms.CharField(initial='none',
         widget=forms.RadioSelect(choices=MATCHTYPES))
     flag_geom = forms.BooleanField(initial=False, required=False)
@@ -24,9 +25,7 @@ class HitModelForm(forms.ModelForm):
 
     class Meta:
         model = Hit
-        fields = ['id','authrecord_id','json', 'query_pass', 'score'
-            # 'place_id'
-        ]
+        fields = ['id','authrecord_id','json', 'query_pass', 'score' ]
         # all Hit model fields
         # fields = ['task_id','authority','dataset','place_id',
         #     'query_pass','src_id','authrecord_id','json','geom' ]
@@ -37,8 +36,6 @@ class HitModelForm(forms.ModelForm):
             'json': forms.HiddenInput(),
             'flag_geom': forms.CheckboxInput(),
         }
-# [{'task_id'(task_id), 'authority'(authority), 'dataset'(ds_label),
-# 'place_id', 'authrecord_id', 'id'}]
 
 class DatasetDetailModelForm(forms.ModelForm):
     class Meta:

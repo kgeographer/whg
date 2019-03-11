@@ -4,6 +4,23 @@ from shapely import wkt
 from shapely.geometry import MultiLineString, mapping
 from datasets.static.hashes import aat, parents
 
+class HitRecord(object):
+    def __init__(self, whg_id, place_id, dataset, src_id, title):
+        self.whg_id = whg_id
+        self.place_id = place_id
+        self.src_id = src_id
+        self.title = title
+        self.dataset = dataset
+
+    def __str__(self):
+        import json
+        return json.dumps(str(self.__dict__))    
+        #return json.dumps(self.__dict__)
+        
+    def toJSON(self):
+        import json
+        return json.loads(json.dumps(self.__dict__,indent=2))
+    
 def aat_lookup(id):
     try:
         label = aat.types[id]['term_full']
@@ -14,6 +31,7 @@ def aat_lookup(id):
 
 def hully(g_list):
     from django.contrib.gis.geos import GEOSGeometry
+    from django.contrib.gis.geos import GeometryCollection
     if g_list[0]['type'] == 'Point':
         # 1 or more points => make buffer; width 1 = ~200km @ 20deg lat
         hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).buffer(1).geojson)

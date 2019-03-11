@@ -104,23 +104,23 @@
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
+                  {{ form.json.value }}
                   <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
                     <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
                   </p>
                   <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
                     <p><strong>Variants</strong>:
-                      {{form.json.value|get:"names" }}
-                      {% for n in form.json.value|get:"names" %}
+                      {{ form.json.value|get:"variants" }}
+                      {% for n in form.json.value|get:"variants" %}
                         {{ n.name|add:"; " }}
                       {% endfor %}
                     </p>
                     <p class="mt-2"><strong>Types</strong>:
-                      {{ form.json.value|get:"types" }}
                       {% for t in form.json.value|get:"types" %}
                         {{ t.placetype|add:"; " }}
                       {% endfor %}</p>
                   <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
-                  <p><strong>Note</strong>: {{ form.json.value|get:"note" }}</p>
+                  <p><strong>Note</strong>: {{ form.json.value|get:"descriptions" }}</p>
                   <!-- <input type="hidden" name="place_id" value="{{ record.id }}" /> -->
                   <!-- hidden by modelform, fed back on POST-->
                   {{ form.id }} {{ form.authrecord_id }} {{ form.json }}

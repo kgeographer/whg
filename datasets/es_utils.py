@@ -59,7 +59,8 @@ def makeDoc(place,parentid):
             "descriptions": parsePlace(place,'descriptions'),
             "relations": [],
             "depictions": [], 
-            "timespans": []
+            "timespans": [],
+            "minmax": []
         }
     return cc_obj
 
