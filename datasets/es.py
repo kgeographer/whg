@@ -1,5 +1,6 @@
-# es.py; index named dataset from database
-# 7 Feb 2019; rev 04 Mar 2019
+# es.py; index named dataset from database, spine initially
+# 7 Feb 2019; rev 11 Mar 2019
+
 from __future__ import absolute_import, unicode_literals
 import sys, os, re, json, codecs, datetime, time, csv, random
 from geopy import distance
@@ -16,13 +17,10 @@ from datasets.models import Dataset, Hit
 from datasets.regions import regions as region_hash
 from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully
 from places.models import Place
-##
 
-# dplace: 1428; 
-# ne_rivers: 1074; 981 new, 110 child (??)
-# 981 fresh records added, 110 child records ad
-# e.g. 97829 (Calusa) into 12347200
+# 
 # TODO: handle multiple parents (dplace: 124883,124900,125065,125132; ne_rivers: )
+# TODO: conflate with align_whg reconcile operation; 
 def indexDataset():
     import codecs
     dataset = input('dataset: ')
@@ -32,13 +30,13 @@ def indexDataset():
     count = 0
     multiparents=[]
     errors=[]
-    # what is the last whg_id
+    # get last whg_id
     whg_id = maxID(es); print('max whg_id:',whg_id)  
     
     count_seeds = count_kids = 0; i = 0
     for place in qs:
         i +=1
-        #place = qs[13]
+        # place = qs[13]
         # 85924/118445; 81224 / 118507; 85924 / 118445; 118432 = !Kung
         # place=get_object_or_404(Place,id=122473) # Calusa/119778 (dplace)
         
@@ -46,9 +44,7 @@ def indexDataset():
         qobj = queryObject(place)
 
         # match if shared link; 
-        # TODO: reconcile to whg
         matches = findMatch(qobj,es) if 'links' in qobj.keys() else {"parents":[], "names":[]}
-        #print(place.id,matches)
         if len(matches['parents']) == 0:
             # it's a parent (seed)
             whg_id +=1
@@ -73,7 +69,7 @@ def indexDataset():
             # TODO: can't have 2 parents though!!!!
             if len(matches['parents'])>1: 
                 f_err_multi.write(str({"pid":place.id, "title":place.title, "matches":matches})+'\n')
-                #multiparents.append({"pid":place.id, "title":place.title, "matches":matches})
+                # multiparents.append({"pid":place.id, "title":place.title, "matches":matches})
             for pid in matches['parents']:
                 child_obj = makeDoc(place,pid)
                 child_obj['relation']={"name":"child","parent":pid}

@@ -75,78 +75,7 @@ def augmenter(placeid, auth, tid, hitjson):
     else:
         return
 
-# build hits payload for display consistent between authorities
-#class HitRecord(object):
-    #def __init__(self, whg_id, place_id, dataset, src_id, title):
-        #self.whg_id = whg_id
-        #self.place_id = place_id
-        #self.src_id = src_id
-        #self.title = title
-        #self.dataset = dataset
-
-    #def __str__(self):
-        #import json
-        #return json.dumps(str(self.__dict__))    
-        ##return json.dumps(self.__dict__)
-        
-    #def toJSON(self):
-        #import json
-        #return json.loads(json.dumps(self.__dict__,indent=2))
-
-#def parseWhen(when):
-    #timespan = 'parse me now'
-    #return timespan
-#def ccDecode(ccodes):
-    #countries = 'parse me now'
-    #return countries
-    
-#def hitsFactory(raw_hits,taskname):
-    ## normalizes reconciliation hit records for review.html template
-    #incoming = [h.json for h in raw_hits]
-    #outgoing = []
-    #if taskname == 'align_whg':
-        ## title (title), id (whg_id), variants (names.toponym), types (type.label,src_label,identifier), 
-        ## mod. country (ccodes[]), parents (relations[];gvp:broaderPartitive), description (descriptions[]), 
-        ## geoms.location, 
-        #for i in incoming:
-            #print('instance i:',i)
-            ## base instance
-            #rec = HitRecord(i['whg_id'], i['place_id'], i['dataset'], i['src_id'], i['title'])
-            
-            ## add elements if non-empty in index record
-            #rec.variants = [n['toponym'] for n in i['names']] # always >=1 names
-            #rec.types = [t['label']+' ('+t['src_label'] +')' \
-                        #for t in i['types']] if len(i['types']) > 0 else []
-            #rec.ccodes = ccDecode(i['ccodes']) if len(i['ccodes']) > 0 else []
-            #rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in i['relations']] \
-                #if len(i['relations']) > 0 else []
-            #rec.descriptions = ['[<i>'+d['id']+'</i>] '+d['value'] for d in i['descriptions']] \
-                #if len(i['descriptions']) > 0 else []
-            #rec.geoms = [g['location'] for g in i['geoms']] \
-                #if len(i['geoms']) > 0 else []
-            #rec.timespans = [parseWhen(t['timespans']) for t in i['timespans']] \
-                #if len(i['timespans']) > 0 else []
-            #rec.links = [l['type']+': '+l['identifier'] for l in i['links']] \
-                #if len(i['links']) > 0 else []
-
-            #outgoing.append(rec.toJSON())
-            #return outgoing
-        
-    #elif taskname == 'align_tgn':
-        ## title (title), id (id), variants (names.name), types (type.placetype, id, display order), 
-        ## mod. country (none), parents (partitive relations), description (note), location
-        #for i in incoming:
-            #rec = HitRecord(i['id'], i['place_id'], 'tgn', i['tgnid'], i['title'])
-            #for n in i['names']: rec.variants.append(n['name'])
-            #for t in i['types']: rec.types.append(t['placetype'])
-            #rec.parents = ', '.join(i['parents']).replace(', ',' > ')
-            #for d in i['descriptions']: rec.descriptions.append(d)
-            #for g in i['geoms']: rec.geoms.append(g)
-            #for t in i['timespans']: rec.timespans.append(t)
-            #outgoing.append(rec.toJSON())            
-
-    #return outgoing
-    
+# * 
 # present reconciliation hits for review, execute augmenter() for valid ones
 def review(request, pk, tid): # dataset pk, celery recon task_id
     print('review() request:', request)
@@ -247,6 +176,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     return render(request, 'datasets/review.html', context=context)
 
 
+# *
 # initiate, monitor align_tgn Celery task
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
@@ -572,6 +502,9 @@ class DashboardView(ListView):
                     teamtasks.append(t.task_id)
             context['review_list'] = TaskResult.objects.filter(task_id__in=teamtasks).order_by('-date_done')
 
+        # status >= 'in_database'
+        context['viewable'] = ['in_database','indexed']
+        
         # TODO: user place collections
         #print('DashboardView context:', context)
         return context

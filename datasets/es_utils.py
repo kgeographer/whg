@@ -43,25 +43,25 @@ def findMatch(qobj,es):
 
 def makeDoc(place,parentid):
     cc_obj = {
-            "place_id": place.id,
-            "dataset": place.dataset.label,
-            "src_id": place.src_id,
-            "relation": {},
-            "title": place.title,
-            "uri": uriMaker(place),
-            "children": [],
-            "ccodes": place.ccodes,
-            "suggest": {"input":[]},
-            "names": parsePlace(place,'names'),
-            "types": parsePlace(place,'types'),
-            "links": parsePlace(place,'links'),
-            "geoms": parsePlace(place,'geoms'),
-            "descriptions": parsePlace(place,'descriptions'),
-            "relations": [],
-            "depictions": [], 
-            "timespans": [],
-            "minmax": []
-        }
+        "relation": {},
+        "children": [],
+        "suggest": {"input":[]},
+        "minmax": [],
+        "place_id": place.id,
+        "dataset": place.dataset.label,
+        "src_id": place.src_id,
+        "title": place.title,
+        "uri": uriMaker(place),
+        "ccodes": place.ccodes,
+        "names": parsePlace(place,'names'),
+        "types": parsePlace(place,'types'),
+        "geoms": parsePlace(place,'geoms'),
+        "links": parsePlace(place,'links'),
+        "timespans": [],
+        "descriptions": parsePlace(place,'descriptions'),
+        "depictions": [], 
+        "relations": []
+    }
     return cc_obj
 
 def parsePlace(place,attr):

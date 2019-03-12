@@ -35,6 +35,8 @@ def hully(g_list):
     if g_list[0]['type'] == 'Point':
         # 1 or more points => make buffer; width 1 = ~200km @ 20deg lat
         hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).buffer(1).geojson)
+    elif g_list[0]['type'] == 'MultiLineString':
+        hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull.geojson)
     else:
         # now only linestrings and multiple multipolygons -> simple convex_hull (unions are precise but bigger)
         hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull.geojson)

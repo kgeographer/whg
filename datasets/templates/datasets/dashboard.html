@@ -35,7 +35,7 @@
                   {% if d.status == "format_ok" %}
                   <a href="{% url 'datasets:ds_insert' d.id %}" title="Insert to db" rel="tooltip"
                   class="">{% fontawesome_icon 'database' color='#336699' %}</a>
-                  {% elif d.status == "in_database" %}
+                  {% elif d.status in viewable %}
                   <a href="{% url 'datasets:drf_table' label=d.label f='all' %}" title="View/edit table" rel="tooltip"
                   class="float-right mr-2">{% fontawesome_icon 'table' color='#336699' %}</a>
                   {% endif %}

@@ -358,7 +358,7 @@ def normalize(h,auth):
   
     # add elements if non-empty in index record
     rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
-    rec.types = [t['label']+' ('+t['src_label'] +')' \
+    rec.types = [t['label']+' ('+t['src_label']  +')' if 'src_label' in t.keys() else '' \
                 for t in h['types']] if len(h['types']) > 0 else []
     rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
     rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
@@ -379,8 +379,8 @@ def es_lookup_whg(qobj, *args, **kwargs):
   # print('qobj',qobj)
   bounds = kwargs['bounds']
   #bounds = {'type': ['region'], 'id': ['eh']}
-  #bounds = {'type': ['userarea'], 'id': [64]}
-  hit_count = 0
+  #bounds = {'type': ['userarea'], 'id': ['0']}
+  hit_count = err_count = 0
   #search_name = fixName(qobj['prefname'])
 
   # empty result object
@@ -438,13 +438,14 @@ def es_lookup_whg(qobj, *args, **kwargs):
   if 'geom' in qobj.keys():
     # call it location
     location = qobj['geom']
-
+    print('location for')
     filter_intersects_area = { "geo_shape": {
       "geoms.location": {
           "shape": {
-            "type": "polygon",
-              "coordinates" : location['coordinates'] if location['type'] == "Polygon" \
-              else location['coordinates'][0][0]
+            #"type": "polygon",
+            "type": location['type'],
+              "coordinates" : location['coordinates'] #if location['type'] == "Polygon" \
+              #else location['coordinates'][0][0]
           },
           "relation": "intersects" # within | intersects | contains
         }
@@ -455,8 +456,12 @@ def es_lookup_whg(qobj, *args, **kwargs):
 
   # /\/\/\/\/\/
   # pass1: name, type, parent, study_area, geom if provided
-  res1 = es.search(index="whg_flat", body = q1)
-  hits1 = res1['hits']['hits']
+  try:
+    res1 = es.search(index="whg_flat", body = q1)
+    hits1 = res1['hits']['hits']
+  except:
+    print("q1, error:", q1, sys.exc_info())
+    #sys.exit(1)
   # 1 or more hits
   if len(hits1) > 0:
     for hit in hits1:
@@ -466,8 +471,11 @@ def es_lookup_whg(qobj, *args, **kwargs):
   elif len(hits1) == 0:
   # /\/\/\/\/\/
   # pass2 must:name, type; should:parent; filter:geom, bounds
-    res2 = es.search(index="whg_flat", body = q2)
-    hits2 = res2['hits']['hits']
+    try:
+      res2 = es.search(index="whg_flat", body = q2)
+      hits2 = res2['hits']['hits']
+    except:
+      print("q2, error:", q2, sys.exc_info())
     if len(hits2) > 0:
       for hit in hits2:
         hit_count +=1
@@ -476,8 +484,12 @@ def es_lookup_whg(qobj, *args, **kwargs):
     elif len(hits2) == 0:
       # /\/\/\/\/\/
       # pass3 must:name; should:parent; filter:bounds
-      res3 = es.search(index="whg_flat", body = q3)
-      hits3 = res3['hits']['hits']
+      try:
+        res3 = es.search(index="whg_flat", body = q3)
+        hits3 = res3['hits']['hits']
+      except:
+        print("q2, error:", q3, sys.exc_info())
+        #sys.exit(1)
       if len(hits3) > 0:
         for hit in hits3:
           hit_count +=1
@@ -498,7 +510,7 @@ def align_whg(pk, *args, **kwargs):
 
   bounds = kwargs['bounds']
   # dummies for testing
-  bounds = {'type': ['userarea'], 'id': ['65']}
+  #bounds = {'type': ['userarea'], 'id': ['0']}
   #bounds = {'type': ['region'], 'id': ['eh']}
 
   # TODO: system for region creation
@@ -515,7 +527,7 @@ def align_whg(pk, *args, **kwargs):
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=81655) # Atlas Mountains
     #place=get_object_or_404(Place,id=124653) # !Kung
-    #place=get_object_or_404(Place,id=82630) # Cartagena
+    #place=get_object_or_404(Place,id=126191) # Mackenzie
     count +=1
     query_obj = {"place_id":place.id, "src_id":place.src_id, "prefname":place.title}
     links=ccodes=types=variants=parents=geoms=[]
@@ -550,7 +562,7 @@ def align_whg(pk, *args, **kwargs):
     if len(place.geoms.all()) > 0:
       # any geoms at all...
       g_list =[g.json for g in place.geoms.all()]
-      if len(g_list) == 1 and geom['type'] == 'MultiPolygon':
+      if len(g_list) == 1 and g_list[0]['type'] == 'MultiPolygon':
         # single multipolygon -> use as is
         query_obj['geom']=g_list[0]
       else:
@@ -567,6 +579,7 @@ def align_whg(pk, *args, **kwargs):
       nohits.append(result_obj['missed'])
     else:
       count_hit +=1
+      count_errors = 0
       total_hits += result_obj['hit_count']
       print("hit['_source']: ",result_obj['hits'][0]['_source'])
       for hit in result_obj['hits']:
@@ -579,22 +592,27 @@ def align_whg(pk, *args, **kwargs):
         hit_parade["hits"].append(hit)
         # print('creating hit:',hit)
         loc = hit['_source']['geoms'] if 'geoms' in hit['_source'].keys() else None
-        new = Hit(
-          authority = 'whg',
-          authrecord_id = hit['_id'],
-          dataset = ds,
-          place_id = get_object_or_404(Place, id=query_obj['place_id']),
-          task_id = align_whg.request.id,
-          #task_id = 'abcxxyyzz',
-          # TODO: articulate hit here ?
-          query_pass = hit['pass'],
-          json = normalize(hit['_source'],'whg'),
-          src_id = query_obj['src_id'],
-          score = hit['_score'],
-          geom = loc,
-          reviewed = False,
-        )
-        new.save()
+        try:
+          new = Hit(
+            authority = 'whg',
+            authrecord_id = hit['_id'],
+            dataset = ds,
+            place_id = get_object_or_404(Place, id=query_obj['place_id']),
+            task_id = align_whg.request.id,
+            #task_id = 'abcxxyyzz',
+            # TODO: articulate hit here ?
+            query_pass = hit['pass'],
+            json = normalize(hit['_source'],'whg'),
+            src_id = query_obj['src_id'],
+            score = hit['_score'],
+            geom = loc,
+            reviewed = False,
+          )
+          new.save()
+        except:
+          count_errors +=1
+          pass
+          print("hit _source, error:", hit, sys.exc_info())
   end = datetime.datetime.now()
   # ds.status = 'recon_whg'
   #print('features:',features)
@@ -606,7 +624,8 @@ def align_whg(pk, *args, **kwargs):
     'pass2': count_p2, 
     'pass3': count_p3,
     'no_hits': {'count': count_nohit },
-    'elapsed': elapsed(end-start)
+    'elapsed': elapsed(end-start),
+    'skipped': count_errors
   }
   print("hit_parade['summary']",hit_parade['summary'])
   return hit_parade['summary']
