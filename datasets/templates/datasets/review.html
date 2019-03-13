@@ -9,6 +9,7 @@
 {% endblock %}
 {% block content %}
 {% load static %}
+{% load dataset_extras %}
 <div class="container">
   <!-- incoming: ds, hit_list -->
   <h4 class="mb-3 mt-3">
@@ -104,7 +105,6 @@
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
-                  <!--{ form.json.value }}-->
                 <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
                   <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
                 </p>
@@ -130,7 +130,7 @@
                   {% if form.json.value|get:"descriptions"|length > 0 %} 
                     <p><strong>Descriptions</strong>:<br/>
                     {% for d in form.json.value|get:"descriptions" %}
-                        {{ d }}<br/>{% endfor %}
+                        {{ d|truncatechars:600 }}<br/>{% endfor %}
                   </p>{% endif %}
                   <!-- end fuck all -->
       
@@ -242,15 +242,15 @@
           }
         }).addTo(map);
 
-        if (geom['features'].length > 1) {
-          <!--map.fitBounds(features.getBounds().pad(1))-->
-          map.fitBounds(features.getBounds())
-        } else {
-          latlng = L.latLng(
-            geom['features'][0].coordinates[1],
-            geom['features'][0].coordinates[0])
-          map.setView(latlng, 4)
-        }
+        mappy.fitBounds(features.getBounds())
+        <!--if (geom['features'].length > 1) {-->
+          <!--mappy.fitBounds(features.getBounds())-->
+        <!--} else {-->
+          <!--latlng = L.latLng(-->
+            <!--geom['features'][0].coordinates[1],-->
+            <!--geom['features'][0].coordinates[0])-->
+          <!--map.setView(latlng, 4)-->
+        <!--}-->
 
       } else {
         console.log('no geometries, no feature')

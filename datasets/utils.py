@@ -58,6 +58,7 @@ def myteam(me):
 
 def parsejson(value,key):
     """returns value for given key"""
+    print('parsejson() value',value)
     obj = json.loads(value.replace("'",'"'))
     return obj[key]
 

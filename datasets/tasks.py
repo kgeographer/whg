@@ -369,7 +369,7 @@ def normalize(h,auth):
     rec.descriptions = h['descriptions'] if len(h['descriptions']) > 0 else []
     rec.geoms = [g['location'] for g in h['geoms']] \
                 if len(h['geoms']) > 0 else []
-    rec.minmax = h['minmax'] if len(h['minmax']) > 0 else []
+    rec.minmax = dict(sorted(h['minmax'].items(),reverse=True)) if len(h['minmax']) > 0 else []
     #rec.minmax = {'start: '+str(h['minmax']['start']), 'end: '+str(h['minmax']['end'])] if len(h['minmax']) > 0 else []
     #[parseWhen(t) for t in h['timespans']] \
                 #if len(h['timespans']) > 0 else []
