@@ -12,7 +12,8 @@
 <div class="container">
   <!-- incoming: ds, hit_list -->
   <h4 class="mb-3 mt-3">
-    {{ authority }} <span class="text-danger small">( {{ ds_label }} ) <b>{{ passnum }}</b></span>
+    {{ authority }} <span class="text-danger small">(<a href="{% url 'datasets:dataset-detail' id=ds_id %}"> 
+      {{ ds_label }}</a> ) <b>{{ passnum }}</b></span>
     <span class="half float-right">
       <!--<select id="select_pass" name="pass" class="custom-select-sm mr-2" style="width:auto;">-->
         <!--<option value="pass1">Query pass 1&nbsp;</option>-->
@@ -83,7 +84,6 @@
 <!--['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
         <div id="review_list" class="col-sm-8 pr-0">
             {% for hit in hit_list %}
-              {{ hit }}
             {% endfor %}
             {% for form in formset %}
               <div class="pl-2 pr-2 mb-2 matchbar">
@@ -104,25 +104,21 @@
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
-                  {{ form.json.value }}
                   <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
                     <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
                   </p>
                   <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
                     <p><strong>Variants</strong>:
-                      {{ form.json.value|get:"variants" }}
                       {% for n in form.json.value|get:"variants" %}
-                        {{ n.name|add:"; " }}
+                        {{ n|add:"; " }}
                       {% endfor %}
                     </p>
                     <p class="mt-2"><strong>Types</strong>:
                       {% for t in form.json.value|get:"types" %}
-                        {{ t.placetype|add:"; " }}
+                        {{ t|add:"; " }}
                       {% endfor %}</p>
-                  <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>
-                  <p><strong>Note</strong>: {{ form.json.value|get:"descriptions" }}</p>
-                  <!-- <input type="hidden" name="place_id" value="{{ record.id }}" /> -->
-                  <!-- hidden by modelform, fed back on POST-->
+                    {% if form.json.value|get:"parents"|length > 0 %} 
+                    <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>{% endif %}
                   {{ form.id }} {{ form.authrecord_id }} {{ form.json }}
               </div>
             {% endfor %}

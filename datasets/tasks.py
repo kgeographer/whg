@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from celery.decorators import task
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.gis.geos import Polygon, Point
 
 import sys, os, re, json, codecs, datetime, time, csv
 import random
@@ -345,9 +346,11 @@ def align_tgn(pk, *args, **kwargs):
   return hit_parade['summary']
 
 def parseWhen(when):
+  print('when to parse',when)
   timespan = 'parse me now'
   return timespan
 def ccDecode(ccodes):
+  print('ccodes to parse',ccodes)
   countries = 'parse me now'
   return countries
 
@@ -363,12 +366,14 @@ def normalize(h,auth):
     rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
     rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
                 if 'relations' in h.keys() and len(h['relations']) > 0 else []
-    rec.descriptions = ['[<i>'+d['id']+'</i>] '+d['value'] for d in h['descriptions']] \
+    rec.descriptions = [{"source":d['id'], "text": d['value']} for d in h['descriptions']] \
                 if len(h['descriptions']) > 0 else []
     rec.geoms = [g['location'] for g in h['geoms']] \
                 if len(h['geoms']) > 0 else []
-    rec.timespans = [parseWhen(t) for t in h['timespans']] \
-                if len(h['timespans']) > 0 else []
+    #rec.minmax = {"start":h['minmax']['start'],"end":h['minmax']['end']} if len(h['minmax']) > 0 else {}
+    #rec.minmax = {'start: '+str(h['minmax']['start']), 'end: '+str(h['minmax']['end'])] if len(h['minmax']) > 0 else []
+    #[parseWhen(t) for t in h['timespans']] \
+                #if len(h['timespans']) > 0 else []
     rec.links = [l['type']+': '+l['identifier'] for l in h['links']] \
                 if len(h['links']) > 0 else []
   
@@ -380,7 +385,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
   bounds = kwargs['bounds']
   #bounds = {'type': ['region'], 'id': ['eh']}
   #bounds = {'type': ['userarea'], 'id': ['0']}
-  hit_count = err_count = 0
+  hit_count, err_count = [0,0]
   #search_name = fixName(qobj['prefname'])
 
   # empty result object
@@ -402,18 +407,30 @@ def es_lookup_whg(qobj, *args, **kwargs):
      }
   }}
   
-  # base query: name, type, parent, bounds if specified
+  # base query: name, type, bounds if specified
   qbase = {"query": { 
     "bool": {
       "must": [
-        {"terms": {"names.toponym": qobj['variants']}},
+        #{"terms": {"names.toponym": qobj['variants']}},
+        {"match": {"names.toponym": qobj['prefname']}},
         {"terms": {"types.identifier": qobj['placetypes']}}
-        ],
-      "should":[
-        {"terms": {"parents":bestParent(qobj)}}                
         ],
       "filter": [get_bounds_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
     }
+  }}
+  
+  # suggester experiment: can't do AND for type and geom
+  qsugg = {
+    "suggest": {
+      "suggest" : {
+        "prefix" : qobj['prefname'],
+        "completion" : {
+          "field" : "suggest",
+          "size": 10,
+          "contexts": 
+            {"place_type": qobj['placetypes']}
+        }
+      }
   }}
   
   # last gasp: only name(s) and bounds
@@ -429,30 +446,32 @@ def es_lookup_whg(qobj, *args, **kwargs):
     }
   }}
 
-  # grab copies
-  q1 = qlinks
-  q2 = qbase
-  q3 = qbare
-
   # if geometry is supplied, define spatial intersect filter & apply to q2
   if 'geom' in qobj.keys():
     # call it location
     location = qobj['geom']
-    print('location for')
     filter_intersects_area = { "geo_shape": {
       "geoms.location": {
           "shape": {
-            #"type": "polygon",
+            # always a polygon, from hully(g_list)
             "type": location['type'],
-              "coordinates" : location['coordinates'] #if location['type'] == "Polygon" \
-              #else location['coordinates'][0][0]
+              "coordinates" : location['coordinates']
           },
           "relation": "intersects" # within | intersects | contains
         }
     }} if location['type'] != "Point" else {}
-
-    q2['query']['bool']['filter'].append(filter_intersects_area)
+    repr_point=json.loads(Polygon(qobj['geom']['coordinates'][0]).centroid.geojson)['coordinates']
+    filter_geo_context = {"representative_point": {"lon":repr_point[0] , "lat":repr_point[1], "precision": "100km"}}
+    
+    qbase['query']['bool']['filter'].append(filter_intersects_area)
+    qsugg['suggest']['suggest']['completion']['contexts']={"place_type": qobj['placetypes']}, \
+      {"representative_point": {"lon":repr_point[0] , "lat":repr_point[1], "precision": "100km"}}
   
+  # grab copies
+  q1 = qlinks
+  q2 = qbase
+  #q2 = qsugg
+  q3 = qbare
 
   # /\/\/\/\/\/
   # pass1: name, type, parent, study_area, geom if provided
@@ -474,6 +493,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
     try:
       res2 = es.search(index="whg_flat", body = q2)
       hits2 = res2['hits']['hits']
+      #hits2 = res2['suggest']['suggest'][0]['options']
     except:
       print("q2, error:", q2, sys.exc_info())
     if len(hits2) > 0:
@@ -527,10 +547,10 @@ def align_whg(pk, *args, **kwargs):
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=81655) # Atlas Mountains
     #place=get_object_or_404(Place,id=124653) # !Kung
-    #place=get_object_or_404(Place,id=126191) # Mackenzie
+    #place=get_object_or_404(Place,id=127161) # Tanganyika
     count +=1
     query_obj = {"place_id":place.id, "src_id":place.src_id, "prefname":place.title}
-    links=ccodes=types=variants=parents=geoms=[]
+    links=[]; ccodes=[]; types=[]; variants=[]; parents=[]; geoms=[]; 
 
     ## links
     for l in place.links.all():
@@ -562,12 +582,14 @@ def align_whg(pk, *args, **kwargs):
     if len(place.geoms.all()) > 0:
       # any geoms at all...
       g_list =[g.json for g in place.geoms.all()]
-      if len(g_list) == 1 and g_list[0]['type'] == 'MultiPolygon':
-        # single multipolygon -> use as is
-        query_obj['geom']=g_list[0]
-      else:
-        # 1 or more points or multilinestrings -> make polygon hull
-        query_obj['geom'] = hully(g_list)
+      # make everything a simple polygon hull for spatial filter purposes
+      query_obj['geom'] = hully(g_list)
+      #if len(g_list) == 1 and g_list[0]['type'] == 'MultiPolygon':
+        ## single multipolygon -> use as is...eh not so fast
+        #query_obj['geom']=g_list[0]
+      #else:
+        ## 1 or more points or multilinestrings -> make polygon hull
+        #query_obj['geom'] = hully(g_list)
 
     #print('query_obj:', query_obj)
 
