@@ -366,11 +366,10 @@ def normalize(h,auth):
     rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
     rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
                 if 'relations' in h.keys() and len(h['relations']) > 0 else []
-    rec.descriptions = [{"source":d['id'], "text": d['value']} for d in h['descriptions']] \
-                if len(h['descriptions']) > 0 else []
+    rec.descriptions = h['descriptions'] if len(h['descriptions']) > 0 else []
     rec.geoms = [g['location'] for g in h['geoms']] \
                 if len(h['geoms']) > 0 else []
-    #rec.minmax = {"start":h['minmax']['start'],"end":h['minmax']['end']} if len(h['minmax']) > 0 else {}
+    rec.minmax = h['minmax'] if len(h['minmax']) > 0 else []
     #rec.minmax = {'start: '+str(h['minmax']['start']), 'end: '+str(h['minmax']['end'])] if len(h['minmax']) > 0 else []
     #[parseWhen(t) for t in h['timespans']] \
                 #if len(h['timespans']) > 0 else []

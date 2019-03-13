@@ -104,22 +104,37 @@
               </div>
               {{ form.non_field_errors }}
               <div id="tgn_match" class="bg-light pl-2">
-                  <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
-                    <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
+                  <!--{ form.json.value }}-->
+                <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
+                  <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
+                </p>
+                <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
+                  <p><strong>Variants</strong>:
+                    {% for n in form.json.value|get:"variants" %}
+                      {{ n|add:"; " }}
+                    {% endfor %}
                   </p>
-                  <p><strong>ID</strong>: {{ form.authrecord_id.value }}</p>
-                    <p><strong>Variants</strong>:
-                      {% for n in form.json.value|get:"variants" %}
-                        {{ n|add:"; " }}
-                      {% endfor %}
-                    </p>
-                    <p class="mt-2"><strong>Types</strong>:
-                      {% for t in form.json.value|get:"types" %}
-                        {{ t|add:"; " }}
-                      {% endfor %}</p>
-                    {% if form.json.value|get:"parents"|length > 0 %} 
-                    <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>{% endif %}
-                  {{ form.id }} {{ form.authrecord_id }} {{ form.json }}
+                  <p class="mt-2"><strong>Types</strong>:
+                    {% for t in form.json.value|get:"types" %}
+                      {{ t|add:"; " }}
+                    {% endfor %}</p>
+                  {% if form.json.value|get:"parents"|length > 0 %} 
+                  <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>{% endif %}
+                  
+                  <!-- fuck all -->
+                  {% if form.json.value|get:"minmax"|length > 0 %} 
+                    <p><strong>Temporal attestations min/max</strong>: 
+                    {{ form.json.value|get:"minmax" }}</p>
+                  {% endif %}
+                    
+                  {% if form.json.value|get:"descriptions"|length > 0 %} 
+                    <p><strong>Descriptions</strong>:<br/>
+                    {% for d in form.json.value|get:"descriptions" %}
+                        {{ d }}<br/>{% endfor %}
+                  </p>{% endif %}
+                  <!-- end fuck all -->
+      
+                {{ form.id }} {{ form.authrecord_id }} {{ form.json }}
               </div>
             {% endfor %}
           </div>
