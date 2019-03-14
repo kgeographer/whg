@@ -5,9 +5,9 @@ from django.db import models
 from .models import Dataset, Hit
 
 MATCHTYPES = [
-    ('related','related'),
-    ('close_match','closeMatch'),
     ('exact_match','exactMatch'),
+    ('close_match','closeMatch'),
+    ('related','related'),
     ('none','no match'),]
 
 class HitModelForm(forms.ModelForm):
