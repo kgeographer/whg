@@ -97,7 +97,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     if len(hitplaces) > 0:
         record_list = Place.objects.order_by('title').filter(pk__in=hitplaces)
     else:
-        context = {"nohits":True}
+        context = {"nohits":True,'ds_id':pk,'task_id': tid, 'passnum': passnum}
         return render(request, 'datasets/review.html', context=context)
         # no unreviewed hits
         

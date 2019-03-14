@@ -24,6 +24,9 @@
     <span class="half float-right">
       task id: {{ task_id }}
     </span></h4>
+  {% if nohits %}
+  <div><p>No unreviewed <span id="passnum_dynamic">boo</span> hits for this reconciliation task!</p></div>
+  {% else %}
   <div class="pagination d-flex justify-content-center">
     <span class="step-links">
         {% if records.has_previous %}
@@ -85,10 +88,8 @@
         </div>
 <!--['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
         <div id="review_list" class="col-sm-8 pr-0">
-            {% for hit in hit_list %}
-            {% endfor %}
             {% for form in formset %}
-            <!--{ form.json.value }}-->
+            {{ form.json.value }}
               <div class="pl-2 pr-2 mb-2 matchbar">
                 <div class="custom-control custom-radio match_radio">
                   <span class="ml-2">
@@ -110,18 +111,29 @@
                 <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
                   <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
                 </p>
-                <p><strong>WHG ID</strong>: {{ form.authrecord_id.value }};  
+                {% if authority == 'whg' %}
+                <p><strong>WHG ID</strong>: {{ authority }}{{ form.authrecord_id.value }};  
                   <strong>Source dataset/ID</strong>: {{ form.json.value|get:"dataset" }}/{{ form.json.value|get:"src_id" }}
                 </p>
+                {% else %}
+                <p><strong>{{ authority|upper }} ID</strong>: {{ form.authrecord_id.value }}
+                </p>                
+                {% endif %}
                 <p><strong>Variants</strong>:
                   {% for n in form.json.value|get:"variants" %}
                     {{ n|add:"; " }}
                   {% endfor %}
                 </p>
+                
                 <p class="mt-2"><strong>Types</strong>:
+                {% if authority == 'whg' %}
                   {% for t in form.json.value|get:"types" %}
                     {{ t|add:"; " }}
                   {% endfor %}</p>
+                {% else %}
+                  {{ form.json.value|get:"types"}}
+                {% endif %}
+                
                 {% if form.json.value|get:"parents"|length > 0 %} 
                 <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>{% endif %}
                 
@@ -146,6 +158,7 @@
     </div> <!-- container flex -->
     </form>
   {% endfor %} <!-- record in records -->
+  {% endif %}
 </div> <!-- .container -->
 <script type="text/javascript">
     $(function(){
@@ -153,6 +166,8 @@
       $( "#select_pass" ).val("{{ passnum }}")
       // defaults to string 'None' - no idea why
       $('.textarea').html('')
+      z=window.location.href
+      $('#passnum_dynamic').html('<b>'+z.slice(-5)+'</b>')
     })
     // expose leaflet map for events, call it 'mappy'
     window.addEventListener('map:init', function (e) {
