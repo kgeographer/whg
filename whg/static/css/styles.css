@@ -104,6 +104,15 @@ input[type="text"] {
 #map_app.leaflet-container { height: 550px;}
 
 
+/**
+  review
+**/
+#select_pass {
+  margin-left: 40px;
+  font-weight: bold;
+  color: firebrick;
+}
+
 /*  ?? */
 @media (min-width: 768px) {
     #sidebar { position: fixed;}

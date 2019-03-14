@@ -77,7 +77,7 @@ def augmenter(placeid, auth, tid, hitjson):
 
 # * 
 # present reconciliation hits for review, execute augmenter() for valid ones
-def review(request, pk, tid): # dataset pk, celery recon task_id
+def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     print('review() request:', request)
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
@@ -85,15 +85,22 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     # tgn: 936ef358-5735-49a6-b346-48bbac84f673
     # TODO: also filter by reviewed, per authority
 
-    # filter place records for those with unreviewed hits on this task
-    # TODO: make this a single sql query
-    cnt_pass1 = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass='pass1').count()
-    cnt_pass2 = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass='pass2').count()
-    cnt_pass3 = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass='pass3').count()
-    passnum = 'pass1' if cnt_pass1>0 else 'pass2' if cnt_pass2>0 else 'pass3'
-    hitplaces = Hit.objects.values('place_id').filter(task_id=tid,reviewed=False,query_pass=passnum)
+    # filter place records by passnum for those with unreviewed hits on this task
+    cnt_pass = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass=passnum).count()
+    pass_int = int(passnum[4])
+    passnum = passnum if cnt_pass > 0 else 'pass'+str(pass_int+1)
+    hitplaces = Hit.objects.values('place_id').filter(
+        task_id=tid,
+        reviewed=False,
+        query_pass=passnum)
     
-    record_list = Place.objects.order_by('title').filter(pk__in=hitplaces)
+    if len(hitplaces) > 0:
+        record_list = Place.objects.order_by('title').filter(pk__in=hitplaces)
+    else:
+        context = {"nohits":True}
+        return render(request, 'datasets/review.html', context=context)
+        # no unreviewed hits
+        
     # record_list = Place.objects.order_by('title').filter(dataset=ds)
     paginator = Paginator(record_list, 1)
     page = 1 if not request.GET.get('page') else request.GET.get('page')
@@ -109,7 +116,7 @@ def review(request, pk, tid): # dataset pk, celery recon task_id
     #print('hit package',hit_list[0].json)
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
-        'hit_list':raw_hits, 'authority': task.task_name,
+        'hit_list':raw_hits, 'authority': task.task_name[6:],
         'records': records, 'passnum': passnum,
         'page': page if request.method == 'GET' else str(int(page)-1)
     }

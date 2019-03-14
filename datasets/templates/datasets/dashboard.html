@@ -26,7 +26,6 @@
             <th># rows</th>
             <th>status</th>
             <th>owner</th>
-            <th></th>
           </thead>
           <tbody>
             {% for d in dataset_list %}
@@ -37,18 +36,19 @@
                   class="">{% fontawesome_icon 'database' color='#336699' %}</a>
                   {% elif d.status in viewable %}
                   <a href="{% url 'datasets:drf_table' label=d.label f='all' %}" title="View/edit table" rel="tooltip"
-                  class="float-right mr-2">{% fontawesome_icon 'table' color='#336699' %}</a>
+                  class="">{% fontawesome_icon 'table' color='#336699' %}</a>&nbsp;
+                  <a href="{% url 'datasets:dataset-detail' d.id %}" title="Dataset details" rel="tooltip"
+                  class="">{% fontawesome_icon 'cog' color='#336699' %}</a>
                   {% endif %}
                 </td>
                 <td>{{ d.id }}</td>
-                <td><a href="{% url 'datasets:dataset-detail' d.id %}">{{ d.name }}</a></td>
+                <td>{{ d.name }}</td>
                 <td>{{ d.label }}</td>
                 <td class="small">{{ d.upload_date|date:"d-M-Y, H:i (e)" }}</td>
                 <td>{{ d.format }}</td>
                 <td><span class="float-right mr-2">{{ d.numrows }}</span></td>
                 <td>{{ d.status }}</td>
                 <td>{{ d.owner }}</td>
-                <td>{% if d.spine %}{% fontawesome_icon 'superpowers' %}{% endif %}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -83,42 +83,11 @@
           </table>
         </div>
       </div>
-      <div id="review_list" class="col-sm-6 mt-3">
-        <h4 class="mt-3">Reconciliation tasks</h4>
-        <div class="list-box">
-            <table class="table table-striped">
-              <thead class="small">
-                  <th></th>
-                  <th>id</th>
-                  <th>dataset</th>
-                  <th>authority</th>
-                  <th>date</th>
-              </thead>
-              <tbody>
-                {% for r in review_list %}
-                  <tr class="place-row">
-                    <td>
-                      <!--<a href="{# url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id passnum='pass1' #}"-->
-                      <a href="{% url 'datasets:review' pk=r.task_args|trimbrackets tid=r.task_id %}"
-                        title="Review hits" rel="tooltip">
-                        {% fontawesome_icon 'search' color='#336699' %}
-                      </a>
-                    </td>
-                    <td>{{ r.id }}</td>
-                    <td>{{ r.task_kwargs|parsejson:"dslabel" }}</td>
-                    <td><b>{{ r.task_name|cut:"align_" }}</b></td>
-                    <td class="small">{{ r.date_done|date:"d-M-Y, H:i (e)" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-        </div>
-      </div>
-      <!-- <div id="collection_list" class="col-sm-4 mt-3">
+      <div id="collection_list" class="col-sm-6 mt-3">
         <h4 class="mt-3">Collections
           <a href="{# url 'areas:area-create' #}" class="ml-5">
-            {# fontawesome_icon 'plus-square' color='#336699' #}</a></h4>
-        <div class="list-box"><p>User collections of place and trace records (eventually)</p></div>
+            {% fontawesome_icon 'plus-square' color='#336699' %}</a></h4>
+        <div class="list-box"><p>User collections of place and trace records (<i>future</i>)</p></div>
       </div>
     </div
     </div>

@@ -12,15 +12,16 @@
 {% load dataset_extras %}
 <div class="container">
   <!-- incoming: ds, hit_list -->
-  <h4 class="mb-3 mt-3">
-    {{ authority }} <span class="text-danger small">(<a href="{% url 'datasets:dataset-detail' id=ds_id %}"> 
-      {{ ds_label }}</a> ) <b>{{ passnum }}</b></span>
-    <span class="half float-right">
+  <h4 class="mb-3 mt-3">Reconciliation Review 
+    <span class="small">( <a href="{% url 'datasets:dataset-detail' id=ds_id %}"> 
+      {{ ds_label }}</a> -> {{ authority }} ) 
       <select id="select_pass" name="pass" class="custom-select-sm mr-2" style="width:auto;">
-        <option value="pass1">Query pass 1&nbsp;</option>
-        <option value="pass2">Query pass 2&nbsp;</option>
-        <option value="pass3">Query pass 3&nbsp;</option>
+        <option value="pass1">PASS 1&nbsp;</option>
+        <option value="pass2">PASS 2&nbsp;</option>
+        <option value="pass3">PASS 3&nbsp;</option>
       </select>
+    </span>
+    <span class="half float-right">
       task id: {{ task_id }}
     </span></h4>
   <div class="pagination d-flex justify-content-center">
@@ -125,7 +126,7 @@
                 <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>{% endif %}
                 
                 {% if form.json.value|get:"minmax"|length > 0 %} 
-                  <p><strong>Temporal attestations min/max</strong>: 
+                  <p><strong>Temporal attestations extent</strong>: 
                   {{ form.json.value|get:"minmax" }}</p>
                 {% endif %}
                   
@@ -160,9 +161,8 @@
 
     $( "#select_pass" ).change(function() {
       z=window.location.href
-      base=z.substring(0,[z.length -5])
-      window.location.href = base + $(this).val()
-      <!--$('#select_pass')-->
+      baseurl=z.substring(0,[z.length -5])
+      window.location.href = baseurl + $(this).val()
     });
 
     $('.noteicon').on('click', function(){
