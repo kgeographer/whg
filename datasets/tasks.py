@@ -114,6 +114,7 @@ def get_bounds_filter(bounds,idx):
 def es_lookup(qobj, *args, **kwargs):
   # print('qobj',qobj)
   bounds = kwargs['bounds']
+  #bounds = {'type': ['userarea'], 'id': ['0']}
   print('bounds:',bounds)
   hit_count = 0
   #search_name = fixName(qobj['prefname'])
@@ -125,7 +126,7 @@ def es_lookup(qobj, *args, **kwargs):
     }  
 
   # array (includes title)
-  variants = qobj['variants']
+  variants = list(set(qobj['variants']))
 
   # bestParent() coalesces mod. country and region; countries.json
   parent = bestParent(qobj)
@@ -134,7 +135,7 @@ def es_lookup(qobj, *args, **kwargs):
   # minmax = row['minmax']
 
   # getty aat numerical identifiers
-  placetypes = qobj['placetypes']
+  placetypes = list(set(qobj['placetypes']))
 
   # base query: name, type, parent, bounds if specified
   qbase = {"query": { 
@@ -201,7 +202,7 @@ def es_lookup(qobj, *args, **kwargs):
 
   # pass1: name, type, parent, study_area, geom if provided
   print('q1',q1)
-  res1 = es.search(index="tgn201902", body = q1)
+  res1 = es.search(index="tgn201903", body = q1)
   hits1 = res1['hits']['hits']
   # 1 or more hits
   if len(hits1) > 0:
@@ -213,7 +214,7 @@ def es_lookup(qobj, *args, **kwargs):
   # pass2: drop geom (revert to qbase{})
     q2 = qbase
     print('q2 (base)',q2)
-    res2 = es.search(index="tgn201902", body = q2)
+    res2 = es.search(index="tgn201903", body = q2)
     hits2 = res2['hits']['hits']
     if len(hits2) > 0:
       for hit in hits2:
@@ -224,7 +225,7 @@ def es_lookup(qobj, *args, **kwargs):
       # drop type, parent using qbare{}
       q3 = qbare
       print('q3 (bare)',q3)
-      res3 = es.search(index="tgn201902", body = q3)
+      res3 = es.search(index="tgn201903", body = q3)
       hits3 = res3['hits']['hits']
       if len(hits3) > 0:
         for hit in hits3:
@@ -242,6 +243,7 @@ def es_lookup(qobj, *args, **kwargs):
 def align_tgn(pk, *args, **kwargs):
   ds = get_object_or_404(Dataset, id=pk)
   bounds = kwargs['bounds']
+  #bounds = {'type': ['userarea'], 'id': ['0']}  
   print('bounds:',bounds,type(bounds))
   # TODO: system for region creation
   hit_parade = {"summary": {}, "hits": []}
@@ -254,6 +256,7 @@ def align_tgn(pk, *args, **kwargs):
   # build query object, send, save hits
   # for place in ds.places.all()[:50]:
   for place in ds.places.all():
+    #place = get_object_or_404(Place, id=131615) # ne_rivers:Alabama
     count +=1
     query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
     variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
@@ -266,7 +269,7 @@ def align_tgn(pk, *args, **kwargs):
     # types (Getty AAT identifiers)
     for t in place.types.all():
       #print('type',t)
-      types.append(int(t.json['identifier'][4:]))
+      types.append(t.json['identifier'])
     query_obj['placetypes'] = types
 
     # names
@@ -282,15 +285,20 @@ def align_tgn(pk, *args, **kwargs):
 
     # geoms
     # ignore non-point geometry
+    #if len(place.geoms.all()) > 0:
+      #geom = place.geoms.all()[0].json
+      #if geom['type'] in ('Point','MultiPolygon'):
+        #query_obj['geom'] = place.geoms.first().json
+      #elif geom['type'] == 'MultiLineString':
+        #query_obj['geom'] = hully(geom)
+
+    ## align_whg geoms
     if len(place.geoms.all()) > 0:
-      geom = place.geoms.all()[0].json
-      if geom['type'] in ('Point','MultiPolygon'):
-        query_obj['geom'] = place.geoms.first().json
-      elif geom['type'] == 'MultiLineString':
-        query_obj['geom'] = hully(geom)
-
-    #print('query_obj:', query_obj)
-
+      # any geoms at all...
+      g_list =[g.json for g in place.geoms.all()]
+      # make everything a simple polygon hull for spatial filter purposes
+      query_obj['geom'] = hully(g_list)
+          
     # run ES query on query_obj, with bounds
     # regions.regions
     result_obj = es_lookup(query_obj, bounds=bounds)
@@ -300,7 +308,7 @@ def align_tgn(pk, *args, **kwargs):
       nohits.append(result_obj['missed'])
     else:
       count_hit +=1
-      total_hits += result_obj['hit_count']
+      total_hits += len(result_obj['hits'])
       # TODO: differentiate hits from passes
       print("hit['_source']: ",result_obj['hits'][0]['_source'])      
       for hit in result_obj['hits']:
@@ -314,19 +322,18 @@ def align_tgn(pk, *args, **kwargs):
         # print('creating hit:',hit)
         loc = hit['_source']['location'] if 'location' in hit['_source'].keys() else None
         new = Hit(
-                  authority = 'tgn',
-                    authrecord_id = hit['_id'],
-                    dataset = ds,
-                    place_id = get_object_or_404(Place, id=query_obj['place_id']),
-                    task_id = align_tgn.request.id,
-                    # TODO: articulate hit here?
-                    query_pass = hit['pass'],
-                    json = hit['_source'],
-                    src_id = query_obj['src_id'],
-                    score = hit['_score'],
-                    geom = loc,
-                    reviewed = False,
-                )
+          authority = 'tgn',
+          authrecord_id = hit['_id'],
+          dataset = ds,
+          place_id = get_object_or_404(Place, id=query_obj['place_id']),
+          task_id = align_tgn.request.id,
+          query_pass = hit['pass'],
+          json = normalize(hit['_source'],'tgn'),
+          src_id = query_obj['src_id'],
+          score = hit['_score'],
+          geom = loc,
+          reviewed = False,
+        )
         new.save()
   end = datetime.datetime.now()
   # ds.status = 'recon_tgn'
@@ -377,6 +384,8 @@ def normalize(h,auth):
                 if len(h['links']) > 0 else []
   
     return rec.toJSON()
+  elif auth == 'tgn':
+    h=hitRecord
   
 #
 def es_lookup_whg(qobj, *args, **kwargs):

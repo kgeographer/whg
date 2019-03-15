@@ -89,71 +89,8 @@
 <!--['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
         <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
-            {{ form.json.value }}
-              <div class="pl-2 pr-2 mb-2 matchbar">
-                <div class="custom-control custom-radio match_radio">
-                  <span class="ml-2">
-                  {% if form.json.value|get:"location" != Null %}
-                    {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}
-                    <!--{ form.flag_geom }} flag-->
-                    <a class="geolink" id="{{ form.authrecord_id.value }}" 
-                      href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">
-                      {% fontawesome_icon 'globe' color='#000099' %}</a>
-                  {% endif %}
-                  </span>
-                  <span class="inline">{{ form.match }}</span>
-                  <!--<span class="noteicon">{# fontawesome_icon 'comment' color='#666666' %}</span>-->
-                </div>
-                <!--<div class="notefield">{ form.review_note}}</div>-->
-              </div>
-              {{ form.non_field_errors }}
-              <div id="tgn_match" class="bg-light pl-2">
-                <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
-                  <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
-                </p>
-                
-                {% if authority == 'whg' %}
-                <p><strong>WHG ID</strong>: {{ authority }}{{ form.authrecord_id.value }};  
-                  <strong>Source dataset/ID</strong>: {{ form.json.value|get:"dataset" }}/{{ form.json.value|get:"src_id" }}
-                </p>
-                {% else %}
-                <p><strong>{{ authority|upper }} ID</strong>: {{ form.authrecord_id.value }}
-                </p>                
-                {% endif %}
-                
-                <p><strong>Variants</strong>:
-                  {% for n in form.json.value|get:"variants" %}
-                    {{ n|add:"; " }}
-                  {% endfor %}
-                </p>
-                
-                <p class="mt-2"><strong>Types</strong>:
-                {% if authority == 'whg' %}
-                  {% for t in form.json.value|get:"types" %}
-                    {{ t|add:"; " }}
-                  {% endfor %}</p>
-                {% else %}
-                  {{ form.json.value|get:"types"}}
-                {% endif %}
-                
-                {% if form.json.value|get:"parents"|length > 0 %} 
-                <p><strong>Parents</strong>: {{ form.json.value|get:"parents" }}</p>{% endif %}
-                
-                {% if form.json.value|get:"minmax"|length > 0 %} 
-                  <p><strong>Temporal attestations extent</strong>: 
-                  {{ form.json.value|get:"minmax" }}</p>
-                {% endif %}
-                  
-                {% if form.json.value|get:"descriptions"|length > 0 %} 
-                  <p><strong>Descriptions</strong>:
-                  <div class="attest-element abbrev small">
-                  {% for d in form.json.value|get:"descriptions" %}
-                      {{ d }}<br/>{% endfor %}
-                  </div>
-                </p>{% endif %}
-      
-                {{ form.id }} {{ form.authrecord_id }} {{ form.json }}
-              </div>
+              <!--{ form.json.value }}-->
+              {{ form }}
             {% endfor %}
           </div>
       </div> <!-- .row -->

@@ -131,7 +131,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     method = request.method
     if method == 'GET':
         print('a GET')
-        return render(request, 'datasets/review.html', context=context)
+        return render(request, 'datasets/review_bare.html', context=context)
     else:
         print('a ',method)
         # print('formset data:',formset.data)
