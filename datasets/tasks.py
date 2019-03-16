@@ -364,28 +364,57 @@ def ccDecode(ccodes):
 # create normalized json field for hits from any authority
 def normalize(h,auth):
   if auth == 'whg':
-    rec = HitRecord(h['whg_id'], h['place_id'], h['dataset'], h['src_id'], h['title'])
+    try:
+      rec = HitRecord(h['whg_id'], h['place_id'], h['dataset'], h['src_id'], h['title'])
+    
+      # add elements if non-empty in index record
+      rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
+      rec.types = [t['label']+' ('+t['src_label']  +')' if 'src_label' in t.keys() else '' \
+                  for t in h['types']] if len(h['types']) > 0 else []
+      rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
+      rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
+                  if 'relations' in h.keys() and len(h['relations']) > 0 else []
+      rec.descriptions = h['descriptions'] if len(h['descriptions']) > 0 else []
+      rec.geoms = [{
+        "type":h['location']['type'], 
+        "coordinates":h['location']['coordinates'],
+        "id":h['place_id'], \
+        "ds":"whg"}] \
+        if h['location'] != None else []
+      #rec.geoms = [g['location'] for g in h['geoms']] \
+                  #if len(h['geoms']) > 0 else []
+      rec.minmax = dict(sorted(h['minmax'].items(),reverse=True)) if len(h['minmax']) > 0 else []
+      #rec.whens = [parseWhen(t) for t in h['timespans']] \
+                  #if len(h['timespans']) > 0 else []
+      rec.links = [l['type']+': '+l['identifier'] for l in h['links']] \
+                  if len(h['links']) > 0 else []
+    except:
+      print("normalize(whg) error:", h['tgnid'], sys.exc_info())    
   
-    # add elements if non-empty in index record
-    rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
-    rec.types = [t['label']+' ('+t['src_label']  +')' if 'src_label' in t.keys() else '' \
-                for t in h['types']] if len(h['types']) > 0 else []
-    rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
-    rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
-                if 'relations' in h.keys() and len(h['relations']) > 0 else []
-    rec.descriptions = h['descriptions'] if len(h['descriptions']) > 0 else []
-    rec.geoms = [g['location'] for g in h['geoms']] \
-                if len(h['geoms']) > 0 else []
-    rec.minmax = dict(sorted(h['minmax'].items(),reverse=True)) if len(h['minmax']) > 0 else []
-    #rec.minmax = {'start: '+str(h['minmax']['start']), 'end: '+str(h['minmax']['end'])] if len(h['minmax']) > 0 else []
-    #[parseWhen(t) for t in h['timespans']] \
-                #if len(h['timespans']) > 0 else []
-    rec.links = [l['type']+': '+l['identifier'] for l in h['links']] \
-                if len(h['links']) > 0 else []
-  
-    return rec.toJSON()
   elif auth == 'tgn':
-    h=hitRecord
+    # h=hit['_source']; ['tgnid', 'title', 'names', 'suggest', 'types', 'parents', 'note', 'location']
+    # whg_id, place_id, dataset, src_id, title
+    # h['location'] = {'type': 'point', 'coordinates': [105.041, 26.398]}
+    try:
+      rec = HitRecord(-1, -1, 'tgn', h['tgnid'], h['title'])
+      rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
+      rec.types = [t['placetype']+' ('+t['id']  +')' for t in h['types'] ] if len(h['types']) > 0 else []
+      rec.ccodes = []
+      rec.parents = ' > '.join(h['parents']) if len(h['parents']) > 0 else []
+      rec.descriptions = [h['note']] if h['note'] != None else []
+      rec.geoms = [{
+        "type":h['location']['type'], 
+        "coordinates":h['location']['coordinates'],
+        "id":h['tgnid'], \
+        "ds":"tgn"}] \
+        if h['location'] != None else []
+      #rec.geoms = [h['location']] if h['location'] != None else []
+      rec.minmax = []
+      #rec.whens =[]
+      rec.links = []
+    except:
+      print("normalize(tgn) error:", h['tgnid'], sys.exc_info())
+  return rec.toJSON()
   
 #
 def es_lookup_whg(qobj, *args, **kwargs):

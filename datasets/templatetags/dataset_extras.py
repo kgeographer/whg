@@ -17,6 +17,11 @@ def parsejson(value,key):
     return obj[key]
 
 @register.filter
+def parsedict(value,key):
+    """returns value for given key"""
+    return value[key]
+
+@register.filter
 def parse(obj,key):
     if '/' in key:
         key=key.split('/')

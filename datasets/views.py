@@ -131,7 +131,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     method = request.method
     if method == 'GET':
         print('a GET')
-        return render(request, 'datasets/review_bare.html', context=context)
+        return render(request, 'datasets/review.html', context=context)
     else:
         print('a ',method)
         # print('formset data:',formset.data)
@@ -205,10 +205,10 @@ def ds_recon(request, pk):
         # TODO: let this vary per authority?
         region = request.POST['region'] # pre-defined UN regions
         userarea = request.POST['userarea'] #
-        # bool options
-        aug_names = request.POST['aug_names'] #
-        aug_notes = request.POST['aug_notes'] #
-        aug_geom = request.POST['aug_geom'] #
+        # bool options ignore for now
+        #aug_names = request.POST['aug_names'] #
+        #aug_notes = request.POST['aug_notes'] #
+        #aug_geom = request.POST['aug_geom'] #
         bounds={
             "type":["region" if region !="0" else "userarea"],
             "id": [region if region !="0" else userarea]
@@ -220,10 +220,10 @@ def ds_recon(request, pk):
             ds=ds.id,
             dslabel=ds.label,
             owner=ds.owner.id,
-            bounds=bounds,
-            aug_names=aug_names,
-            aug_notes=aug_notes,
-            aug_geom=aug_geom
+            bounds=bounds
+            #aug_names=aug_names,
+            #aug_notes=aug_notes,
+            #aug_geom=aug_geom
         )
 
         context['task_id'] = result.id
@@ -232,9 +232,9 @@ def ds_recon(request, pk):
         context['authority'] = request.POST['recon']
         context['region'] = request.POST['region']
         context['userarea'] = request.POST['userarea']
-        context['aug_names'] = request.POST['aug_names']
-        context['aug_notes'] = request.POST['aug_notes']
-        context['aug_geom'] = request.POST['aug_geom']
+        #context['aug_names'] = request.POST['aug_names']
+        #context['aug_notes'] = request.POST['aug_notes']
+        #context['aug_geom'] = request.POST['aug_geom']
         # context['ccodes'] = request.POST['ccodes']
         # context['hits'] = '?? not wired yet'
         context['result'] = result.get()

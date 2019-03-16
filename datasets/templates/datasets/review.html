@@ -64,14 +64,17 @@
             </div>
             {% for g in record.geoms.all %}
               {{ g.json|safe|json_script:record.id }}
+              <!--{ g.json|json_script:record.id }}-->
             {% endfor %}
             <p><strong>Source id</strong>: {{ record.src_id }}</p>
-            <p><strong>WHG id</strong>: {{ record.id }} </p>
+            <p><strong>WHG record id</strong>: {{ record.id }} </p>
             <p><strong>Name variants</strong>:
               {% for name in record.names.all %}
                {{ name.json.toponym }};
               {% endfor %}</p>
+            {% if record.ccodes %}
             <p><strong>Modern countries</strong>: {{ record.ccodes }} </p>
+            {% endif %}
             <p><strong>Relations</strong>: 
               {% for rel in record.related.all %}
                 {{ rel.json.label }} ({{ rel.json.relation_type }}); 
@@ -89,7 +92,6 @@
 <!--['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
         <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
-            {{ form.json.value }}
               <div class="pl-2 pr-2 mb-2 matchbar">
                 <div class="custom-control custom-radio match_radio">
                   <span class="ml-2">
@@ -107,15 +109,15 @@
                 <!--<div class="notefield">{ form.review_note}}</div>-->
               </div>
               {{ form.non_field_errors }}
-              <div id="tgn_match" class="bg-light pl-2">
-                <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}
-                  <!--<span class="float-right">{ form.query_pass.value }} ({ form.score.value }})</span>-->
-                </p>
+              <div class="auth-match" class="bg-light pl-2">
+              {% for g in form.json.value|get:"geoms" %}
+                {{ g|safe|json_script:g.id}}
+              {% endfor %}
+                <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}</p>
                 
                 {% if authority == 'whg' %}
-                <p><strong>WHG ID</strong>: {{ authority }}{{ form.authrecord_id.value }};  
-                  <strong>Source dataset/ID</strong>: {{ form.json.value|get:"dataset" }}/{{ form.json.value|get:"src_id" }}
-                </p>
+                <p><strong>WHG id</strong>: {{ authority }}{{ form.authrecord_id.value }}</p> 
+                <p><strong>Source (id)</strong>: {{ form.json.value|get:"dataset" }} ({{ form.json.value|get:"src_id" }})</p>
                 {% else %}
                 <p><strong>{{ authority|upper }} ID</strong>: {{ form.authrecord_id.value }}
                 </p>                
@@ -212,26 +214,31 @@
       mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
     }
 
-    function cleanJson(text) {
+    cleanJson = function(text) {
       z=text.replace(/'/g,'\\"')
       y=z.replace(/point/,'Point')
       return JSON.parse(JSON.parse(y))
     }
 
     // initialize, render map
+    // authority geom "geoms": [{"type": "point", "coordinates": [-72.8667, -13.6167]}]
     function map_init (map, options) {
       // console.log('in map_init()')
       window.geom = {"type":"FeatureCollecton","features":[]}
 
       window.gelems = $('script').filter(function() {
-        return this.id.match(/[0-9]/) && this.text != '"null"';
+        <!--return this.id.match(/[0-9]/) && this.text != '"null"';-->
+        return this.id !='' && this.text != '"null"';
       });
 
       // TODO: location returned in TGN hit needs cleaning
+      // dplace gelem[0].text "\"{'type': 'Point', 'geowkt': 'POINT(-70 46)', 'citation': {'id': 'dplace:EA', 'label': 'Ethnographic Atlas'}, 'coordinates': [-70, 46]}\""
+      // tgn(alcedo) gelem[0].text "{\"type\": \"point\", \"coordinates\": [-72.8667, -13.6167]}"
       for (i=0;i<gelems.length;i++){
         let t_geom = cleanJson(gelems[i].text)
         // let t_geom = JSON.parse(JSON.parse(gelems[i].text))
-        t_geom['properties'] = {"id": gelems[i].id, "dataset": "tgn"}
+        var ds = "{{ ds_label }}"
+        t_geom['properties'] = {"id": gelems[i].id, "ds": t_geom.ds!=null?t_geom.ds:ds }
         geom['features'].push(t_geom)
       }
 
@@ -249,13 +256,13 @@
         idToFeature = {} // for feature lookup
         features = L.geoJSON(geom, {
           pointToLayer: function (feature, latlng) {
-            matchid = feature.properties.dataset+':'+feature.properties.id
+            matchid = feature.properties.ds+':'+feature.properties.id
             marker = L.circleMarker(latlng,
               {
                 radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
-                color: "#000", fillColor: fill(feature.properties.dataset)
+                color: "#000", fillColor: fill(feature.properties.ds)
               }
-            ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+            ).bindPopup(feature.properties.ds+':'+feature.properties.id);
 
             idToFeature[matchid] = marker
             return marker
