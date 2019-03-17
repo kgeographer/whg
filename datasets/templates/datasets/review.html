@@ -64,7 +64,6 @@
             </div>
             {% for g in record.geoms.all %}
               {{ g.json|safe|json_script:record.id }}
-              <!--{ g.json|json_script:record.id }}-->
             {% endfor %}
             <p><strong>Source id</strong>: {{ record.src_id }}</p>
             <p><strong>WHG record id</strong>: {{ record.id }} </p>
@@ -75,28 +74,31 @@
             {% if record.ccodes %}
             <p><strong>Modern countries</strong>: {{ record.ccodes }} </p>
             {% endif %}
+            {% if record.relations %}
             <p><strong>Relations</strong>: 
               {% for rel in record.related.all %}
                 {{ rel.json.label }} ({{ rel.json.relation_type }}); 
               {% endfor %}</p>
+            {% endif %}
             <p><strong>Place type(s)</strong>:
               {% for type in record.types.all %}
                 {{ type.json.label }} ({{ type.json.src_label }}); 
               {% endfor %}</p>
-            <!-- TODO: full place record -->
           </div>
           <div id="map">
             {% leaflet_map "map" callback="map_init" %}
           </div>
         </div>
-<!--['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
+<!--available: ['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 
+'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
         <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
+            <!--{ form.json.value }}-->
               <div class="pl-2 pr-2 mb-2 matchbar">
                 <div class="custom-control custom-radio match_radio">
                   <span class="ml-2">
-                  {% if form.json.value|get:"location" != Null %}
-                    {{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}
+                  {% if form.json.value|get:"geoms" != Null %}
+                    <!--{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}-->
                     <!--{ form.flag_geom }} flag-->
                     <a class="geolink" id="{{ form.authrecord_id.value }}" 
                       href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">
@@ -109,10 +111,11 @@
                 <!--<div class="notefield">{ form.review_note}}</div>-->
               </div>
               {{ form.non_field_errors }}
-              <div class="auth-match" class="bg-light pl-2">
-              {% for g in form.json.value|get:"geoms" %}
-                {{ g|safe|json_script:g.id}}
-              {% endfor %}
+              <div class="auth-match bg-light pl-2">
+                <!-- pull geometries to js -->
+                {% for g in form.json.value|get:"geoms" %}
+                  {{ g|safe|json_script:g.id}}
+                {% endfor %}
                 <p><strong>Title/Preferred</strong>: {{ form.json.value|get:"title" }}</p>
                 
                 {% if authority == 'whg' %}
@@ -147,14 +150,12 @@
                 {% endif %}
                   
                 {% if form.json.value|get:"descriptions"|length > 0 %} 
-                  <p><strong>Descriptions</strong>:
-                  <div class="attest-element abbrev small">
+                  <p class="mb-0"><strong>Descriptions</strong>:</p> 
+                  <div class="attest-element abbrev">
                   {% for d in form.json.value|get:"descriptions" %}
-                      {{ d }}<br/>{% endfor %}
+                      <p>{{ d }}</p>{% endfor %}
                   </div>
-                </p>{% endif %}
-      
-                {{ form.id }} {{ form.authrecord_id }} {{ form.json }}
+                {% endif %}
               </div>
             {% endfor %}
           </div>

@@ -1,7 +1,6 @@
 import codecs, datetime, sys
 import simplejson as json
 from shapely import wkt
-from shapely.geometry import MultiLineString, mapping
 from datasets.static.hashes import aat, parents
 
 class HitRecord(object):
@@ -34,16 +33,17 @@ def hully(g_list):
     from django.contrib.gis.geos import MultiPoint
     from django.contrib.gis.geos import GeometryCollection
     if g_list[0]['type'] == 'Point':
-        # 1 or more points => make buffered hull; width 1 = ~200km @ 20deg lat
-        #hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).buffer(1).geojson)
-        hull=json.loads(MultiPoint([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull.buffer(1).geojson)
+        # 1 or more points >> make hull; if not near 180 deg., add buffer(1) (~200km @ 20deg lat)
+        hull=MultiPoint([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull
+        l = list(set([g_list[0]['coordinates'][0] for c in g_list[0]]))
+        if len([i for i in l if i >= 175]) == 0:
+            hull = hull.buffer(1)
     elif g_list[0]['type'] == 'MultiLineString':
-        hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull.geojson)
+        hull=GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull
     else:
         # now only linestrings and multiple multipolygons -> simple convex_hull (unions are precise but bigger)
-        hull=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull.geojson)
-        #union=json.loads(GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).unary_union.geojson)
-    return hull
+        hull=GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull
+    return json.loads(hull.geojson)
     
 def parse_wkt(g):
     gw = wkt.loads(g)

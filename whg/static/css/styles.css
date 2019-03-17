@@ -112,6 +112,7 @@ input[type="text"] {
   font-weight: bold;
   color: firebrick;
 }
+.auth-match p {font-size: small; margin-bottom: .4rem;}
 
 /*  ?? */
 @media (min-width: 768px) {

@@ -135,6 +135,25 @@ LEAFLET_CONFIG = {
 # mapbox://styles/kgeographer/cjstfpenh6o1e1fldz95w8m6p
 # pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiUmVralBPcyJ9.mJegAI1R6KR21x_CVVTlqw
 
+#LOGGING = {
+    #'version': 1,
+    #'disable_existing_loggers': False,
+    #'handlers': {
+        #'file': {
+            #'level': 'DEBUG',
+            #'class': 'logging.FileHandler',
+            #'filename': 'whg/logs/debug.log',
+        #},
+    #},
+    #'loggers': {
+        #'django': {
+            #'handlers': ['file'],
+            #'level': 'DEBUG',
+            #'propagate': True,
+        #},
+    #},
+#}
+
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 

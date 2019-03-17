@@ -74,15 +74,17 @@
               {{ t.result|get:"count"|safe }} records</p>
           <ul>
             <li><i>Pass 1</i>: {{ t.result|get:"pass1" }} 
+              {% if t.result|get:"pass1" > 0 %}
               <a href="{% url 'datasets:review' pk=object.id tid=t.task_id passnum='pass1' %}">
-               <i>review</i></a></li>
+               <i>review</i></a>{% endif %}</li>
             <li><i>Pass 2</i>: {{ t.result|get:"pass2" }}
+              {% if t.result|get:"pass2" > 0 %}
                 <a href="{% url 'datasets:review' pk=object.id tid=t.task_id passnum='pass2' %}">
-               <i>review</i></a></li>
+               <i>review</i></a>{% endif %}</li>
             <li><i>Pass 3</i>: {{ t.result|get:"pass3" }}
+              {% if t.result|get:"pass3" > 0 %}
                 <a href="{% url 'datasets:review' pk=object.id tid=t.task_id passnum='pass3' %}">
-               <i>review</i></a></li>
-             <!--<a href="{# url 'datasets:review' pk=object.id tid=t.task_id passnum='pass1' #}">-->
+               <i>review</i></a>{% endif %}</li>
           </ul>
           <p class="small">
              <a href="{% url 'datasets:task-delete' tid=t.task_id scope='matches'%}">

@@ -89,6 +89,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     cnt_pass = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass=passnum).count()
     pass_int = int(passnum[4])
     passnum = passnum if cnt_pass > 0 else 'pass'+str(pass_int+1)
+    # [place_id] for places with >0 hits
     hitplaces = Hit.objects.values('place_id').filter(
         task_id=tid,
         reviewed=False,

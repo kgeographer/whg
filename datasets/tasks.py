@@ -4,6 +4,7 @@ from celery.decorators import task
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.gis.geos import Polygon, Point
+import logging
 
 import sys, os, re, json, codecs, datetime, time, csv
 import random
@@ -111,7 +112,7 @@ def get_bounds_filter(bounds,idx):
   return filter
 
 #
-def es_lookup(qobj, *args, **kwargs):
+def es_lookup_tgn(qobj, *args, **kwargs):
   # print('qobj',qobj)
   bounds = kwargs['bounds']
   #bounds = {'type': ['userarea'], 'id': ['0']}
@@ -248,6 +249,7 @@ def align_tgn(pk, *args, **kwargs):
   # TODO: system for region creation
   hit_parade = {"summary": {}, "hits": []}
   nohits = [] # place_id list for 0 hits
+  tgn_es_errors = []
   features = []
   [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3] = [0,0,0,0,0,0,0]
   # print('celery task id:', align_tgn.request.id)
@@ -256,7 +258,7 @@ def align_tgn(pk, *args, **kwargs):
   # build query object, send, save hits
   # for place in ds.places.all()[:50]:
   for place in ds.places.all():
-    #place = get_object_or_404(Place, id=131615) # ne_rivers:Alabama
+    #place = get_object_or_404(Place, id=125681) # dplace:Chukchi
     count +=1
     query_obj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
     variants=[]; geoms=[]; types=[]; ccodes=[]; parents=[]
@@ -283,15 +285,6 @@ def align_tgn(pk, *args, **kwargs):
         parents.append(rel.json['label'])
     query_obj['parents'] = parents
 
-    # geoms
-    # ignore non-point geometry
-    #if len(place.geoms.all()) > 0:
-      #geom = place.geoms.all()[0].json
-      #if geom['type'] in ('Point','MultiPolygon'):
-        #query_obj['geom'] = place.geoms.first().json
-      #elif geom['type'] == 'MultiLineString':
-        #query_obj['geom'] = hully(geom)
-
     ## align_whg geoms
     if len(place.geoms.all()) > 0:
       # any geoms at all...
@@ -301,7 +294,13 @@ def align_tgn(pk, *args, **kwargs):
           
     # run ES query on query_obj, with bounds
     # regions.regions
-    result_obj = es_lookup(query_obj, bounds=bounds)
+    try:
+      result_obj = es_lookup_tgn(query_obj, bounds=bounds)
+    except:
+      #logger.error('es query error:',sys.exc_info())
+      tgn_es_errors.append((sys.exc_info()))
+      pass
+      
 
     if result_obj['hit_count'] == 0:
       count_nohit +=1
@@ -338,7 +337,7 @@ def align_tgn(pk, *args, **kwargs):
   end = datetime.datetime.now()
   # ds.status = 'recon_tgn'
   # TODO: return summary
-  #print('features:',features)
+  print('tgn ES errors:',tgn_es_errors)
   hit_parade['summary'] = {
       'count':count,
         'got_hits':count_hit,
@@ -562,7 +561,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
 @task(name="align_whg")
 def align_whg(pk, *args, **kwargs):
   #print('align_whg kwargs:', str(kwargs))
-
+  fin = codecs.open(tempfn, 'r', 'utf8')
   ds = get_object_or_404(Dataset, id=pk)
 
   bounds = kwargs['bounds']
