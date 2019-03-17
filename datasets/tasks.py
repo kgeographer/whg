@@ -142,11 +142,11 @@ def es_lookup_tgn(qobj, *args, **kwargs):
   qbase = {"query": { 
     "bool": {
       "must": [
-        {"terms": {"names.name":variants}},
-        {"terms": {"types.id":placetypes}}
+        {"terms": {"names.name":variants}}
         ],
       "should":[
-        {"terms": {"parents":parent}}                
+        {"terms": {"parents":parent}},
+        {"terms": {"types.id":placetypes}}
         ],
       "filter": [get_bounds_filter(bounds,'tgn')] if bounds['id'] != ['0'] else []
     }
@@ -169,7 +169,8 @@ def es_lookup_tgn(qobj, *args, **kwargs):
   # grab copy of qbase
   q1 = qbase
 
-  # if geometry is supplied, define spatial filters & apply one to copy of qbase
+  # qobj['geom'] always a hull polygon now 
+  # create 'within polygon' filter and add to q1
   if 'geom' in qobj.keys():
     # call it location
     location = qobj['geom']
@@ -181,30 +182,30 @@ def es_lookup_tgn(qobj, *args, **kwargs):
                 else location['coordinates'][0][0]
             }
         }}
+    q1['query']['bool']['filter'].append(filter_within)
+    
+    #filter_dist_100 = {"geo_distance" : {
+          #"ignore_unmapped": "true",
+            #"distance" : "100km",
+            #"location.coordinates" : qobj['geom']['coordinates']
+        #}}
 
-    filter_dist_100 = {"geo_distance" : {
-          "ignore_unmapped": "true",
-            "distance" : "100km",
-            "location.coordinates" : qobj['geom']['coordinates']
-        }}
+    #filter_dist_200 = {"geo_distance" : {
+          #"ignore_unmapped": "true",
+            #"distance" : "200km",
+            #"location.coordinates" : qobj['geom']['coordinates']
+        #}}
 
-    filter_dist_200 = {"geo_distance" : {
-          "ignore_unmapped": "true",
-            "distance" : "200km",
-            "location.coordinates" : qobj['geom']['coordinates']
-        }}
+    # add filter to q1
+    #if location['type'] == 'Point':
+      #q1['query']['bool']['filter'].append(filter_dist_200)
+    #elif location['type'] in ('Polygon','MultiPolygon'): # hull
 
-    # selectively add filters to queries
-    if location['type'] == 'Point':
-      q1['query']['bool']['filter'].append(filter_dist_200)
-    elif location['type'] in ('Polygon','MultiPolygon'): # hull
-      q1['query']['bool']['filter'].append(filter_within)
-
-
-  # pass1: name, type, parent, study_area, geom if provided
+  # pass1: must:name; should: type, parent; study_area bounds, geom if provided
   print('q1',q1)
   res1 = es.search(index="tgn201903", body = q1)
   hits1 = res1['hits']['hits']
+  
   # 1 or more hits
   if len(hits1) > 0:
     for hit in hits1:
@@ -223,7 +224,7 @@ def es_lookup_tgn(qobj, *args, **kwargs):
         hit['pass'] = 'pass2'
         result_obj['hits'].append(hit)
     elif len(hits2) == 0:
-      # drop type, parent using qbare{}
+      # drop placetype, using qbare{}
       q3 = qbare
       print('q3 (bare)',q3)
       res3 = es.search(index="tgn201903", body = q3)

@@ -16,6 +16,7 @@ from areas.models import Area
 from places.models import *
 from main.choices import AUTHORITY_BASEURI
 from datasets.forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
+from datasets.static.hashes.parents import ccodes
 from datasets.tasks import read_delimited, align_tgn, align_whg, read_lpf
 from datasets.utils import parsejson, myteam, parse_wkt, aat_lookup
 
@@ -110,17 +111,22 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
 
     placeid = records[0].id
     place = get_object_or_404(Place, id=placeid)
-    # print('records[0]',dir(records[0]))
+
     # recon task hits
     raw_hits = Hit.objects.all().filter(place_id=placeid, task_id=tid).order_by('query_pass','-score')
-    #hit_list = hitsFactory(raw_hits,task.task_name)
-    #print('hit package',hit_list[0].json)
+    
+    # convert ccodes to names
+    countries = []
+    for r in records[0].ccodes:
+        countries.append(ccodes[0][r]['gnlabel']+' ('+ccodes[0][r]['tgnlabel']+')')
+        
     context = {
         'ds_id':pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list':raw_hits, 'authority': task.task_name[6:],
-        'records': records, 'passnum': passnum,
+        'records': records, 'countries': countries, 'passnum': passnum,
         'page': page if request.method == 'GET' else str(int(page)-1)
     }
+
     # Hit model fields = ['task_id','authority','dataset','place_id',
     #     'query_pass','src_id','authrecord_id','json','geom' ]
     HitFormset = modelformset_factory(
