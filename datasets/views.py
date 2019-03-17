@@ -248,7 +248,9 @@ def ds_recon(request, pk):
         #context['summary'] = result.get().summary
         pprint(locals())
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
-
+    
+    ds.status = 'recon wip'
+    ds.save()
     return render(request, 'datasets/ds_recon.html', {'ds':ds, 'area_list':area_list})
 
 def task_delete(request,tid, scope='task'):
@@ -517,7 +519,7 @@ class DashboardView(ListView):
             context['review_list'] = TaskResult.objects.filter(task_id__in=teamtasks).order_by('-date_done')
 
         # status >= 'in_database'
-        context['viewable'] = ['in_database','indexed']
+        context['viewable'] = ['in_database','recon (wip)','recon (compl)','submitted','indexed']
         
         # TODO: user place collections
         #print('DashboardView context:', context)
