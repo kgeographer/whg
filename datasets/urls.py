@@ -26,7 +26,7 @@ urlpatterns = [
     path('<int:pk>/review/<str:tid>/<str:passnum>', views.review, name="review"),
 
     # list places
-    path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
+    #path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
     path('<str:label>/datatable/<str:f>', views.drf_table, name='drf_table'),
 
     # delete TaskResult & associated hits

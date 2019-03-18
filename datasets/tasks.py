@@ -71,25 +71,6 @@ def reverse(coords):
   return fubar
 
 
-# used for align_tgn 
-# TODO: implement 'geo_shape' for tgn index
-def get_bbox_filter(bounds):
-  print('bounds',bounds)
-  id = bounds['id'][0]
-  type = bounds['type'][0]
-  if type == 'region':
-    filter = {
-      "geo_bounding_box" : {"location.coordinates" : region_hash[id]}
-    }
-  elif type == 'userarea':
-    area = Area.objects.get(id = id)
-    filter = {
-      "geo_polygon": {
-          "location.coordinates" : {"points": area.geojson['coordinates'][0]}
-        }
-    }
-    return filter
-
 # user-supplied spatial bounds
 def get_bounds_filter(bounds,idx):
   #print('bounds',bounds)
@@ -106,7 +87,7 @@ def get_bounds_filter(bounds,idx):
             #"coordinates" : location['coordinates'] if location['type'] == "Polygon" \
             #else location['coordinates'][0][0]
         },
-        "relation": "intersects" #if idx=='whg' else 'within' # within | intersects | contains
+        "relation": "intersects" if idx=='whg' else 'within' # within | intersects | contains
       }
   }} 
   return filter
@@ -184,23 +165,6 @@ def es_lookup_tgn(qobj, *args, **kwargs):
         }}
     q1['query']['bool']['filter'].append(filter_within)
     
-    #filter_dist_100 = {"geo_distance" : {
-          #"ignore_unmapped": "true",
-            #"distance" : "100km",
-            #"location.coordinates" : qobj['geom']['coordinates']
-        #}}
-
-    #filter_dist_200 = {"geo_distance" : {
-          #"ignore_unmapped": "true",
-            #"distance" : "200km",
-            #"location.coordinates" : qobj['geom']['coordinates']
-        #}}
-
-    # add filter to q1
-    #if location['type'] == 'Point':
-      #q1['query']['bool']['filter'].append(filter_dist_200)
-    #elif location['type'] in ('Polygon','MultiPolygon'): # hull
-
   # pass1: must:name; should: type, parent; study_area bounds, geom if provided
   print('q1',q1)
   res1 = es.search(index="tgn201903", body = q1)
@@ -299,8 +263,7 @@ def align_tgn(pk, *args, **kwargs):
       result_obj = es_lookup_tgn(query_obj, bounds=bounds)
     except:
       #logger.error('es query error:',sys.exc_info())
-      tgn_es_errors.append((sys.exc_info()))
-      pass
+      print(sys.exc_info())
       
 
     if result_obj['hit_count'] == 0:
@@ -562,7 +525,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
 @task(name="align_whg")
 def align_whg(pk, *args, **kwargs):
   #print('align_whg kwargs:', str(kwargs))
-  fin = codecs.open(tempfn, 'r', 'utf8')
+  #fin = codecs.open(tempfn, 'r', 'utf8')
   ds = get_object_or_404(Dataset, id=pk)
 
   bounds = kwargs['bounds']

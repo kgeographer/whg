@@ -119,6 +119,28 @@ input[type="text"] {
     #sidebar { position: fixed;}
 }
 
+#progress_bar {
+  background: #f2f2f2;
+  padding: 4px 0;
+  /*text-align: center;*/
+}
+.prog  {
+  display:inline-block;
+  width:24px;
+  height:24px;
+  border-radius:12px;
+  font-size:1rem;
+  color:#fff;
+  line-height:24px;
+  text-align:center;
+  background:#eb9494;
+  font-weight:bold;
+  box-shadow: 1px 1px #ccc;
+}
+.prog-active {background:firebrick;}
+
+.v-mid {vertical-align: super;}
+
 #tldr {
   background-color:lightyellow;
   margin-top: 65px;
@@ -132,7 +154,7 @@ input[type="text"] {
 }
 
 .ghostbox {
-  background-color: ghostwhite;
+  background-color: #f2f2f2;
 }
 .inline {display:inline-block;}
 .inline ul {margin-bottom:0;}
@@ -195,6 +217,7 @@ input[type="text"] {
   /* border-radius: 16px; */
   box-shadow: 3px 3px #eee;
 }
+.task-box p, .task-box li {font-size: small; margin-bottom:.3rem;}
 .dataset-detail {
   background-color: ghostwhite;
   padding: 10px;

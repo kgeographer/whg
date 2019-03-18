@@ -253,38 +253,31 @@ def ds_recon(request, pk):
     ds.save()
     return render(request, 'datasets/ds_recon.html', {'ds':ds, 'area_list':area_list})
 
-def task_delete(request,tid, scope='task'):
+def task_delete(request,tid,scope="foo"):
     hits = Hit.objects.all().filter(task_id=tid)
     tr = get_object_or_404(TaskResult, task_id=tid)
     ds = tr.task_args[1:-1]
-    if scope == 'task':
-        hits.delete()
-        tr.delete()
-    if scope in ['matches']:
-        for h in hits:
-            h.reviewed = False
-            h.save()
+    
+    # in any case, reviewed=false for hits; clear match records
+    for h in hits:
+        h.reviewed = False
+        h.save()
     placelinks = PlaceLink.objects.all().filter(task_id=tid)
     placegeoms = PlaceGeom.objects.all().filter(task_id=tid)
     placenames = PlaceName.objects.all().filter(task_id=tid)
     placedescriptions = PlaceDescription.objects.all().filter(task_id=tid)
+    
     placelinks.delete()
     placegeoms.delete()
     placenames.delete()
     placedescriptions.delete()
 
-    # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    # return redirect(request.get_full_path())
+    # zap task record & its hits
+    if scope == 'task':
+        tr.delete()
+        hits.delete()
+            
     return redirect('/datasets/'+ds+'/detail')
-
-
-# simple table for viewing datasets
-def ds_grid(request, label):
-    print('request, pk',request, label)
-    ds = get_object_or_404(Dataset, label=label)
-    place_list = Place.objects.filter(dataset=label).order_by('title')
-
-    return render(request, 'datasets/ds_grid.html', {'ds':ds, 'place_list': place_list})
 
 
 # better table for viewing datasets

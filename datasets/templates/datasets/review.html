@@ -249,10 +249,8 @@
       function fill(dataset) {
         if (dataset == 'tgn')
           return "#ff7800"
-        else if (dataset == 'dbp')
-          return "#98E2FA"
-        else
-          return "#7AFF7A"
+        else 
+          return "#00FFFF"
       }
 
       if (geom['features'].length > 0) {
@@ -263,8 +261,8 @@
             matchid = feature.properties.ds+':'+feature.properties.id
             marker = L.circleMarker(latlng,
               {
-                radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
-                color: "#000", fillColor: fill(feature.properties.ds)
+                radius: 8, fillOpacity: 0.6, opacity: 1, weight: 1,
+                color: "#333", fillColor: fill(feature.properties.ds)
               }
             ).bindPopup(feature.properties.ds+':'+feature.properties.id);
 

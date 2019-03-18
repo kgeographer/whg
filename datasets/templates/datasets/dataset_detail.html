@@ -9,6 +9,15 @@
   <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
   {% csrf_token %}
     <input type="hidden" name="id" value='{{ form.id }}'></input>
+    <div id="progress_bar" class="mb-2 pl-2">
+      <div class="prog">1</div><span class="mx-2 small">Upload file(s)</span>
+      <div class="prog">2</div><span class="mx-2 small">Insert to db</span>
+      <div class="prog">3</div><span class="mx-2 small">Reconciliation</span>
+      <div class="prog prog-active">4</div><span class="mx-2 small">Review hits</span>
+      <div class="prog">5</div><span class="mx-2 small">Submit to WHG</span>
+      <div class="prog">6</div><span class="mx-2 small">Review WHG matches</span>
+      <!--<span class="float-right">{# fontawesome_icon 'question-circle' color='#336699' %}</span>-->
+    </div>
     <h4>Dataset Detail:
       <span class="edit small"><a href="#">{% fontawesome_icon 'edit' color='#336699' %}</a></span>
       <span class="form-value text-danger"> {{ object.name }}</span>
@@ -87,9 +96,9 @@
                <i>review</i></a>{% endif %}</li>
           </ul>
           <p class="small">
-             <a href="{% url 'datasets:task-delete' tid=t.task_id scope='matches'%}">
+             <a class="confirm-del-matches" href="{% url 'datasets:task-delete' tid=t.task_id scope='matches'%}">
               Clear matches</a>&nbsp;|&nbsp;
-             <a href="{% url 'datasets:task-delete' tid=t.task_id scope='task' %}">
+             <a class="confirm-del-all" href="{% url 'datasets:task-delete' tid=t.task_id scope='task' %}">
                Delete task & hits, clear matches {% fontawesome_icon 'trash' color='#336699' %}</a>
           <!-- <p><b>{{ t.result.total_hits }}</b> hits for {{ t.result.got_hits }} of {{ t.result.count }} records. Elapsed: {{ t.result.elapsed }}</p> -->
         </div>
@@ -105,6 +114,12 @@
     $(".form-value").addClass("hidden")
     // $(".btn").toggleClass('hidden btn')
     console.log ('clicked')
+  })
+  $(".confirm-del-matches").click(function(){
+    return confirm('DANGER! Clears all matches confirmed in Review step');
+  })
+  $(".confirm-del-all").click(function(){
+    return confirm('DANGER! Destroys task, its hits, and clears matches confirmed in Review step');
   })
 </script>
 {% endblock %}
