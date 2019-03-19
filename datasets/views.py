@@ -195,14 +195,15 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
 def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
     # TODO: handle multipolygons from "#area_load" and "#area_draw"
-    # es:tgn201902 locations are geo_shapes; test with France, e.g
-    area_list = Area.objects.all().filter(owner=request.user, type="#areas_codes")
-    # area_list = Area.objects.all().filter(owner=request.user)
-    # print('request, method:',request, request.method)
-    context = {
-        "dataset": ds.name,
-        "area_list": area_list
-    }
+    me = request.user
+    context = {"dataset": ds.name}
+    
+    types_ok=['ccodes','copied','drawn']
+    userareas = Area.objects.all().filter(type__in=types_ok).order_by('-created')
+    context['area_list'] = userareas if me.username == 'whgadmin' else userareas.filter(owner=self.request.user)
+
+    predefined = Area.objects.all().filter(type='predefined').order_by('-created')
+    context['region_list'] = predefined if me.username == 'whgadmin' else predefined.filter(owner=self.request.user)
 
     if request.method == 'GET':
         print('request:',request)
@@ -247,11 +248,12 @@ def ds_recon(request, pk):
         context['result'] = result.get()
         #context['summary'] = result.get().summary
         pprint(locals())
+        ds.status = 'recon (wip)'
+        ds.save()
         return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
     
-    ds.status = 'recon wip'
-    ds.save()
-    return render(request, 'datasets/ds_recon.html', {'ds':ds, 'area_list':area_list})
+    print('context recon GET',context)
+    return render(request, 'datasets/ds_recon.html', {'ds':ds, 'context': context})
 
 def task_delete(request,tid,scope="foo"):
     hits = Hit.objects.all().filter(task_id=tid)
@@ -493,11 +495,10 @@ class DashboardView(ListView):
         me = self.request.user
         context = super(DashboardView, self).get_context_data(*args, **kwargs)
 
+        types_ok=['ccodes','copied','drawn']
         # list areas
-        if me.username == 'whgadmin':
-            context['area_list'] = Area.objects.all().order_by('-created')
-        else:
-            context['area_list'] = Area.objects.all().filter(owner=self.request.user).order_by('-created')
+        userareas = Area.objects.all().filter(type__in=types_ok).order_by('-created')
+        context['area_list'] = userareas if me.username == 'whgadmin' else userareas.filter(owner=self.request.user)
 
         # list team tasks
         if me.username == 'whgadmin':

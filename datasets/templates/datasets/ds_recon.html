@@ -3,6 +3,8 @@
 {% load fontawesome %}
 {% load static %}
 {% load leaflet_tags %}
+{% load dataset_extras %}
+
 
 {% block title %}<title>Dataset {{ ds.id }}</title>{% endblock %}
 {% block extra_head %}
@@ -15,9 +17,8 @@
 <div class="container">
   <form action="{% url 'datasets:ds_recon' ds.id %}" method="POST">
   {% csrf_token %}
-  <h4 class="my-3">
-    {% fontawesome_icon 'link' color='#336699' %} Reconciliation for {{ ds.name }}
-    <span class="text-muted">[ #{{ ds.label }} ]</span></h4>
+  <h4 class="my-3"> {% fontawesome_icon 'link' %} Initiate Reconciliation: <i>{{ ds.name }}
+    <span class="text-muted small">(<a href="{% url 'datasets:dataset-detail' id=ds.pk %}">{{ ds.label }}</a>)</span></i></h4>
   <hr/>
   <div class="row">
     <div id="recon_form" class="col-md-6">
@@ -98,7 +99,7 @@
       <!--<a href="{# url 'datasets:review' pk=ds.pk tid=context.task_id %}">-->
         <input class="btn btn-sm btn-outline-primary" type="text" value="Review Hits"/></a>
       {% else %}
-        <p>Reconciliation results will show here...</p>
+        <p>Reconciliation results will fucking show here...</p>
       {% endif %}
     </div> <!-- recon_result -->
   </div> <!-- row -->
@@ -107,22 +108,17 @@
     <div id="geo_constraint" class="col-md-6">
       <div class="mb-2">
         <p class="font-weight-bold">Geographic constraint</p>
-        <p><select id="select_region" name="region" class="custom-select-sm" style="width:auto;">
-          <option value="0">Select pre-defined region</option>
-          <option value="eh">Eastern Hemisphere</option>
-          <option disabled value="af">- Africa</option>
-          <option disabled value="eu">- Europe</option>
-          <option disabled value="ca">- Central Asia</option>
-          <option disabled value="ea">- East Asia</option>
-          <option disabled value="sa">- South Asia</option>
-          <option value="wh">Western Hemisphere</option>
-          <option disabled value="la">- Latin America</option>
-          <option disabled value="us">- US & Canada</option>
-        </select><span class="ml-2"><b>or...</b></span></p>
+        <p>
+          <select id="select_region" name="region" class="custom-select-sm" style="width:auto;">
+            <option value="0">Select pre-defined region</option>
+          {% for r in context.region_list %}
+            <option value="{{ r.id }}">{{ r.title }}</option>
+          {% endfor %}
+\        </select><span class="ml-2"><b>or...</b></span></p>
         <p>
           <select id="select_userarea" name="userarea" class="custom-select-sm" style="width:auto;">
           <option value="0" selected="selected">Select user-defined study area</option>
-          {% for a in area_list %}
+          {% for a in context.area_list %}
               <option value="{{ a.id }}">{{ a.title }}</option>
           {% endfor %}
           <option value="create">{ new }</option>

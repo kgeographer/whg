@@ -26,7 +26,7 @@ def aat_lookup(id):
         return label
     except:
         print(id,' broke it')
-        print("error:", sys.exc_info()[0])        
+        print("error:", sys.exc_info())        
 
 def hully(g_list):
     from django.contrib.gis.geos import GEOSGeometry

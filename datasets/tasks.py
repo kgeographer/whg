@@ -167,7 +167,7 @@ def es_lookup_tgn(qobj, *args, **kwargs):
     
   # pass1: must:name; should: type, parent; study_area bounds, geom if provided
   print('q1',q1)
-  res1 = es.search(index="tgn201903", body = q1)
+  res1 = es.search(index="tgn_shape", body = q1)
   hits1 = res1['hits']['hits']
   
   # 1 or more hits
@@ -180,7 +180,7 @@ def es_lookup_tgn(qobj, *args, **kwargs):
   # pass2: drop geom (revert to qbase{})
     q2 = qbase
     print('q2 (base)',q2)
-    res2 = es.search(index="tgn201903", body = q2)
+    res2 = es.search(index="tgn_shape", body = q2)
     hits2 = res2['hits']['hits']
     if len(hits2) > 0:
       for hit in hits2:
@@ -191,7 +191,7 @@ def es_lookup_tgn(qobj, *args, **kwargs):
       # drop placetype, using qbare{}
       q3 = qbare
       print('q3 (bare)',q3)
-      res3 = es.search(index="tgn201903", body = q3)
+      res3 = es.search(index="tgn_shape", body = q3)
       hits3 = res3['hits']['hits']
       if len(hits3) > 0:
         for hit in hits3:

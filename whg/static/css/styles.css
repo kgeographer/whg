@@ -280,7 +280,7 @@ span.edit-row {
   element IDs
 **/
 #review_list {
-  height:100vh;
+  height:calc(100vh - 160px);
   overflow:scroll;
 }
 #map_area, #map_home, #map_view {

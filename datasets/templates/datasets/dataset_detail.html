@@ -79,8 +79,8 @@
              <!-- TODO: confirm, select which to delete -->
           </p>
           {{ t.result.hits }}
-          <p><b>Result</b>: {{ t.result|get:"total"|safe }} total hits for {{ t.result|get:"got_hits"|safe }} of
-              {{ t.result|get:"count"|safe }} records</p>
+          <p><b>Result</b>: {{ t.result|get:"got_hits"|safe }} records (of
+              {{ t.result|get:"count"|safe }} submitted) got total of <b>{{ t.result|get:"total"|safe }}</b> hits</p>
           <ul>
             <li><i>Pass 1</i>: {{ t.result|get:"pass1" }} 
               {% if t.result|get:"pass1" > 0 %}
