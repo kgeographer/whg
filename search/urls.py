@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.conf.urls import url
 
-from search.views import advanced, NameSuggestView
+from search.views import advanced, NameSuggestView, fetchArea
 
 urlpatterns = [
     # url(r'^$', views.home, name="search_home"),

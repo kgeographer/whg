@@ -99,7 +99,7 @@
       <!--<a href="{# url 'datasets:review' pk=ds.pk tid=context.task_id %}">-->
         <input class="btn btn-sm btn-outline-primary" type="text" value="Review Hits"/></a>
       {% else %}
-        <p>Reconciliation results will fucking show here...</p>
+        <p>Reconciliation results will show here...</p>
       {% endif %}
     </div> <!-- recon_result -->
   </div> <!-- row -->
@@ -143,16 +143,40 @@
 <script type="text/javascript">
   $(function(){
   })
+  <!--function getPlace(pid){-->
+  <!--$.ajax({-->
+    <!--url: "/api/places/"+pid,-->
+    <!--}).done(function( data ) {-->
+      <!--$("#drftable_title").html('<h5 class="text-danger mb-4"><b>'+data['title']+'</b></h5>')-->
+      <!--$("#drftable_fields").html(parsePlace(data))-->
+    <!--});-->
+  <!--}    -->
+
+  function render_area(aid) {
+    <!--console.log('aid',aid,typeof(aid))-->
+    $.ajax({
+        url: '/api/areas/'+aid
+      }).done(function(data){
+        console.log('got geometry',data.geojson)
+    })
+  }
+
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
     console.log('in map_init()')
   } // end map_init
-  // clear dropdown choice if other is used
+  
+  // clear dropdown choice if other is used & render geometry
   $( "#select_region" ).change(function() {
     $( "#select_userarea option[value=0]" ).prop('selected',true)
+    render_area( $(this).val())
+    <!--console.log('select_region this',$(this).val())-->
   });
+  
   $( "#select_userarea" ).change(function() {
     $( "#select_region option[value=0]" ).prop('selected',true)
+    render_area( $(this).val() )
+    <!--console.log('select_userarea this',$(this).val())-->
     if ($( "#select_userarea option[value='create']" ).prop('selected') == true) {
       location.href="{% url 'areas:area-create' %}?next={% url 'datasets:ds_recon' ds.id %}"
     }

@@ -6,12 +6,13 @@ from rest_framework import permissions
 from rest_framework import viewsets
 
 from .serializers import UserSerializer, GroupSerializer, DatasetSerializer, \
-    PlaceSerializer, PlaceDRFSerializer
+    PlaceSerializer, PlaceDRFSerializer, AreaSerializer
 
 
 from accounts.permissions import IsOwnerOrReadOnly, IsOwner
 from datasets.models import Dataset
-from places.models import Place #, PlaceName, PlaceType
+from areas.models import Area
+from places.models import Place
 
 class PlaceViewSet(viewsets.ModelViewSet):
     queryset = Place.objects.all().order_by('title')
@@ -53,6 +54,9 @@ class DatasetViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
+class AreaViewSet(viewsets.ModelViewSet):
+    queryset = Area.objects.all().order_by('title')
+    serializer_class = AreaSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')

@@ -1,11 +1,17 @@
-# search.views
+# various search.views
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
 import simplejson as json
+from areas.models import Area
 
 from elasticsearch import Elasticsearch
 
+def fetchArea(request):
+    aid = request.GET.get('pk')
+    area = Area.objects.filter(id=aid)
+    return JsonResponse(area)
+    
 def makeGeom(pid,geom):
     # TODO: account for non-point
     geomset = []

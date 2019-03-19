@@ -196,14 +196,16 @@ def ds_recon(request, pk):
     ds = get_object_or_404(Dataset, id=pk)
     # TODO: handle multipolygons from "#area_load" and "#area_draw"
     me = request.user
+    print('me',me,me.id)
     context = {"dataset": ds.name}
     
     types_ok=['ccodes','copied','drawn']
     userareas = Area.objects.all().filter(type__in=types_ok).order_by('-created')
-    context['area_list'] = userareas if me.username == 'whgadmin' else userareas.filter(owner=self.request.user)
+    # TODO: this line throws an error but executes !?
+    context['area_list'] = userareas if me.username == 'whgadmin' else userareas.filter(owner=me)
 
     predefined = Area.objects.all().filter(type='predefined').order_by('-created')
-    context['region_list'] = predefined if me.username == 'whgadmin' else predefined.filter(owner=self.request.user)
+    context['region_list'] = predefined
 
     if request.method == 'GET':
         print('request:',request)
