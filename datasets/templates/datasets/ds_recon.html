@@ -111,6 +111,7 @@
         <p>
           <select id="select_region" name="region" class="custom-select-sm" style="width:auto;">
             <option value="0">Select pre-defined region</option>
+            <option disabled>___________</option>
           {% for r in context.region_list %}
             <option value="{{ r.id }}">{{ r.title }}</option>
           {% endfor %}
@@ -118,6 +119,7 @@
         <p>
           <select id="select_userarea" name="userarea" class="custom-select-sm" style="width:auto;">
           <option value="0" selected="selected">Select user-defined study area</option>
+          <option disabled>___________</option>
           {% for a in context.area_list %}
               <option value="{{ a.id }}">{{ a.title }}</option>
           {% endfor %}
@@ -140,42 +142,62 @@
   </form>
 </div> <!-- container -->
 
-<script type="text/javascript">
-  $(function(){
-  })
-  <!--function getPlace(pid){-->
-  <!--$.ajax({-->
-    <!--url: "/api/places/"+pid,-->
-    <!--}).done(function( data ) {-->
-      <!--$("#drftable_title").html('<h5 class="text-danger mb-4"><b>'+data['title']+'</b></h5>')-->
-      <!--$("#drftable_fields").html(parsePlace(data))-->
-    <!--});-->
-  <!--}    -->
+<script type="text/javascript">    
+  $(function(){})
 
+  window.addEventListener('map:init', function (e) {
+    window.mappy = e.detail.map
+  }, false);
+
+  function renderMap(geom){
+    <!--clear out the previous if any-->
+    if(typeof(features)!=='undefined'){
+      mappy.removeLayer(features)
+    }
+    function fill(dataset) {
+       if (dataset == 'tgn')
+         return "#ff7800"
+       else if (dataset == 'dbp')
+         return "#98E2FA"
+       else
+         return "#7AFF7A"
+     }
+    idToFeature = {}  // for feature lookup
+    features = L.geoJSON(geom, {
+      // TODO: style polygons
+    }).addTo(mappy);
+    mappy.fitBounds(features.getBounds())
+  }
+      
   function render_area(aid) {
-    <!--console.log('aid',aid,typeof(aid))-->
     $.ajax({
         url: '/api/areas/'+aid
       }).done(function(data){
         console.log('got geometry',data.geojson)
+        geom = {"type":"FeatureCollecton","features":[]}
+        geom['features'].push(data.geojson)
+        renderMap(geom)
     })
   }
 
   // initialize, render map w/settings.LEAFLET_CONFIG
   function map_init (map, options) {
-    console.log('in map_init()')
+    if(typeof(features)!=='undefined'){
+      mappy.removeLayer(features)
+      mappy.setView([35.0, 13.0], 2)
+    }
   } // end map_init
   
   // clear dropdown choice if other is used & render geometry
   $( "#select_region" ).change(function() {
     $( "#select_userarea option[value=0]" ).prop('selected',true)
-    render_area( $(this).val())
+    render_area( $(this).val(), 'region')
     <!--console.log('select_region this',$(this).val())-->
   });
   
   $( "#select_userarea" ).change(function() {
     $( "#select_region option[value=0]" ).prop('selected',true)
-    render_area( $(this).val() )
+    render_area( $(this).val(), 'area')
     <!--console.log('select_userarea this',$(this).val())-->
     if ($( "#select_userarea option[value='create']" ).prop('selected') == true) {
       location.href="{% url 'areas:area-create' %}?next={% url 'datasets:ds_recon' ds.id %}"

@@ -38,6 +38,8 @@ def hully(g_list):
         l = list(set([g_list[0]['coordinates'][0] for c in g_list[0]]))
         if len([i for i in l if i >= 175]) == 0:
             hull = hull.buffer(1)
+        else:
+            hull = hull.buffer(0.1)
     elif g_list[0]['type'] == 'MultiLineString':
         hull=GeometryCollection([GEOSGeometry(json.dumps(g)) for g in g_list]).convex_hull
     else:
