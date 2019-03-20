@@ -7,6 +7,7 @@ from django.contrib.gis.geos import Polygon, Point, LineString
 import logging
 ##
 import sys, os, re, json, codecs, datetime, time, csv, random
+from copy import deepcopy
 from pprint import pprint
 from areas.models import Area
 from datasets.models import Dataset, Hit
@@ -118,11 +119,12 @@ def es_lookup_tgn(qobj, *args, **kwargs):
   qbase = {"query": { 
     "bool": {
       "must": [
-        {"terms": {"names.name":variants}}
+        {"terms": {"names.name":variants}},
+        {"terms": {"types.id":placetypes}}
         ],
       "should":[
-        {"terms": {"parents":parent}},
-        {"terms": {"types.id":placetypes}}
+        {"terms": {"parents":parent}}
+        #,{"terms": {"types.id":placetypes}}
         ],
       "filter": [get_bounds_filter(bounds,'tgn')] if bounds['id'] != ['0'] else []
     }
@@ -140,21 +142,30 @@ def es_lookup_tgn(qobj, *args, **kwargs):
     }
   }}
 
-  # grab copy of qbase, add w/geo filter if 'geom'
-  q1 = qbase
+  # grab deep copy of qbase, add w/geo filter if 'geom'
+  q1 = deepcopy(qbase)
 
   # create 'within polygon' filter and add to q1
   if 'geom' in qobj.keys():
     location = qobj['geom']
     # always polygon returned from hully(g_list)
-    filter_within = { "geo_polygon" : {
-      "location.coordinates" : {
-          # ignore outer brackets; dunno why
-          "points" : location['coordinates'][0] if location['type'] == "Polygon" \
-          else location['coordinates'][0][0]
-        }
-      }}
+    filter_within = { "geo_shape": {
+      "location": {
+        "shape": {
+          "type": location['type'],
+          "coordinates" : location['coordinates']
+        },
+        "relation": "within" # within | intersects | contains
+      }
+    }}    
     q1['query']['bool']['filter'].append(filter_within)
+    #filter_within = { "geo_polygon" : {
+      #"location.coordinates" : {
+          ## ignore outer brackets; dunno why
+          #"points" : location['coordinates'][0] if location['type'] == "Polygon" \
+          #else location['coordinates'][0][0]
+        #}
+      #}}
 
   # /\/\/\/\/\/
   # pass1: must[name]; should[type,parent]; filter[bounds,geom]
@@ -213,7 +224,7 @@ def align_tgn(pk, *args, **kwargs):
   ds = get_object_or_404(Dataset, id=pk)
   bounds = kwargs['bounds']
   #bounds = {'type': ['userarea'], 'id': ['65']} # Alcedo 
-  #bounds = {'type': ['region'], 'id': ['85']}  # N. Africa
+  #bounds = {'type': ['region'], 'id': ['76']}  # C. America
   print('bounds:',bounds,type(bounds))
   hit_parade = {"summary": {}, "hits": []}
   [nohits,tgn_es_errors,features] = [[],[],[]]
@@ -221,16 +232,16 @@ def align_tgn(pk, *args, **kwargs):
   start = datetime.datetime.now()
 
   # build query object
-  for place in ds.places.all()[:50]:
-  #for place in ds.places.all():
+  #for place in ds.places.all()[:50]:
+  for place in ds.places.all():
     #place=get_object_or_404(Place,id=131735) # Caledonian Canal (ne)
-    #place=get_object_or_404(Place,id=131672) # Balsas river (ne)
+    #place=get_object_or_404(Place,id=131648) # Atengo river (ne)
     #place=get_object_or_404(Place,id=81655) # Atlas Mountains
     #place=get_object_or_404(Place,id=124653) # !Kung (dplace)
     #place=get_object_or_404(Place,id=124925) # Abenaki (dplace)
     #place=get_object_or_404(Place, id=125681) # Chukchi (dplace)
     count +=1
-    qobj = {"place_id":place.id,"src_id":place.src_id,"prefname":place.title}
+    qobj = {"place_id":place.id,"src_id":place.src_id,"title":place.title}
     [variants,geoms,types,ccodes,parents]=[[],[],[],[],[]]
 
     # ccodes (2-letter iso codes)
@@ -421,7 +432,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
   qsugg = {
     "suggest": {
       "suggest" : {
-        "prefix" : qobj['prefname'],
+        "prefix" : qobj['title'],
         "completion" : {
           "field" : "suggest",
           "size": 10,
@@ -543,7 +554,7 @@ def align_whg(pk, *args, **kwargs):
   start = datetime.datetime.now()
 
   # build query object, send, save hits
-  #for place in ds.places.all()[:100]:
+  #for place in ds.places.all()[:50]:
   for place in ds.places.all():
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=131735) # Caledonian Canal

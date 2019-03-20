@@ -41,7 +41,7 @@
       <div id="ds_details" class="col-sm-6">
         <p class="hidden editing"><b>Description</b>: {{ form.description }}</p>
         <p class="form-value editing"><b>Description</b>: {{ object.description }}</p>
-        <p><b>Slug (id)</b>: {{ object.label }} ({{ object.id }})
+        <p><b>ID (slug/#)</b>: {{ object.label }}/{{ object.id }}
         <p><b>File</b>: {{ object.file }}</p>
         <p><b>Date</b>: {{ object.upload_date|date:"d-M-Y, H:i (e)" }}</p>
         <p><b>Total rows</b>: {{ object.numrows }}</p>
