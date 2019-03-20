@@ -91,9 +91,8 @@ def get_bounds_filter(bounds,idx):
 
 #
 def es_lookup_tgn(qobj, *args, **kwargs):
-  # print('qobj',qobj)
+  #print('qobj',qobj)
   bounds = kwargs['bounds']
-  print('bounds:',bounds)
   hit_count = 0
 
   # empty result object
@@ -222,8 +221,8 @@ def align_tgn(pk, *args, **kwargs):
   start = datetime.datetime.now()
 
   # build query object
-  # for place in ds.places.all()[:50]:
-  for place in ds.places.all():
+  for place in ds.places.all()[:50]:
+  #for place in ds.places.all():
     #place=get_object_or_404(Place,id=131735) # Caledonian Canal (ne)
     #place=get_object_or_404(Place,id=131672) # Balsas river (ne)
     #place=get_object_or_404(Place,id=81655) # Atlas Mountains
@@ -305,13 +304,13 @@ def align_tgn(pk, *args, **kwargs):
   print('tgn ES errors:',tgn_es_errors)
   hit_parade['summary'] = {
       'count':count,
-        'got_hits':count_hit,
-        'total': total_hits, 
-        'pass1': count_p1, 
-        'pass2': count_p2, 
-        'pass3': count_p3,
-        'no_hits': {'count': count_nohit },
-        'elapsed': elapsed(end-start)
+      'got_hits':count_hit,
+      'total': total_hits, 
+      'pass1': count_p1, 
+      'pass2': count_p2, 
+      'pass3': count_p3,
+      'no_hits': {'count': count_nohit },
+      'elapsed': elapsed(end-start)
     }
   print("summary returned",hit_parade['summary'])
   return hit_parade['summary']
@@ -460,6 +459,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
         "relation": "intersects" # within | intersects | contains
       }
     }}
+    qbase['query']['bool']['filter'].append(filter_intersects_area)
     
     repr_point=list(Polygon(location['coordinates'][0]).centroid.coords) \
                     if location['type'].lower() == 'polygon' else \
@@ -467,7 +467,6 @@ def es_lookup_whg(qobj, *args, **kwargs):
                     if location['type'].lower() == 'linestring' else \
                     list(Point(location['coordinates']).coords)
     
-    qbase['query']['bool']['filter'].append(filter_intersects_area)
     qsugg['suggest']['suggest']['completion']['contexts']={"place_type": qobj['placetypes']}, \
       {"representative_point": {"lon":repr_point[0] , "lat":repr_point[1], "precision": "100km"}}
   

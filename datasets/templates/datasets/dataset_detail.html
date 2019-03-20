@@ -4,6 +4,8 @@
 {% load static %}
 {% load fontawesome %}
 {% load mathfilters %}
+{% load dataset_extras %}
+
 <div class="container ds-detail mt-3">
   <!-- on click toggle .hidden, .form-value; make submit button visible -->
   <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
@@ -73,6 +75,8 @@
         </h5>
         {% for t in tasks %}
         <div class="task-box">
+          <!-- TODO: display bounds used if any -->
+          <!--{ t.task_kwargs|parsejson:"bounds" }}-->
           <p><b>Task</b>: {{ t.task_name }} <span class="small">
             ({{ t.date_done|date:"d-M-Y, H:i (e)" }}; elapsed: {{ t.result|get:"elapsed"|safe }})</span></p>
           <p><b>ID</b>: {{ t.task_id }}</p>

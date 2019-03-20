@@ -210,11 +210,11 @@ def ds_recon(request, pk):
     if request.method == 'GET':
         print('request:',request)
     elif request.method == 'POST' and request.POST:
+        # what task?
         func = eval('align_'+request.POST['recon'])
-        #auth = request.POST['recon']
         # TODO: let this vary per authority?
         region = request.POST['region'] # pre-defined UN regions
-        userarea = request.POST['userarea'] #
+        userarea = request.POST['userarea'] # from ccodes, loaded, or drawn
         # bool options ignore for now
         #aug_names = request.POST['aug_names'] #
         #aug_notes = request.POST['aug_notes'] #
@@ -612,12 +612,12 @@ class DatasetDetailView(UpdateView):
         context = super(DatasetDetailView, self).get_context_data(*args, **kwargs)
         id_ = self.kwargs.get("id")
         ds = get_object_or_404(Dataset, id=id_)
+        bounds = self.kwargs.get("bounds")
         # print('ds',ds.label)
         context['status'] = ds.status
         placeset = Place.objects.filter(dataset=ds.label)
         context['tasks'] = TaskResult.objects.all().filter(task_args = [id_],status='SUCCESS')
         # context['tasks'] = TaskResult.objects.all().filter(task_args = [id_])
-        print('type(tasks)',type(context['tasks']))
         # initial (non-task)
         context['num_links'] = PlaceLink.objects.filter(
                 place_id_id__in = placeset, task_id = None).count()
