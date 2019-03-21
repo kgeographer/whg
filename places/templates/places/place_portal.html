@@ -189,22 +189,8 @@
     }).addTo(mappy);
     
     // TODO: better zoomto choices
-    <!--zoom_point = centroid(features.getBounds())-->
     center=features.getBounds().getCenter()
     mappy.setView(center, 5)
-    <!--if (geom['features'].length > 1) {-->
-      <!--mappy.fitBounds(features.getBounds().pad(1))-->
-    <!--} else {-->
-      <!--feat0 = geom['features'][0]-->
-      <!--if (['Point','MultiPoint'].includes(feat0.type)) {-->
-        <!--latlng = L.latLng(-->
-          <!--feat0.coordinates[1],-->
-          <!--feat0.coordinates[0])-->
-        <!--mappy.setView(latlng, 3)-->
-      <!--} else if (['MultiLineString','MultiPolygon'].includes(feat0.type)) {-->
-        <!--mappy.fitBounds(features.getBounds())-->
-      <!--}-->
-    <!--}-->
   }
 
   // initialize, render map w/settings.LEAFLET_CONFIG
@@ -227,5 +213,3 @@
   } // end map_init
 </script>
 {% endblock %}
-
-<!--rec: {'dataset': {'id': 1, 'label': 'black'}, 'whg_id': 82499, 'src_id': '11548', 'purl': 'http://whgazetteer.org/api/places/82499', 'title': 'Calusa', 'ccodes': [], 'names': [{'lang': None, 'toponym': 'Calusa', 'citation': {'id': 'black', 'label': 'DK Atlas of World History'}}], 'types': [{'label': 'cultural group', 'src_label': 'people', 'identifier': 'aat:300387171'}], 'links': [{'type': 'closeMatch', 'identifier': 'dplace:B46'}, {'type': 'closeMatch', 'identifier': 'dbp:Calusa'}], 'geoms': [], 'whens': [{'timespans': [{'end': {'in': 1600}, 'start': {'in': 1492}}, {'end': {'in': 1750}, 'start': {'in': 1600}}]}], 'related': [], 'descriptions': [], 'depictions': []} -->

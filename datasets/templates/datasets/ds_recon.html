@@ -147,8 +147,30 @@
 
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map
-  }, false);
+    var attrib_mb = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+            '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+            'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      attrib_awmc = 'Tiles and Data &copy; 2013 <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a>',
+      token_mb = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw',
+      token_kg = 'pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiUmVralBPcyJ9.mJegAI1R6KR21x_CVVTlqw',
+      token_awmc = 'pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg',
+      token_whg = '',
+      mbtiles_url = 'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={token}';
+      mbstyle_url = 'https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={token}';
+      
+    var awmc = L.tileLayer(mbtiles_url, {id:'isawnyu.map-knmctlkh', token:token_awmc, attribution:attrib_awmc}),
+      grayscale = L.tileLayer(mbstyle_url, {id:'kgeographer/cjstfpenh6o1e1fldz95w8m6p', token:token_kg, attribution:attrib_mb}),
+      satellite  = L.tileLayer(mbtiles_url, {id:'mapbox.satellite', token:token_mb, attribution:attrib_mb});
 
+    var baseLayers = {
+      "AWMC Terrain": awmc,
+      "Spine Data": grayscale,
+      "Satellite": satellite
+    };
+    L.control.layers(baseLayers).addTo(mappy);
+    baseLayers['AWMC Terrain'].addTo(mappy)
+  }, false);
+  
   function renderMap(geom){
     <!--clear out the previous if any-->
     if(typeof(features)!=='undefined'){

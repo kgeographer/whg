@@ -121,7 +121,7 @@ WHG_BASETILES = 'https://api.mapbox.com/styles/v1/kgeographer/cjstfpenh6o1e1fldz
 AWMC_BASETILES = 'https://api.mapbox.com/v4/isawnyu.map-knmctlkh/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg'
 
 LEAFLET_CONFIG = {
-    'TILES':(AWMC_BASETILES),
+    'TILES':[],
     'DEFAULT_CENTER': (35.0, 13.0),
     'DEFAULT_ZOOM': 1,
     'MIN_ZOOM': 1,
@@ -135,24 +135,6 @@ LEAFLET_CONFIG = {
 # mapbox://styles/kgeographer/cjstfpenh6o1e1fldz95w8m6p
 # pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiUmVralBPcyJ9.mJegAI1R6KR21x_CVVTlqw
 
-#LOGGING = {
-    #'version': 1,
-    #'disable_existing_loggers': False,
-    #'handlers': {
-        #'file': {
-            #'level': 'DEBUG',
-            #'class': 'logging.FileHandler',
-            #'filename': 'whg/logs/debug.log',
-        #},
-    #},
-    #'loggers': {
-        #'django': {
-            #'handlers': ['file'],
-            #'level': 'DEBUG',
-            #'propagate': True,
-        #},
-    #},
-#}
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases

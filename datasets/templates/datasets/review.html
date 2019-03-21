@@ -178,112 +178,121 @@
       $('#passnum_dynamic').html('<b>'+z.slice(-5)+'</b>')
     })
     // expose leaflet map for events, call it 'mappy'
-    window.addEventListener('map:init', function (e) {
-      window.mappy = e.detail.map
-    }, false);
+  window.addEventListener('map:init', function (e) {
+    window.mappy = e.detail.map
+    var attrib_mb = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+            '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+            'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      attrib_awmc = 'Tiles and Data &copy; 2013 <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a>',
+      token_mb = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw',
+      token_kg = 'pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiUmVralBPcyJ9.mJegAI1R6KR21x_CVVTlqw',
+      token_awmc = 'pk.eyJ1Ijoia2dlb2dyYXBoZXIiLCJhIjoiY2prcmgwc2cwMjRuZzNsdGhzZmVuMDRqbCJ9.MeLsyeOqwhTRdvt_Hgo7kg',
+      token_whg = '',
+      mbtiles_url = 'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={token}';
+      mbstyle_url = 'https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={token}';
+      
+    var awmc = L.tileLayer(mbtiles_url, {id:'isawnyu.map-knmctlkh', token:token_awmc, attribution:attrib_awmc}),
+      grayscale = L.tileLayer(mbstyle_url, {id:'kgeographer/cjstfpenh6o1e1fldz95w8m6p', token:token_kg, attribution:attrib_mb}),
+      satellite  = L.tileLayer(mbtiles_url, {id:'mapbox.satellite', token:token_mb, attribution:attrib_mb});
 
-    $( "#select_pass" ).change(function() {
-      z=window.location.href
-      baseurl=z.substring(0,[z.length -5])
-      window.location.href = baseurl + $(this).val()
+    var baseLayers = {
+      "AWMC Terrain": awmc,
+      "Spine Data": grayscale,
+      "Satellite": satellite
+    };
+    L.control.layers(baseLayers).addTo(mappy);
+    baseLayers['AWMC Terrain'].addTo(mappy)
+  }, false);
+
+  $( "#select_pass" ).change(function() {
+    z=window.location.href
+    baseurl=z.substring(0,[z.length -5])
+    window.location.href = baseurl + $(this).val()
+  });
+
+  $('.noteicon').on('click', function(){
+    $(this).parents(".matchbar").find(".notefield").toggle()
+    // console.log('clicked',$(this).parents(".matchbar").find(".notefield"))
+  })
+
+  $('.noteicon').hover(function(){
+    console.log('hovering')
+  })
+
+  $( ".geolink" ).hover(function() {
+      let id = 'tgn:'+$(this)[0].id.toString()
+      feat = idToFeature[id]
+      feat.setStyle(
+        {radius: 10, fillColor: 'red'}
+      )
+    },
+    function() {
+      let id = 'tgn:'+$(this)[0].id.toString()
+      feat = idToFeature[id]
+      feat.setStyle(
+        {radius: 8, fillColor: '#ff7800'}
+      )
+    }
+  );
+
+  // closer look
+  function zoomTo(id) {
+    mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
+  }
+
+  cleanJson = function(text) {
+    z=text.replace(/'/g,'\\"')
+    y=z.replace(/point/,'Point')
+    return JSON.parse(JSON.parse(y))
+  }
+
+  // initialize, render map
+  // authority geom "geoms": [{"type": "point", "coordinates": [-72.8667, -13.6167]}]
+  function map_init (map, options) {
+    // console.log('in map_init()')
+    window.geom = {"type":"FeatureCollecton","features":[]}
+
+    window.gelems = $('script').filter(function() {
+      <!--return this.id.match(/[0-9]/) && this.text != '"null"';-->
+      return this.id !='' && this.text != '"null"';
     });
 
-    $('.noteicon').on('click', function(){
-      $(this).parents(".matchbar").find(".notefield").toggle()
-      // console.log('clicked',$(this).parents(".matchbar").find(".notefield"))
-    })
-
-    $('.noteicon').hover(function(){
-      console.log('hovering')
-    })
-
-    $( ".geolink" ).hover(function() {
-        let id = 'tgn:'+$(this)[0].id.toString()
-        feat = idToFeature[id]
-        feat.setStyle(
-          {radius: 10, fillColor: 'red'}
-        )
-      },
-      function() {
-        let id = 'tgn:'+$(this)[0].id.toString()
-        feat = idToFeature[id]
-        feat.setStyle(
-          {radius: 8, fillColor: '#ff7800'}
-        )
-      }
-    );
-
-    // closer look
-    function zoomTo(id) {
-      mappy.setView(idToFeature[id]._latlng, mappy.getZoom() +2 )
+    for (i=0;i<gelems.length;i++){
+      let t_geom = cleanJson(gelems[i].text)
+      var ds = "{{ ds_label }}"
+      t_geom['properties'] = {"id": gelems[i].id, "ds": t_geom.ds!=null?t_geom.ds:ds }
+      geom['features'].push(t_geom)
     }
 
-    cleanJson = function(text) {
-      z=text.replace(/'/g,'\\"')
-      y=z.replace(/point/,'Point')
-      return JSON.parse(JSON.parse(y))
+    function fill(dataset) {
+      if (dataset == 'tgn')
+        return "#ff7800"
+      else 
+        return "#00FFFF"
     }
 
-    // initialize, render map
-    // authority geom "geoms": [{"type": "point", "coordinates": [-72.8667, -13.6167]}]
-    function map_init (map, options) {
-      // console.log('in map_init()')
-      window.geom = {"type":"FeatureCollecton","features":[]}
+    if (geom['features'].length > 0) {
+      // console.log('geom: ',geom)
+      idToFeature = {} // for feature lookup
+      features = L.geoJSON(geom, {
+        pointToLayer: function (feature, latlng) {
+          matchid = feature.properties.ds+':'+feature.properties.id
+          marker = L.circleMarker(latlng,
+            {
+              radius: 8, fillOpacity: 0.6, opacity: 1, weight: 1,
+              color: "#333", fillColor: fill(feature.properties.ds)
+            }
+          ).bindPopup(feature.properties.ds+':'+feature.properties.id);
 
-      window.gelems = $('script').filter(function() {
-        <!--return this.id.match(/[0-9]/) && this.text != '"null"';-->
-        return this.id !='' && this.text != '"null"';
-      });
+          idToFeature[matchid] = marker
+          return marker
+        }
+      }).addTo(map);
 
-      // TODO: location returned in TGN hit needs cleaning
-      // dplace gelem[0].text "\"{'type': 'Point', 'geowkt': 'POINT(-70 46)', 'citation': {'id': 'dplace:EA', 'label': 'Ethnographic Atlas'}, 'coordinates': [-70, 46]}\""
-      // tgn(alcedo) gelem[0].text "{\"type\": \"point\", \"coordinates\": [-72.8667, -13.6167]}"
-      for (i=0;i<gelems.length;i++){
-        let t_geom = cleanJson(gelems[i].text)
-        // let t_geom = JSON.parse(JSON.parse(gelems[i].text))
-        var ds = "{{ ds_label }}"
-        t_geom['properties'] = {"id": gelems[i].id, "ds": t_geom.ds!=null?t_geom.ds:ds }
-        geom['features'].push(t_geom)
-      }
-
-      function fill(dataset) {
-        if (dataset == 'tgn')
-          return "#ff7800"
-        else 
-          return "#00FFFF"
-      }
-
-      if (geom['features'].length > 0) {
-        // console.log('geom: ',geom)
-        idToFeature = {} // for feature lookup
-        features = L.geoJSON(geom, {
-          pointToLayer: function (feature, latlng) {
-            matchid = feature.properties.ds+':'+feature.properties.id
-            marker = L.circleMarker(latlng,
-              {
-                radius: 8, fillOpacity: 0.6, opacity: 1, weight: 1,
-                color: "#333", fillColor: fill(feature.properties.ds)
-              }
-            ).bindPopup(feature.properties.ds+':'+feature.properties.id);
-
-            idToFeature[matchid] = marker
-            return marker
-          }
-        }).addTo(map);
-
-        mappy.fitBounds(features.getBounds())
-        <!--if (geom['features'].length > 1) {-->
-          <!--mappy.fitBounds(features.getBounds())-->
-        <!--} else {-->
-          <!--latlng = L.latLng(-->
-            <!--geom['features'][0].coordinates[1],-->
-            <!--geom['features'][0].coordinates[0])-->
-          <!--map.setView(latlng, 4)-->
-        <!--}-->
-
-      } else {
-        console.log('no geometries, no feature')
-      }
-    } // end map_init
-  </script>
+      mappy.fitBounds(features.getBounds())
+    } else {
+      console.log('no geometries, no feature')
+    }
+  } // end map_init
+</script>
 {% endblock %}
