@@ -94,7 +94,7 @@
             <div id="place_map" class="col-content small">
                 <p class="mb-0 allcap-heading">GEOGRAPHY
                     <span class="float-right">
-                    <a href="#" class="fetch-context">context</a> | zoom 
+                      context <input class="fetch-context" type="checkbox"/> | zoom 
                     <a href="javascript:getClose()">
                       {% fontawesome_icon 'search-plus' color='#336699' %}</a>
                 </p>
@@ -129,10 +129,17 @@
       console.log($(this).text())
       console.log(base_urls)
     })
-    $(".fetch-context").click(function(event){
-      event.preventDefault();
-      fetchContext(boundsPolygon(mappy.getBounds()))
-      <!--console.log(boundsPolygon(mappy.getBounds()))-->
+    <!--$(".fetch-context").click(function(event){-->
+      <!--event.preventDefault();-->
+      <!--fetchContext(boundsPolygon(mappy.getBounds()))-->
+      <!--<!--console.log(boundsPolygon(mappy.getBounds()))-->-->
+    <!--})-->
+    $('input.fetch-context').click(function(){
+      if($(this).is(':checked')) {
+        fetchContext(boundsPolygon(mappy.getBounds()))
+      } else {
+        nearby.removeFrom(mappy)
+      }
     })
   })
   // for ES query
@@ -181,10 +188,8 @@
       ]]
     }
     // display bbox
-    feature={"type":"Feature","properties":{"id":"fooid"},"geometry":geom}
+    <!--feature={"type":"Feature","properties":{"id":"fooid"},"geometry":geom}-->
     <!--var polygon = L.polygon(latlngs, {color: 'red'}).addTo(mappy)-->
-    <!--console.log('feature',JSON.stringify(feature))-->
-    <!--console.log('geom',JSON.stringify(bbox))-->
     return JSON.stringify(geom["coordinates"])
   }
   
@@ -248,14 +253,14 @@
   }, false);
 
   function getClose() {
-    <!--mappy.setZoom(mappy.getZoom()+2)-->
-    mappy.fitBounds(features.getBounds().pad(3))
+    mappy.setZoom(mappy.getZoom()+2)
+    <!--mappy.fitBounds(features.getBounds().pad(3))-->
   }
   function fill(foo) {
     if (foo == 'tgn')
       return "#ff7800"
     else if (foo == 'whg')
-      return "#98E2FA"
+      return "#ff0000"
     else
       return "#7AFF7A"
   }
