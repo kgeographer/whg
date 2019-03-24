@@ -22,12 +22,13 @@ urlpatterns = [
     path('<int:pk>/recon/', views.ds_recon, name="ds_recon"), # form submit
 
     # review, validate hits
-    #path('<int:pk>/review/<str:tid>', views.review, name="review"),
     path('<int:pk>/review/<str:tid>/<str:passnum>', views.review, name="review"),
 
-    # list places
-    #path('<str:label>/datagrid/', views.ds_grid, name='ds_grid'),
+    # list places (for table)
     path('<str:label>/datatable/<str:f>', views.drf_table, name='drf_table'),
+
+    # list places in a dataset
+    path('<str:label>/places', views.ds_list, name='ds_list'),
 
     # delete TaskResult & associated hits
     path('task-delete/<str:tid>/<str:scope>', views.task_delete, name="task-delete"),

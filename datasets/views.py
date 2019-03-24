@@ -1,7 +1,7 @@
 # datasets.views
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.forms import formset_factory, modelformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import (
@@ -290,6 +290,16 @@ def drf_table(request, label, f):
     ds = get_object_or_404(Dataset, label=label)
     filt = f
     return render(request, 'datasets/drf_table.html', {'ds':ds,'filter':filt})
+
+def ds_list(request, label):
+    # fetch places in specified dataset
+    print('in ds_list() for',label)
+    qs = Place.objects.all().filter(dataset=label)
+    geoms=[]
+    for p in qs.all():
+        for g in p.geoms.all():
+            geoms.append(g.json)
+    return JsonResponse(geoms,safe=False)
 
 # insert LP-csv file to database
 # TODO: require, handle sources
