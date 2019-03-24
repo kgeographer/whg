@@ -94,7 +94,7 @@
             <div id="place_map" class="col-content small">
                 <p class="mb-0 allcap-heading">GEOGRAPHY
                     <span class="float-right">
-                      context <input class="fetch-context" type="checkbox"/> | zoom 
+                      context <input id="fetch-context" type="checkbox"/> | zoom 
                     <a href="javascript:getClose()">
                       {% fontawesome_icon 'search-plus' color='#336699' %}</a>
                 </p>
@@ -134,7 +134,8 @@
       <!--fetchContext(boundsPolygon(mappy.getBounds()))-->
       <!--<!--console.log(boundsPolygon(mappy.getBounds()))-->-->
     <!--})-->
-    $('input.fetch-context').click(function(){
+    $('input#fetch-context').prop('checked',false)
+    $('input#fetch-context').click(function(){
       if($(this).is(':checked')) {
         fetchContext(boundsPolygon(mappy.getBounds()))
       } else {
@@ -158,13 +159,17 @@
             )
           }
         }
+        // TODO: fix panes z-index
+        mappy.createPane('contextPane');
+        mappy.getPane('contextPane').style.zIndex = 100;
         nearby = L.geoJSON(context, {
+          pane: 'contextPane',
           pointToLayer: function (feature, latlng) {
             identifier = feature.geometry.ds+':'+feature.geometry.id
             marker = L.circleMarker(latlng,
               {
-                radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
-                color: "#000", fillColor: fill(feature.geometry.ds)
+                radius: 5, fillOpacity: 0.6, opacity: 1, weight: 1,
+                color: "#fff", fillColor: fill(feature.geometry.ds)
               }
             ).bindPopup(identifier);
          
@@ -260,7 +265,7 @@
     if (foo == 'tgn')
       return "#ff7800"
     else if (foo == 'whg')
-      return "#ff0000"
+      return "#ff3300"
     else
       return "#7AFF7A"
   }
@@ -270,8 +275,10 @@
       mappy.removeLayer(features)
     }
     idToFeature = {}  // for feature lookup
+    mappy.createPane('mainPane');
+    mappy.getPane('mainPane').style.zIndex = 400;
     features = L.geoJSON(geom, {
-    // TODO: for some reason linestrings are parsed and rendered here
+      pane: 'mainPane',
       pointToLayer: function (feature, latlng) {
         <!--console.log(feature)-->
         identifier = 'whg:'+feature.properties.id
