@@ -26,12 +26,14 @@
       <div class="row">
         <div class="col-sm-6">
         <input type="hidden" name="ds" value="{{ ds.id }}">
+        {% if user.is_superuser %}
         <div class="form-check">
           <label class="form-check-label" for="auth1">
             <input type="radio" class="form-check-input" id="auth1"
               name="recon" value="whg" checked>WHG Spine (whg)
           </label>
         </div>
+        {% endif %}
         <div class="form-check">
           <label class="form-check-label" for="auth2">
             <input type="radio" class="form-check-input" id="auth2"

@@ -13,6 +13,7 @@ from areas.models import Area
 from datasets.es_utils import makeDoc, esInit
 from datasets.models import Dataset, Hit
 from datasets.regions import regions as region_hash
+from datasets.static.hashes.parents import ccodes
 from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully, HitRecord
 from places.models import Place
 ##
@@ -331,9 +332,10 @@ def parseWhen(when):
   print('when to parse',when)
   timespan = 'parse me now'
   return timespan
-def ccDecode(ccodes):
-  print('ccodes to parse',ccodes)
-  countries = 'parse me now'
+def ccDecode(codes):
+  countries=[]
+  for c in codes:
+    countries.append(ccodes[0][c]['gnlabel'])
   return countries
 
 # create normalized json field for hits from any authority
