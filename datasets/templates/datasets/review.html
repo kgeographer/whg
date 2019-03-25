@@ -92,7 +92,7 @@
             {% if record.links %}
             <p><strong>Links</strong>: 
               {% for link in record.links.all %}
-                {{ link.json.identifier }}; 
+                <a href="#" class="remote-link">{{ link.json.identifier }}</a>; 
               {% endfor %}</p>
             {% endif %}
           </div>
@@ -192,6 +192,7 @@
   {% endif %}
 </div> <!-- .container -->
 <script type="text/javascript">
+    console.log('ds',"{{ ds_label }}")
     $(function(){
       // set pass dropdown as next set with any reviewed=False rows
       $( "#select_pass" ).val("{{ passnum }}")
@@ -296,11 +297,13 @@
       geom['features'].push(t_geom)
     }
 
-    function fill(dataset) {
-      if (dataset == 'tgn')
-        return "#ff7800"
-      else 
-        return "#00FFFF"
+    function fill(auth) {
+      if (auth == 'tgn'){
+        return "#ff7800"}
+      else if (auth == 'whg'){
+        return "red"}
+      else {
+        return "#ff7800"}
     }
 
     if (geom['features'].length > 0) {
@@ -308,11 +311,14 @@
       idToFeature = {} // for feature lookup
       features = L.geoJSON(geom, {
         pointToLayer: function (feature, latlng) {
+          console.log(feature.properties.ds+':'+feature.properties.id, "{{ authority }}")
           matchid = feature.properties.ds+':'+feature.properties.id
           marker = L.circleMarker(latlng,
             {
               radius: 8, fillOpacity: 0.6, opacity: 1, weight: 1,
-              color: "#333", fillColor: fill(feature.properties.ds)
+              color: "#333", fillColor: fill(
+              ['tgn','dbp','gn','wd','black'].includes(feature.properties.ds)?feature.properties.ds:"{{ authority }}"
+              )
             }
           ).bindPopup(feature.properties.ds+':'+feature.properties.id);
 
