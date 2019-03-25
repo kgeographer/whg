@@ -241,6 +241,13 @@
             layer.bindPopup("<b>Need name here, not type:</b> " + feature.type,popupOptions);
         }
       })
+    window.ecoregions = new L.GeoJSON.AJAX("/datasets/tnc_ecoregions/places",
+      { style:watershedStyle,
+        onEachFeature: function (feature, layer) {
+          popupOptions = {maxWidth: 200};
+            layer.bindPopup("<b>Need name here, not type:</b> " + feature.type,popupOptions);
+        }
+      })
     rivers.addTo(mappy)
 
     var baseLayers = {
@@ -250,7 +257,8 @@
     };
     var dataLayers = {
       "Rivers": rivers,
-      "Watersheds": watersheds
+      "Watersheds": watersheds,
+      "Ecoregions": ecoregions
       <!--"Bioregions": 'boo'-->
     }
     L.control.layers(baseLayers,dataLayers).addTo(mappy);
