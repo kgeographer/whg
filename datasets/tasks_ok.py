@@ -392,19 +392,7 @@ def normalize(h,auth):
   return rec.toJSON()
 
 #
-#def maxID(es):
-  #q={"query": {"bool": {"must" : {"match_all" : {}} }},
-       #"sort": [{"whg_id": {"order": "desc"}}],
-       #"size": 1  
-       #}
-  #try:
-    #res = es.search(index='whg', body=q)
-    #maxy = int(res['hits']['hits'][0]['_id'])
-  #except:
-    #maxy = 12345677
-  #return maxy
-
-def maxID(es):
+def nextID(es):
   q={"query": {"bool": {"must" : {"match_all" : {}} }},
        "sort": [{"whg_id": {"order": "desc"}}],
        "size": 1  
@@ -414,16 +402,14 @@ def maxID(es):
     #maxy = int(res['hits']['hits'][0]['_id'])
     maxy = int(res['hits']['hits'][0]['_source']['whg_id'])
   except:
-      maxy = 12345677
-  return maxy 
-
+    maxy = 12345677
+  return maxy+1
 #
 def es_lookup_whg(qobj, *args, **kwargs):
-  global whg_id
-  #whg_id=maxID(es)
-  #print('new record, maxID is',whg_id)
-  #idx='whg_flat'
-  idx='whg'
+  next_id=nextID(es)
+  #print('next_id',next_id)
+  idx='whg_flat'
+  #idx='whg'
   bounds = kwargs['bounds']
   ds = kwargs['dataset']
   place = kwargs['place']
@@ -524,7 +510,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
   # pass1: must[links]; should[names->variants]
   # /\/\/\/\/\/
   try:
-    #print("q1:", q1)
+    print("q1:", q1)
     res1 = es.search(index=idx, body = q1)
     hits1 = res1['hits']['hits']
   except:
@@ -536,23 +522,18 @@ def es_lookup_whg(qobj, *args, **kwargs):
       result_obj['hits'].append(hit)
   elif len(hits1) == 0:
   # if this is black, index place as a parent immediately
-    if ds == 'black':
-      result_obj['hit_count'] = hit_count
-      return result_obj
-      #whg_id +=1
-      #print('just upped whg_id by 1',whg_id)
+    #if ds == 'black':
       #parent_obj = makeDoc(place,'none')
       #parent_obj['relation']={"name":"parent"}
-      #parent_obj['whg_id']=whg_id
+      #parent_obj['whg_id']=maxy+2
       ## add its own names to the suggest field
       #for n in parent_obj['names']:
         #parent_obj['suggest']['input'].append(n['toponym']) 
-      ##index it
+      # index it
       #try:
-        #res = es.index(index=idx, doc_type='place', id=whg_id, body=json.dumps(parent_obj))
+        #res = es.index(index=idx, doc_type='place', id=maxy+2, body=json.dumps(parent_obj))
         ##res = es.index(index=idx, doc_type='place', body=json.dumps(parent_obj))
         #count_seeds +=1
-        #print(res)
       #except:
         #print('failed indexing '+str(place.id), parent_obj)
         #err_black-whg.write(str({"pid":place.id, "title":place.title})+'\n')
@@ -560,7 +541,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
   # pass2: must[name, type]; should[parent]; filter[geom, bounds]
   # /\/\/\/\/\/
     try:
-      #print("q2:", q2)
+      print("q2:", q2)
       res2 = es.search(index=idx, body = q2)
       hits2 = res2['hits']['hits']
     except:
@@ -575,7 +556,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
       # pass3: must[name]; should[parent]; filter[bounds]
       # /\/\/\/\/\/
       try:
-        #print("q3:", q3)
+        print("q3:", q3)
         res3 = es.search(index=idx, body = q3)
         hits3 = res3['hits']['hits']
       except:
@@ -597,15 +578,14 @@ def align_whg(pk, *args, **kwargs):
   #print('align_whg kwargs:', str(kwargs))
   #fin = codecs.open(tempfn, 'r', 'utf8')
   ds = get_object_or_404(Dataset, id=pk)
-  if ds.id==1:
+  #if ds.id==1:
     #err_black_whg = codecs.open('err_black-whg.txt', mode='w', encoding='utf8')
-    esInit('whg')
-    whg_id=maxID(es)
+    #esInit('whg')
   
   # dummies for testing
-  #bounds = {'type': ['userarea'], 'id': ['0']}
+  bounds = {'type': ['userarea'], 'id': ['0']}
   #bounds = {'type': ['region'], 'id': ['76']}
-  bounds = kwargs['bounds']
+  #bounds = kwargs['bounds']
 
   # TODO: system for region creation
   hit_parade = {"summary": {}, "hits": []}
@@ -617,15 +597,14 @@ def align_whg(pk, *args, **kwargs):
   start = datetime.datetime.now()
 
   # build query object, send, save hits
-  for place in ds.places.all()[:50]:
-    #whg_id=maxID(es)
-    #print('starting whg_id int',whg_id,whg_id+1)
-  #for place in ds.places.all():
+  #for place in ds.places.all()[9:12]:
+  for place in ds.places.all():
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=81741) # Baalbek (lb)
     #place=get_object_or_404(Place,id=84778) # Baalbek/Heliopolis (lb)
     #place=get_object_or_404(Place,id=84777) # Heliopolis (eg)
     count +=1
+    #whg_id +=1
     qobj = {"place_id":place.id, "src_id":place.src_id, "title":place.title}
     links=[]; ccodes=[]; types=[]; variants=[]; parents=[]; geoms=[]; 
 
@@ -676,25 +655,6 @@ def align_whg(pk, *args, **kwargs):
       count_nohit +=1
       # for black, create parent record immediately
       if ds.label == 'black':
-        whg_id+=1
-        place=get_object_or_404(Place,id=result_obj['place_id'])
-        print('new whg_id',whg_id)
-        parent_obj = makeDoc(place,'none')
-        parent_obj['relation']={"name":"parent"}
-        parent_obj['whg_id']=whg_id
-        # add its own names to the suggest field
-        for n in parent_obj['names']:
-          parent_obj['suggest']['input'].append(n['toponym']) 
-        #index it
-        try:
-          res = es.index(index='whg', doc_type='place', id=str(whg_id), body=json.dumps(parent_obj))
-          #res = es.index(index='whg', doc_type='place', body=json.dumps(parent_obj))
-          #count_seeds +=1
-          print(res)
-        except:
-          print('failed indexing '+str(place.id), parent_obj)
-          print(sys.exc_info[0])
-          #err_black-whg.write(str({"pid":place.id, "title":place.title})+'\n')        
         print('created parent:',result_obj['place_id'],result_obj['title'])
       nohits.append(result_obj['missed'])
     else:
