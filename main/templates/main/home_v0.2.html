@@ -110,8 +110,8 @@
   });
   
   function autosuggest(value){
-    $.get("/search/names",{idx: 'whg_flat', search: value, doc_type: doctype},
-    <!--$.get("/search/names",{idx: 'whg', search: value, doc_type: doctype},-->
+    <!--$.get("/search/names",{idx: 'whg_flat', search: value, doc_type: doctype},-->
+    $.get("/search/names",{idx: 'whg', search: value, doc_type: doctype},
       function(data){
         showSuggestions(data);
       });

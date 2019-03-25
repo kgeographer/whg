@@ -594,13 +594,12 @@ def es_lookup_whg(qobj, *args, **kwargs):
 #
 @task(name="align_whg")
 def align_whg(pk, *args, **kwargs):
-  #print('align_whg kwargs:', str(kwargs))
-  #fin = codecs.open(tempfn, 'r', 'utf8')
   ds = get_object_or_404(Dataset, id=pk)
+  # get last identifier (whg_id & _id)
+  whg_id=maxID(es)
   if ds.id==1:
-    #err_black_whg = codecs.open('err_black-whg.txt', mode='w', encoding='utf8')
+    errors_black = codecs.open('err_black-whg.txt', mode='w', encoding='utf8')
     esInit('whg')
-    whg_id=maxID(es)
   
   # dummies for testing
   #bounds = {'type': ['userarea'], 'id': ['0']}
@@ -609,18 +608,19 @@ def align_whg(pk, *args, **kwargs):
 
   # TODO: system for region creation
   hit_parade = {"summary": {}, "hits": []}
-  nohits = [] # place_id list for 0 hits
-  features = []
-  errors=[]
-  [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3, count_errors] = [0,0,0,0,0,0,0,0]
-  #print('align_whg celery task id:', align_whg.request.id)
+  [nohits, errors] = [[],[]] # 
+  [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3, count_errors, count_seeds] = [0,0,0,0,0,0,0,0,0]
+
   start = datetime.datetime.now()
 
-  # build query object, send, save hits
-  for place in ds.places.all()[:50]:
-    #whg_id=maxID(es)
-    #print('starting whg_id int',whg_id,whg_id+1)
-  #for place in ds.places.all():
+  """
+  build qobj query object
+  result_obj = es_lookup_whg(qobj)
+  if 'black' && no hits on pass1, index immediately
+  else, write all hits to db 
+  """
+  #for place in ds.places.all()[:50]:
+  for place in ds.places.all():
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=81741) # Baalbek (lb)
     #place=get_object_or_404(Place,id=84778) # Baalbek/Heliopolis (lb)
@@ -667,14 +667,16 @@ def align_whg(pk, *args, **kwargs):
       # make everything a simple polygon hull for spatial filter purposes
       qobj['geom'] = hully(g_list)
 
-    #print('qobj in align_whg():', qobj)
-
+    
+    
+    #
     ## run pass1-pass3 ES queries
     result_obj = es_lookup_whg(qobj, bounds=bounds, dataset=ds.label, place=place)
 
     if result_obj['hit_count'] == 0:
       count_nohit +=1
-      # for black, create parent record immediately
+      # if 'black', create parent record immediately
+      # TODO: same for others?
       if ds.label == 'black':
         whg_id+=1
         place=get_object_or_404(Place,id=result_obj['place_id'])
@@ -688,20 +690,18 @@ def align_whg(pk, *args, **kwargs):
         #index it
         try:
           res = es.index(index='whg', doc_type='place', id=str(whg_id), body=json.dumps(parent_obj))
-          #res = es.index(index='whg', doc_type='place', body=json.dumps(parent_obj))
-          #count_seeds +=1
-          print(res)
+          count_seeds +=1
         except:
           print('failed indexing '+str(place.id), parent_obj)
           print(sys.exc_info[0])
-          #err_black-whg.write(str({"pid":place.id, "title":place.title})+'\n')        
+          errors_black.write(str({"pid":place.id, "title":place.title})+'\n')
         print('created parent:',result_obj['place_id'],result_obj['title'])
-      nohits.append(result_obj['missed'])
+      #nohits.append(result_obj['missed'])
     else:
       count_hit +=1
       count_errors = 0
       total_hits += result_obj['hit_count']
-      print("hit['_source']: ",result_obj['hits'][0]['_source'])
+      #print("hit['_source']: ",result_obj['hits'][0]['_source'])
       for hit in result_obj['hits']:
         if hit['pass'] == 'pass1':
           count_p1+=1 
@@ -730,11 +730,9 @@ def align_whg(pk, *args, **kwargs):
           new.save()
         except:
           count_errors +=1
-          #pass
-          print("hit _source, error:", hit, sys.exc_info())
+          print("hit _source, error:",hit, sys.exc_info())
   end = datetime.datetime.now()
   # ds.status = 'recon_whg'
-  #print('features:',features)
   hit_parade['summary'] = {
     'count':count,
     'got_hits':count_hit,
@@ -746,7 +744,7 @@ def align_whg(pk, *args, **kwargs):
     'elapsed': elapsed(end-start)
     #'skipped': count_errors
   }
-  #if err_black_whg != None: err_black_whg.close()
+  if errors_black != None: errors_black.close()
   print("hit_parade['summary']",hit_parade['summary'])
   return hit_parade['summary']
 
