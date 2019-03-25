@@ -147,8 +147,9 @@
   function fetchContext(bbox){
     <!--console.log('bbox:',bbox);-->
     context={"type":"FeatureCollection","features":[]}
-    $.get("/search/features",{idx: 'whg_flat', search: bbox, doc_type: 'place'},
+    $.get("/search/features",{idx: 'whg', search: bbox, doc_type: 'place'},
       function(data){
+        console.log(data['hits'].length,'hits for context query')
         for(i in data['hits']){
           geoms=data['hits'][i]['geoms']
           for(j in geoms) {
@@ -195,6 +196,7 @@
     // display bbox
     <!--feature={"type":"Feature","properties":{"id":"fooid"},"geometry":geom}-->
     <!--var polygon = L.polygon(latlngs, {color: 'red'}).addTo(mappy)-->
+    console.log(JSON.stringify(geom["coordinates"]))
     return JSON.stringify(geom["coordinates"])
   }
   
@@ -222,30 +224,55 @@
       "opacity": 0.7,
       "fillOpacity": 0.1
     };
+    
+    window.setRegionColor = function(d) {
+      return d == 'AA' ? '#5F9EA0' :
+        d == 'AN' ? '#7FFF00' :
+        d == 'PA' ? '#DC143C' :
+        d == 'NA' ? '#FF7F50' :
+        d == 'OC' ? '#483D8B' :
+        d == 'AT' ? '#FF8C00' :
+        d == 'IM' ? '#FF1493' :
+        d == 'NT' ? '#FF00FF' : '#66CDAA'
+    }
+
+    function ecoregionStyle(feature) {
+      <!--console.log(feature.properties.src_id.substring(0,2))-->
+      return {
+        fillColor: setRegionColor(feature.properties.src_id.substring(0,2)),
+        <!--fillColor: "green",-->
+        color: "#fff",
+        weight: 1,
+        opacity: 0.7,
+        fillOpacity: 0.3
+      };
+    }
     var riverStyle = {
       "color": "#336699",
       "weight": 1
     };
     var popupOptions = {}
+    
     window.rivers = new L.GeoJSON.AJAX("/datasets/ne_rivers/places",
       {style:riverStyle,
         onEachFeature: function (feature, layer) {
           popupOptions = {maxWidth: 200};
-            layer.bindPopup("<b>Need name here, not type:</b> " + feature.type,popupOptions);
+            layer.bindPopup(feature.properties.name+" ("+feature.properties.src_id+")", popupOptions);
           }
       });
     window.watersheds = new L.GeoJSON.AJAX("/datasets/wri_watersheds/places",
       { style:watershedStyle,
         onEachFeature: function (feature, layer) {
           popupOptions = {maxWidth: 200};
-            layer.bindPopup("<b>Need name here, not type:</b> " + feature.type,popupOptions);
+            layer.bindPopup(feature.properties.name+" ("+feature.properties.src_id+")", popupOptions);
         }
       })
     window.ecoregions = new L.GeoJSON.AJAX("/datasets/tnc_ecoregions/places",
-      { style:watershedStyle,
+      { style:ecoregionStyle,
         onEachFeature: function (feature, layer) {
+          <!--console.log('feature',feature)-->
           popupOptions = {maxWidth: 200};
-            layer.bindPopup("<b>Need name here, not type:</b> " + feature.type,popupOptions);
+            layer.bindPopup(feature.properties.name+" ("+feature.properties.src_id+")", popupOptions);
         }
       })
     rivers.addTo(mappy)
@@ -259,7 +286,6 @@
       "Rivers": rivers,
       "Watersheds": watersheds,
       "Ecoregions": ecoregions
-      <!--"Bioregions": 'boo'-->
     }
     L.control.layers(baseLayers,dataLayers).addTo(mappy);
     baseLayers['AWMC Terrain'].addTo(mappy)

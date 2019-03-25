@@ -84,7 +84,7 @@ def contextSearch(idx,doctype,q):
   es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
   count_hits=0
   result_obj = {"hits":[]}
-  res = es.search(index=idx, doc_type=doctype, body=q)
+  res = es.search(index=idx, doc_type=doctype, body=q, size=300)
   hits = res['hits']['hits']
   if len(hits) > 0:
     for hit in hits:
@@ -117,12 +117,11 @@ class FeatureContextView(View):
               "type": "polygon",
               "coordinates": json.loads(bbox)
             },
-            "relation": "intersects"
+            "relation": "within"
           }
         }}        
       }    
     }}
-    print('q_context_all')
     features = contextSearch(idx, doctype, q_context_all)
     #htmlFeatures = [ featureItem(s) for f in features]
     return JsonResponse(features, safe=False)

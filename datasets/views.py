@@ -297,8 +297,10 @@ def ds_list(request, label):
     qs = Place.objects.all().filter(dataset=label)
     geoms=[]
     for p in qs.all():
-        for g in p.geoms.all():
-            geoms.append(g.json)
+        feat={"type":"Feature",
+              "properties":{"src_id":p.src_id,"name":p.title},
+              "geometry":p.geoms.first().json}
+        geoms.append(feat)
     return JsonResponse(geoms,safe=False)
 
 # insert LP-csv file to database
