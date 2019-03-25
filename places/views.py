@@ -19,6 +19,7 @@ class PlacePortalView(DetailView):
         es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
         q = {"query":{"bool": {"must": [{"match":{"_id": id_}}]}}}
         pid=es.search(index='whg_flat', doc_type='place', body=q)['hits']['hits'][0]['_source']['place_id']
+        #pid=es.search(index='whg', doc_type='place', body=q)['hits']['hits'][0]['_source']['place_id']
         self.kwargs['pid'] = pid
         return get_object_or_404(Place, id=pid)
 

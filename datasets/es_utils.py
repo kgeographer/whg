@@ -1,6 +1,24 @@
 # es_utils.py 7 Feb 2019; rev 5 Mar 2019
 # misc supporting eleasticsearch tasks (es.py)
 
+def esInit(idx):
+    import os, codecs, time, datetime
+    os.chdir('/Users/karlg/Documents/Repos/_whgdata')
+
+    from elasticsearch import Elasticsearch
+    es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+    mappings = codecs.open('data/elastic/mappings/mappings_whg.json', 'r', 'utf8').read()
+
+    # zap existing if exists, re-create
+    try:
+        es.indices.delete(idx)
+    except Exception as ex:
+        print(ex)
+    try:
+        es.indices.create(index=idx, ignore=400, body=mappings)
+        print ('index "'+idx+'" created')
+    except Exception as ex:
+        print(ex)
 def maxID(es):
     q={"query": {"bool": {"must" : {"match_all" : {}} }},
        "sort": [{"whg_id": {"order": "desc"}}],
@@ -205,3 +223,52 @@ class SeedPlace(object):
         import json
         return json.dumps(self, default=jsonDefault, sort_keys=True, indent=2)            
 
+class IndexedPlaceFlat(object):
+    def __init__(self, whg_id, place_id, dataset, src_id, title, uri):
+        self.relation = {"name":"parent"}
+        self.children = []
+        self.suggest = {"input":[]}
+        self.representative_point = []
+        self.minmax = []
+
+        self.whg_id = whg_id
+        self.place_id = place_id
+        self.dataset = dataset
+        self.src_id = src_id
+        self.title = title
+        self.uri = uri
+
+        self.ccodes = []
+        self.names = []
+        self.types = []
+        self.geoms = []
+        self.links = []
+        self.timespans = []
+        self.descriptions = []
+        self.depictions = []
+        self.relations = []
+        
+    def __str__(self):
+        import json
+        #return str(self.__class__) + ": " + str(self.__dict__)    
+        return json.dumps(self.__dict__)
+
+    def toJSON(self):
+        import json
+        return json.dumps(self, default=lambda o: o.__dict__, 
+                          sort_keys=True, indent=2)    
+
+# to be used in subsequent adds to is_conflation_of[]
+class MatchRecord(object):
+    def __init__(self, dataset, id, title, uri, exact):
+        self.id = id
+        self.title = title
+        self.uri = uri
+        self.source_gazetteer = dataset
+        self.exact_matches = exact
+        self.names = [{"name":title,"language": ""}]
+        self.temporal_bounds = ["", "", "", "", ""]
+    
+    def __str__(self):
+        import json
+        return json.dumps(self.__dict__)    

@@ -1,4 +1,5 @@
 # celery reconciliation tasks align_tgn(), align_whg() and related functions
+# take2, 24 Mar 2019: incorportate initial black ingest
 from __future__ import absolute_import, unicode_literals
 from celery.decorators import task
 from django.conf import settings
@@ -10,7 +11,6 @@ import sys, os, re, json, codecs, datetime, time, csv, random
 from copy import deepcopy
 from pprint import pprint
 from areas.models import Area
-from datasets.es_utils import makeDoc, esInit
 from datasets.models import Dataset, Hit
 from datasets.regions import regions as region_hash
 from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully, HitRecord
@@ -390,29 +390,11 @@ def normalize(h,auth):
     except:
       print("normalize(tgn) error:", h['tgnid'], sys.exc_info())
   return rec.toJSON()
-
-#
-def nextID(es):
-  q={"query": {"bool": {"must" : {"match_all" : {}} }},
-       "sort": [{"whg_id": {"order": "desc"}}],
-       "size": 1  
-       }
-  try:
-    res = es.search(index='whg', body=q)
-    #maxy = int(res['hits']['hits'][0]['_id'])
-    maxy = int(res['hits']['hits'][0]['_source']['whg_id'])
-  except:
-    maxy = 12345677
-  return maxy+1
+  
 #
 def es_lookup_whg(qobj, *args, **kwargs):
-  next_id=nextID(es)
-  #print('next_id',next_id)
-  idx='whg_flat'
-  #idx='whg'
+  # print('qobj',qobj)
   bounds = kwargs['bounds']
-  ds = kwargs['dataset']
-  place = kwargs['place']
   #bounds = {'type': ['region'], 'id': ['87']}
   #bounds = {'type': ['userarea'], 'id': ['0']}
   hit_count, err_count = [0,0]
@@ -420,7 +402,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
   # empty result object
   result_obj = {
     'place_id': qobj['place_id'], 'title': qobj['title'], 
-      'hits':[], 'missed':-1, 'total_hits':-1
+    'hits':[], 'missed':-1, 'total_hits':-1
   }  
 
   # initial for pass1
@@ -504,14 +486,12 @@ def es_lookup_whg(qobj, *args, **kwargs):
   q1 = qlinks
   q2 = qbase #qsugg
   q3 = qbare
-  count_seeds=0
   
   # /\/\/\/\/\/
   # pass1: must[links]; should[names->variants]
   # /\/\/\/\/\/
   try:
-    print("q1:", q1)
-    res1 = es.search(index=idx, body = q1)
+    res1 = es.search(index="whg", body = q1)
     hits1 = res1['hits']['hits']
   except:
     print("q1, error:", q1, sys.exc_info())
@@ -521,28 +501,11 @@ def es_lookup_whg(qobj, *args, **kwargs):
       hit['pass'] = 'pass1'
       result_obj['hits'].append(hit)
   elif len(hits1) == 0:
-  # if this is black, index place as a parent immediately
-    #if ds == 'black':
-      #parent_obj = makeDoc(place,'none')
-      #parent_obj['relation']={"name":"parent"}
-      #parent_obj['whg_id']=maxy+2
-      ## add its own names to the suggest field
-      #for n in parent_obj['names']:
-        #parent_obj['suggest']['input'].append(n['toponym']) 
-      # index it
-      #try:
-        #res = es.index(index=idx, doc_type='place', id=maxy+2, body=json.dumps(parent_obj))
-        ##res = es.index(index=idx, doc_type='place', body=json.dumps(parent_obj))
-        #count_seeds +=1
-      #except:
-        #print('failed indexing '+str(place.id), parent_obj)
-        #err_black-whg.write(str({"pid":place.id, "title":place.title})+'\n')
   # /\/\/\/\/\/
   # pass2: must[name, type]; should[parent]; filter[geom, bounds]
   # /\/\/\/\/\/
     try:
-      print("q2:", q2)
-      res2 = es.search(index=idx, body = q2)
+      res2 = es.search(index="whg", body = q2)
       hits2 = res2['hits']['hits']
     except:
       print("q2, error:", q2, sys.exc_info())
@@ -556,8 +519,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
       # pass3: must[name]; should[parent]; filter[bounds]
       # /\/\/\/\/\/
       try:
-        print("q3:", q3)
-        res3 = es.search(index=idx, body = q3)
+        res3 = es.search(index="whg", body = q3)
         hits3 = res3['hits']['hits']
       except:
         print("q2, error:", q3, sys.exc_info())
@@ -568,7 +530,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
           result_obj['hits'].append(hit)
       else:
         # no hit at all
-        result_obj['missed'] = qobj['place_id']
+        result_obj['missed'] = True
   result_obj['hit_count'] = hit_count
   return result_obj
 
@@ -578,33 +540,28 @@ def align_whg(pk, *args, **kwargs):
   #print('align_whg kwargs:', str(kwargs))
   #fin = codecs.open(tempfn, 'r', 'utf8')
   ds = get_object_or_404(Dataset, id=pk)
-  #if ds.id==1:
-    #err_black_whg = codecs.open('err_black-whg.txt', mode='w', encoding='utf8')
-    #esInit('whg')
-  
+
+  bounds = kwargs['bounds']
   # dummies for testing
-  bounds = {'type': ['userarea'], 'id': ['0']}
+  #bounds = {'type': ['userarea'], 'id': ['0']}
   #bounds = {'type': ['region'], 'id': ['76']}
-  #bounds = kwargs['bounds']
 
   # TODO: system for region creation
   hit_parade = {"summary": {}, "hits": []}
   nohits = [] # place_id list for 0 hits
   features = []
-  errors=[]
   [count, count_hit, count_nohit, total_hits, count_p1, count_p2, count_p3, count_errors] = [0,0,0,0,0,0,0,0]
   #print('align_whg celery task id:', align_whg.request.id)
   start = datetime.datetime.now()
 
   # build query object, send, save hits
-  #for place in ds.places.all()[9:12]:
+  #for place in ds.places.all()[:50]:
   for place in ds.places.all():
     #place=ds.places.first()
     #place=get_object_or_404(Place,id=81741) # Baalbek (lb)
     #place=get_object_or_404(Place,id=84778) # Baalbek/Heliopolis (lb)
     #place=get_object_or_404(Place,id=84777) # Heliopolis (eg)
     count +=1
-    #whg_id +=1
     qobj = {"place_id":place.id, "src_id":place.src_id, "title":place.title}
     links=[]; ccodes=[]; types=[]; variants=[]; parents=[]; geoms=[]; 
 
@@ -619,13 +576,8 @@ def align_whg(pk, *args, **kwargs):
     qobj['countries'] = list(set(place.ccodes))
 
     ## types (Getty AAT identifiers)
-    ## account for 'null' in 97 black records
     for t in place.types.all():
-      if t.json['identifier'] != None:
-        types.append(t.json['identifier'])
-      else:
-        # inhabited place, cultural group, site
-        types.extend(['aat:300008347','aat:300387171','aat:300000809'])
+      types.append(t.json['identifier'])
     qobj['placetypes'] = types
 
     ## names
@@ -646,17 +598,17 @@ def align_whg(pk, *args, **kwargs):
       # make everything a simple polygon hull for spatial filter purposes
       qobj['geom'] = hully(g_list)
 
-    #print('qobj in align_whg():', qobj)
+    print('qobj in align_whg():', qobj)
 
     ## run pass1-pass3 ES queries
-    result_obj = es_lookup_whg(qobj, bounds=bounds, dataset=ds.label, place=place)
+    result_obj = es_lookup_whg(qobj, bounds=bounds)
 
     if result_obj['hit_count'] == 0:
       count_nohit +=1
-      # for black, create parent record immediately
       if ds.label == 'black':
-        print('created parent:',result_obj['place_id'],result_obj['title'])
-      nohits.append(result_obj['missed'])
+        # create parent record
+        print('create parent:',result_obj['place_id'],result_obj['title'])
+      #nohits.append(result_obj['missed'])
     else:
       count_hit +=1
       count_errors = 0
@@ -664,6 +616,8 @@ def align_whg(pk, *args, **kwargs):
       print("hit['_source']: ",result_obj['hits'][0]['_source'])
       for hit in result_obj['hits']:
         if hit['pass'] == 'pass1':
+          print(result_obj['place_id']+' child of '+ hit['_source']['whg_id']+'/'+hit['_source']['place_id'])
+          # TODO: index immediately? these have shared link(s)
           count_p1+=1 
         elif hit['pass'] == 'pass2': 
           count_p2+=1
@@ -677,8 +631,8 @@ def align_whg(pk, *args, **kwargs):
             authrecord_id = hit['_id'],
             dataset = ds,
             place_id = get_object_or_404(Place, id=qobj['place_id']),
-            task_id = align_whg.request.id,
-            #task_id = 'abcxxyyzz',
+            #task_id = align_whg.request.id,
+            task_id = 'abcxxyyzz',
             query_pass = hit['pass'],
             # consistent json for review display
             json = normalize(hit['_source'],'whg'),
@@ -690,7 +644,7 @@ def align_whg(pk, *args, **kwargs):
           new.save()
         except:
           count_errors +=1
-          #pass
+          pass
           print("hit _source, error:", hit, sys.exc_info())
   end = datetime.datetime.now()
   # ds.status = 'recon_whg'
@@ -706,7 +660,6 @@ def align_whg(pk, *args, **kwargs):
     'elapsed': elapsed(end-start)
     #'skipped': count_errors
   }
-  #if err_black_whg != None: err_black_whg.close()
   print("hit_parade['summary']",hit_parade['summary'])
   return hit_parade['summary']
 
