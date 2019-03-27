@@ -78,6 +78,7 @@
       "Spine Data": grayscale,
       "Satellite": satellite
     };
+    mappy.zoomControl.setPosition('topright')
     L.control.layers(baseLayers).addTo(mappy);
     baseLayers["Spine Data"].addTo(mappy)
   }, false);
@@ -85,7 +86,8 @@
   function map_init (home_map, options) {
     <!--console.log(options)-->
     mappy.setView([38, 10], 2.4)
-    mappy.zoomControl.setPosition('topright')
+    <!--mappy.zoomControl.setPosition('topright')-->
+    <!--new L.Control.Zoom({ position: 'topleft' }).addTo(map);-->
     // empty features[]
     geom = {"type":"FeatureCollecton","features":[]}
 

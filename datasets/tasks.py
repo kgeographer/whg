@@ -455,8 +455,8 @@ def es_lookup_whg(qobj, *args, **kwargs):
   qbase = {"query": { 
     "bool": {
       "must": [
-        #{"terms": {"names.toponym": qobj['variants']}},
-        {"match": {"names.toponym": qobj['title']}},
+        {"terms": {"names.toponym": qobj['variants']}},
+        #{"match": {"names.toponym": qobj['title']}},
         {"terms": {"types.identifier": qobj['placetypes']}}
         ],
       "filter": [get_bounds_filter(bounds,'whg')] if bounds['id'] != ['0'] else []
@@ -746,7 +746,7 @@ def align_whg(pk, *args, **kwargs):
     'elapsed': elapsed(end-start)
     #'skipped': count_errors
   }
-  if errors_black != None: errors_black.close()
+  if ds.label == 'black': errors_black.close()
   print("hit_parade['summary']",hit_parade['summary'])
   return hit_parade['summary']
 
