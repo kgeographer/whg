@@ -169,12 +169,7 @@
                   <p><strong>Temporal attestations extent</strong>: 
                   {{ form.json.value|get:"minmax" }}</p>
                 {% endif %}
-                  
-                {% if form.json.value|get:"descriptions"|length > 0 %} 
-                  <p class="mb-0"><strong>Links</strong>:</p> 
-                  {{ form.json.value|get:"links" }}
-                {% endif %}
-                
+                                  
                 {% if form.json.value|get:"descriptions"|length > 0 %} 
                   <p class="mb-0"><strong>Descriptions</strong>:</p> 
                   <div class="attest-element abbrev">
