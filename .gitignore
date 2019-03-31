@@ -1,6 +1,7 @@
 _dumps/
 _notes/
 _older/
+_scratch/
 
 nohup.out
 dump.rdb

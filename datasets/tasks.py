@@ -1,4 +1,4 @@
-# celery reconciliation tasks align_tgn(), align_whg() and related functions
+# celery reconciliation tasks [align_tgn(), align_whg()] and related functions
 from __future__ import absolute_import, unicode_literals
 from celery.decorators import task
 from django.conf import settings
@@ -14,7 +14,7 @@ from datasets.es_utils import makeDoc, esInit
 from datasets.models import Dataset, Hit
 from datasets.regions import regions as region_hash
 from datasets.static.hashes.parents import ccodes
-from datasets.utils import roundy, fixName, classy, bestParent, elapsed, hully, HitRecord
+from datasets.utils import *
 from places.models import Place
 ##
 import shapely.geometry as sgeo
@@ -37,30 +37,6 @@ def names(hit):
       name_array.append(t['name']+', '+str(t['display']))
   return name_array
 
-def hitRecord(hit,search_loc=None):
-  hit = hit
-  #print(search_loc,hit)
-  type_array = types(hit)
-  name_array = names(hit)
-  es_loc = hit['_source']['location']
-  if search_loc != None and es_loc['coordinates'][0] != None:
-    # get distance between search_loc and es_loc()
-    # if MultiPoint get centroid
-    s = reverse(shapely.geometry.MultiPoint(search_loc['coordinates']).centroid.coords[0]) \
-          if len(search_loc['coordinates']) > 1 \
-            else reverse(shapely.geometry.Point(search_loc['coordinates'][0]).coords[0])
-    t = tuple([es_loc['coordinates'][1],es_loc['coordinates'][0]])
-    dist = int(distance.distance(s,t).km)
-    #print(dist)
-  else:
-    dist = '?'
-  hitrec = str(dist) +'km\t'+ "%(tgnid)s\t%(title)s\t%(parents)s\t" % hit['_source'] + \
-      str(type_array) + '\t'
-  #hitrec += "%(lat)s\t%(lon)s\t%(note)s" % hit['_source'] + '\t'
-  hitrec += "%(location)s\t%(note)s" % hit['_source'] + '\t'
-  hitrec += str(name_array) + '\n'
-  return hitrec
-
 def toGeoJSON(hit):
   src = hit['_source']
   feat = {"type": "Feature", "geometry": src['location'],
@@ -72,6 +48,97 @@ def reverse(coords):
   fubar = [coords[1],coords[0]]
   return fubar
 
+
+def parseWhen(when):
+  print('when to parse',when)
+  timespan = 'parse me now'
+  return timespan
+def ccDecode(codes):
+  countries=[]
+  for c in codes:
+    countries.append(ccodes[0][c]['gnlabel'])
+  return countries
+
+def maxID(es):
+  q={"query": {"bool": {"must" : {"match_all" : {}} }},
+       "sort": [{"whg_id": {"order": "desc"}}],
+       "size": 1  
+       }
+  try:
+    res = es.search(index='whg', body=q)
+    #maxy = int(res['hits']['hits'][0]['_id'])
+    maxy = int(res['hits']['hits'][0]['_source']['whg_id'])
+  except:
+      maxy = 12345677
+  return maxy 
+
+# normalize hits json from any authority
+def normalize(h,auth):
+  if auth == 'whg':
+    try:
+      rec = HitRecord(h['whg_id'], h['place_id'], h['dataset'], h['src_id'], h['title'])
+    
+      # add elements if non-empty in index record
+      rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
+      rec.types = [t['label']+' ('+t['src_label']  +')' if 'src_label' in t.keys() else '' \
+                  for t in h['types']] if len(h['types']) > 0 else []
+      rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
+      rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
+                  if 'relations' in h.keys() and len(h['relations']) > 0 else []
+      rec.descriptions = h['descriptions'] if len(h['descriptions']) > 0 else []
+      rec.geoms = [{
+        "type":h['geoms'][0]['location']['type'], 
+        "coordinates":h['geoms'][0]['location']['coordinates'],
+        "id":h['place_id'], \
+        "ds":"whg"}] \
+        if len(h['geoms'])>0 else []
+      #rec.geoms = [g['location'] for g in h['geoms']] \
+                  #if len(h['geoms']) > 0 else []
+      rec.minmax = dict(sorted(h['minmax'].items(),reverse=True)) if len(h['minmax']) > 0 else []
+      #rec.whens = [parseWhen(t) for t in h['timespans']] \
+                  #if len(h['timespans']) > 0 else []
+      rec.links = [l['type']+': '+l['identifier'] for l in h['links']] \
+                  if len(h['links']) > 0 else []
+    except:
+      print("normalize(whg) error:", h['place_id'], sys.exc_info())    
+  
+  elif auth == 'tgn':
+    # h=hit['_source']; ['tgnid', 'title', 'names', 'suggest', 'types', 'parents', 'note', 'location']
+    # whg_id, place_id, dataset, src_id, title
+    # h['location'] = {'type': 'point', 'coordinates': [105.041, 26.398]}
+    try:
+      rec = HitRecord(-1, -1, 'tgn', h['tgnid'], h['title'])
+      rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
+      rec.types = [t['placetype']+' ('+t['id']  +')' for t in h['types'] ] if len(h['types']) > 0 else []
+      rec.ccodes = []
+      rec.parents = ' > '.join(h['parents']) if len(h['parents']) > 0 else []
+      rec.descriptions = [h['note']] if h['note'] != None else []
+      rec.geoms = [{
+        "type":h['location']['type'], 
+        "coordinates":h['location']['coordinates'],
+        "id":h['tgnid'], \
+        "ds":"tgn"}] \
+        if h['location'] != None else []
+      #rec.geoms = [h['location']] if h['location'] != None else []
+      rec.minmax = []
+      #rec.whens =[]
+      rec.links = []
+    except:
+      print("normalize(tgn) error:", h['tgnid'], sys.exc_info())
+  return rec.toJSON()
+
+#
+#def maxID(es):
+  #q={"query": {"bool": {"must" : {"match_all" : {}} }},
+       #"sort": [{"whg_id": {"order": "desc"}}],
+       #"size": 1  
+       #}
+  #try:
+    #res = es.search(index='whg', body=q)
+    #maxy = int(res['hits']['hits'][0]['_id'])
+  #except:
+    #maxy = 12345677
+  #return maxy
 
 # user-supplied spatial bounds
 def get_bounds_filter(bounds,idx):
@@ -92,7 +159,7 @@ def get_bounds_filter(bounds,idx):
   }} 
   return filter
 
-#
+# queries > result_obj
 def es_lookup_tgn(qobj, *args, **kwargs):
   #print('qobj',qobj)
   bounds = kwargs['bounds']
@@ -221,6 +288,7 @@ def es_lookup_tgn(qobj, *args, **kwargs):
   result_obj['hit_count'] = hit_count
   return result_obj
 
+# manage ES queries to tgn
 @task(name="align_tgn")
 def align_tgn(pk, *args, **kwargs):
   ds = get_object_or_404(Dataset, id=pk)
@@ -328,98 +396,7 @@ def align_tgn(pk, *args, **kwargs):
   print("summary returned",hit_parade['summary'])
   return hit_parade['summary']
 
-def parseWhen(when):
-  print('when to parse',when)
-  timespan = 'parse me now'
-  return timespan
-def ccDecode(codes):
-  countries=[]
-  for c in codes:
-    countries.append(ccodes[0][c]['gnlabel'])
-  return countries
-
-# create normalized json field for hits from any authority
-def normalize(h,auth):
-  if auth == 'whg':
-    try:
-      rec = HitRecord(h['whg_id'], h['place_id'], h['dataset'], h['src_id'], h['title'])
-    
-      # add elements if non-empty in index record
-      rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
-      rec.types = [t['label']+' ('+t['src_label']  +')' if 'src_label' in t.keys() else '' \
-                  for t in h['types']] if len(h['types']) > 0 else []
-      rec.ccodes = ccDecode(h['ccodes']) if len(h['ccodes']) > 0 else []
-      rec.parents = ['partOf: '+r.label+' ('+parseWhen(r['when']['timespans'])+')' for r in h['relations']] \
-                  if 'relations' in h.keys() and len(h['relations']) > 0 else []
-      rec.descriptions = h['descriptions'] if len(h['descriptions']) > 0 else []
-      rec.geoms = [{
-        "type":h['geoms'][0]['location']['type'], 
-        "coordinates":h['geoms'][0]['location']['coordinates'],
-        "id":h['place_id'], \
-        "ds":"whg"}] \
-        if len(h['geoms'])>0 else []
-      #rec.geoms = [g['location'] for g in h['geoms']] \
-                  #if len(h['geoms']) > 0 else []
-      rec.minmax = dict(sorted(h['minmax'].items(),reverse=True)) if len(h['minmax']) > 0 else []
-      #rec.whens = [parseWhen(t) for t in h['timespans']] \
-                  #if len(h['timespans']) > 0 else []
-      rec.links = [l['type']+': '+l['identifier'] for l in h['links']] \
-                  if len(h['links']) > 0 else []
-    except:
-      print("normalize(whg) error:", h['place_id'], sys.exc_info())    
-  
-  elif auth == 'tgn':
-    # h=hit['_source']; ['tgnid', 'title', 'names', 'suggest', 'types', 'parents', 'note', 'location']
-    # whg_id, place_id, dataset, src_id, title
-    # h['location'] = {'type': 'point', 'coordinates': [105.041, 26.398]}
-    try:
-      rec = HitRecord(-1, -1, 'tgn', h['tgnid'], h['title'])
-      rec.variants = [n['toponym'] for n in h['names']] # always >=1 names
-      rec.types = [t['placetype']+' ('+t['id']  +')' for t in h['types'] ] if len(h['types']) > 0 else []
-      rec.ccodes = []
-      rec.parents = ' > '.join(h['parents']) if len(h['parents']) > 0 else []
-      rec.descriptions = [h['note']] if h['note'] != None else []
-      rec.geoms = [{
-        "type":h['location']['type'], 
-        "coordinates":h['location']['coordinates'],
-        "id":h['tgnid'], \
-        "ds":"tgn"}] \
-        if h['location'] != None else []
-      #rec.geoms = [h['location']] if h['location'] != None else []
-      rec.minmax = []
-      #rec.whens =[]
-      rec.links = []
-    except:
-      print("normalize(tgn) error:", h['tgnid'], sys.exc_info())
-  return rec.toJSON()
-
-#
-#def maxID(es):
-  #q={"query": {"bool": {"must" : {"match_all" : {}} }},
-       #"sort": [{"whg_id": {"order": "desc"}}],
-       #"size": 1  
-       #}
-  #try:
-    #res = es.search(index='whg', body=q)
-    #maxy = int(res['hits']['hits'][0]['_id'])
-  #except:
-    #maxy = 12345677
-  #return maxy
-
-def maxID(es):
-  q={"query": {"bool": {"must" : {"match_all" : {}} }},
-       "sort": [{"whg_id": {"order": "desc"}}],
-       "size": 1  
-       }
-  try:
-    res = es.search(index='whg', body=q)
-    #maxy = int(res['hits']['hits'][0]['_id'])
-    maxy = int(res['hits']['hits'][0]['_source']['whg_id'])
-  except:
-      maxy = 12345677
-  return maxy 
-
-#
+# queries > result_obj
 def es_lookup_whg(qobj, *args, **kwargs):
   global whg_id
   #whg_id=maxID(es)
@@ -593,7 +570,7 @@ def es_lookup_whg(qobj, *args, **kwargs):
   result_obj['hit_count'] = hit_count
   return result_obj
 
-#
+# manage ES queries to whg
 @task(name="align_whg")
 def align_whg(pk, *args, **kwargs):
   ds = get_object_or_404(Dataset, id=pk)
@@ -750,141 +727,3 @@ def align_whg(pk, *args, **kwargs):
   print("hit_parade['summary']",hit_parade['summary'])
   return hit_parade['summary']
 
-def read_delimited(infile, username):
-  # some WKT is big
-  csv.field_size_limit(100000000)
-  result = {'format':'delimited','errors':{}}
-  # required fields
-  # TODO: req. fields not null or blank
-  # required = ['id', 'title', 'name_src', 'ccodes', 'lon', 'lat']
-  required = ['id', 'title', 'name_src']
-
-  # learn delimiter [',',';']
-  # TODO: falling back to tab if it fails; need more stable approach
-  try:
-    dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
-    result['delimiter'] = 'tab' if dialect.delimiter == '\t' else dialect.delimiter
-  except:
-    dialect = '\t'
-    result['delimiter'] = 'tab'
-
-  reader = csv.reader(infile, dialect)
-  result['count'] = sum(1 for row in reader)
-
-  # get & test header (not field contents yet)
-  infile.seek(0)
-  header = next(reader, None) #.split(dialect.delimiter)
-  result['columns'] = header
-
-  # TODO: specify which is missing
-  if not len(set(header) & set(required)) == 3:
-    result['errors']['req'] = 'missing a required column (id,name,name_src)'
-    return result
-  if ('min' in header and 'max' not in header) \
-       or ('max' in header and 'min' not in header):
-    result['errors']['req'] = 'if a min, must be a max - and vice versa'
-    return result
-  if ('lon' in header and 'lat' not in header) \
-       or ('lat' in header and 'lon' not in header):
-    result['errors']['req'] = 'if a lon, must be a lat - and vice versa'
-    return result
-
-  #print(header)
-  rowcount = 1
-  geometries = []
-  for r in reader:
-    rowcount += 1
-
-    # length errors
-    if len(r) != len(header):
-      if 'rowlength' in result['errors'].keys():
-        result['errors']['rowlength'].append(rowcount)
-      else:
-        result['errors']['rowlength'] = [rowcount]
-
-
-    # TODO: write geojson? make map? so many questions
-    if 'lon' in header:
-      print('type(lon): ', type('lon'))
-      if (r[header.index('lon')] not in ('',None)) and \
-               (r[header.index('lat')] not in ('',None)):
-        feature = {
-                  'type':'Feature',
-                    'geometry': {'type':'Point',
-                                 'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
-                    'properties': {'id':r[header.index('id')], 'name': r[header.index('title')]}
-                }
-        # TODO: add properties to geojson feature?
-        # props = set(header) - set(required)
-        # print('props',props)
-        # for p in props:
-        #     feature['properties'][p] = r[header.index(p)]
-        geometries.append(feature)
-
-  if len(result['errors'].keys()) == 0:
-    # don't add geometries to result
-    # TODO: write them to a user GeoJSON file?
-    # print('got username?', username)
-    # print('2 geoms:', geometries[:2])
-    # result['geom'] = {"type":"FeatureCollection", "features":geometries}
-    print('looks ok')
-  else:
-    print('got errors')
-  return result
-
-def read_lpf(infile):
-  return 'reached tasks.read_lpf()'
-
-# ES geoms filter
-#"filter": {
-  #"geo_shape": {
-      #"location": {
-          #"shape": {
-              #"type": "envelope",
-                #"coordinates" : [[13.0, 53.0], [14.0, 52.0]]
-                #},
-            #"relation": "within" # within | intersects | contains
-        #}
-    #}
-#}
-# ES geo_bounding_box filter
-# {
-#   "top_left" : {"lat" : 40.73, "lon" : -74.1},
-#   "bottom_right" : {"lat" : 40.01,"lon" : -71.12}
-# }
-
-# ES geo_polygon filter
-# {
-#   "points" : [ [-70, 40], [-80, 30], [-90, 20] ]
-# }
-
-# "geo_shape": { "location.coordinates": {"shape":
-#         {
-#             "type": "envelope",
-#             "coordinates" : [[13.0, 53.0], [14.0, 52.0]]
-#         },
-#         "relation": "within"
-#     }
-# }
-
-# POINTS ARE GETTING BUFFERED EARLIER
-#def makeBuffer(point,val):
-  #from shapely import geometry as sgeo
-  #from geomet import wkt
-  #buffer = sgeo.Point(point[0],point[1]).buffer(val).to_wkt()
-  #return wkt.loads(buffer)['coordinates']
-
-#filter_intersects_point = { "geo_shape": {
-  #"geoms.location": {
-      #"shape": {
-        #"type": "polygon",
-          #"coordinates" : makeBuffer(location['coordinates'], 2.0)
-      #},
-      #"relation": "intersects" # within | intersects | contains
-    #}
-#}} if location['type'] == "Point" else {}
-
-# selectively add filters to queries
-#if location['type'] == 'Point':
-  #q1['query']['bool']['filter'].append(filter_intersects_point)
-#elif location['type'] in ('Polygon','MultiPolygon'): # hull

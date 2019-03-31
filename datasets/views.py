@@ -6,19 +6,19 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import (
     CreateView, ListView, UpdateView, DeleteView, DetailView )
+from django_celery_results.models import TaskResult
 
 import codecs, tempfile, os, re, ipdb, sys
 import simplejson as json
 from pprint import pprint
-from django_celery_results.models import TaskResult
-from datasets.models import Dataset, Hit
 from areas.models import Area
-from places.models import *
 from main.choices import AUTHORITY_BASEURI
+from places.models import *
 from datasets.forms import DatasetModelForm, HitModelForm, DatasetDetailModelForm
+from datasets.models import Dataset, Hit
 from datasets.static.hashes.parents import ccodes
-from datasets.tasks import read_delimited, align_tgn, align_whg, read_lpf
-from datasets.utils import parsejson, myteam, parse_wkt, aat_lookup
+from datasets.tasks import align_tgn, align_whg
+from datasets.utils import *
 
 def link_uri(auth,id):
     baseuri = AUTHORITY_BASEURI[auth]
@@ -555,16 +555,13 @@ class DatasetCreateView(CreateView):
                 raise Exception("Problem with the input file %s" % request.FILES['file'])
             finally:
                 os.close(tempf)
-
             # open the temp file
             fin = codecs.open(tempfn, 'r', 'utf8')
             # send for format validation
             if form.cleaned_data['format'] == 'delimited':
-                result = read_delimited(fin,form.cleaned_data['owner'])
-                # result = read_csv(fin,request.user.username)
+                result = validate_csv(fin,form.cleaned_data['owner'])
             elif form.cleaned_data['format'] == 'lpf':
-                result = read_lpf(fin,form.cleaned_data['owner'])
-                # result = read_lpf(fin,request.user.username)
+                result = validate_lpf(fin,form.cleaned_data['owner'])
             # print('cleaned_data',form.cleaned_data)
             fin.close()
 

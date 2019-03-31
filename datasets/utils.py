@@ -1,7 +1,94 @@
-import codecs, datetime, sys
+import codecs, datetime, sys, csv
 import simplejson as json
 from shapely import wkt
 from datasets.static.hashes import aat, parents
+
+def validate_lpf(infile):
+    return 'reached tasks.read_lpf()'
+
+
+def validate_csv(infile, username):
+    # TODO: Pandas?
+    # some WKT is big
+    csv.field_size_limit(100000000)
+    result = {'format':'delimited','errors':{}}
+    # required fields
+    # TODO: req. fields not null or blank
+    # required = ['id', 'title', 'name_src', 'ccodes', 'lon', 'lat']
+    required = ['id', 'title', 'name_src']
+
+    # learn delimiter [',',';']
+    # TODO: falling back to tab if it fails; need more stable approach
+    try:
+        dialect = csv.Sniffer().sniff(infile.read(16000),['\t',';','|'])
+        result['delimiter'] = 'tab' if dialect.delimiter == '\t' else dialect.delimiter
+    except:
+        dialect = '\t'
+        result['delimiter'] = 'tab'
+
+    reader = csv.reader(infile, dialect)
+    result['count'] = sum(1 for row in reader)
+
+    # get & test header (not field contents yet)
+    infile.seek(0)
+    header = next(reader, None) #.split(dialect.delimiter)
+    result['columns'] = header
+
+    # TODO: specify which is missing
+    if not len(set(header) & set(required)) == 3:
+        result['errors']['req'] = 'missing a required column (id,name,name_src)'
+        return result
+    if ('min' in header and 'max' not in header) \
+     or ('max' in header and 'min' not in header):
+        result['errors']['req'] = 'if a min, must be a max - and vice versa'
+        return result
+    if ('lon' in header and 'lat' not in header) \
+     or ('lat' in header and 'lon' not in header):
+        result['errors']['req'] = 'if a lon, must be a lat - and vice versa'
+        return result
+
+    #print(header)
+    rowcount = 1
+    geometries = []
+    for r in reader:
+        rowcount += 1
+
+        # length errors
+        if len(r) != len(header):
+            if 'rowlength' in result['errors'].keys():
+                result['errors']['rowlength'].append(rowcount)
+            else:
+                result['errors']['rowlength'] = [rowcount]
+
+
+        # TODO: write geojson? make map? so many questions
+        if 'lon' in header:
+            print('type(lon): ', type('lon'))
+            if (r[header.index('lon')] not in ('',None)) and \
+         (r[header.index('lat')] not in ('',None)):
+                feature = {
+            'type':'Feature',
+                  'geometry': {'type':'Point',
+                                 'coordinates':[ float(r[header.index('lon')]), float(r[header.index('lat')]) ]},
+                    'properties': {'id':r[header.index('id')], 'name': r[header.index('title')]}
+        }
+                # TODO: add properties to geojson feature?
+                # props = set(header) - set(required)
+                # print('props',props)
+                # for p in props:
+                #     feature['properties'][p] = r[header.index(p)]
+                geometries.append(feature)
+
+    if len(result['errors'].keys()) == 0:
+        # don't add geometries to result
+        # TODO: write them to a user GeoJSON file?
+        # print('got username?', username)
+        # print('2 geoms:', geometries[:2])
+        # result['geom'] = {"type":"FeatureCollection", "features":geometries}
+        print('looks ok')
+    else:
+        print('got errors')
+    return result
 
 class HitRecord(object):
     def __init__(self, whg_id, place_id, dataset, src_id, title):
