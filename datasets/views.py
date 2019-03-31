@@ -543,6 +543,7 @@ class DatasetCreateView(CreateView):
         context={}
         if form.is_valid():
             print('form is valid')
+            format = form.cleaned_data['format']
             #print('cleaned_data: before ->', form.cleaned_data)
 
             # open & write tempf to a temp location;
@@ -557,27 +558,36 @@ class DatasetCreateView(CreateView):
                 os.close(tempf)
             # open the temp file
             fin = codecs.open(tempfn, 'r', 'utf8')
+            print('fin from DatasetCreateView()',fin)
             # send for format validation
-            if form.cleaned_data['format'] == 'delimited':
+            if format == 'delimited':
                 result = validate_csv(fin,form.cleaned_data['owner'])
-            elif form.cleaned_data['format'] == 'lpf':
+            elif format == 'lpf':
                 result = validate_lpf(fin,form.cleaned_data['owner'])
             # print('cleaned_data',form.cleaned_data)
             fin.close()
 
             # add status & stats
             if len(result['errors'].keys()) == 0:
-                print('columns, type', result['columns'], type(result['columns']))
-                obj = form.save(commit=False)
-                obj.status = 'format_ok'
-                # form.format = result['format']
-                obj.format = result['format']
-                obj.delimiter = result['delimiter']
-                # # form.cleaned_data['delimiter'] = result['delimiter']
-                obj.numrows = result['count']
-                obj.header = result['columns']
                 print('cleaned_data:after ->',form.cleaned_data)
-                obj.save()
+                #obj = form.save(commit=False)
+                #obj.status = 'format_ok'
+                #obj.format = result['format']
+                #obj.delimiter = result['delimiter']
+                #obj.numrows = result['count']
+                #obj.header = result['columns']
+                #obj.save()
+                if format == 'delimited':
+                    #print('columns, type', result['columns'], type(result['columns']))
+                    obj = form.save(commit=False)
+                    obj.status = 'format_ok'
+                    obj.format = result['format']
+                    obj.delimiter = result['delimiter']
+                    obj.numrows = result['count']
+                    obj.header = result['columns']
+                    obj.save()
+                elif format == 'lpf':
+                    print('lpf result:', result)
             else:
                 context['status'] = 'format_error'
                 print('result:', result)

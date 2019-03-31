@@ -3,8 +3,22 @@ import simplejson as json
 from shapely import wkt
 from datasets.static.hashes import aat, parents
 
-def validate_lpf(infile):
-    return 'reached tasks.read_lpf()'
+def validate_lpf(infile, username):
+    print('tasks.read_lpf() username', username)
+    result = {'format':'lpf','errors':{}}
+    rowcount = 0
+    #with open(infile) as lpf:
+    for row in infile:
+        rowcount +=1
+        try:
+            keys=json.loads(row).keys()
+            print('row keys:',keys)
+        #except json.decoder.JSONDecodeError:
+        except:
+            err=sys.exc_info()
+            print(sys.exc_info())
+    result['count'] = rowcount
+    return result
 
 
 def validate_csv(infile, username):
