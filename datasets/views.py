@@ -308,16 +308,18 @@ def ds_list(request, label):
 def ds_insert_lpf(request, pk):
   import os,codecs,json
   dataset = get_object_or_404(Dataset, id=pk)
-
+  numrows = 0
   infile = dataset.file.open(mode="r")
   #print('ds_insert_lpf(); request.GET; infile',request.GET,infile)
   with dataset.file:
     dataset.file.open('rU')
     for row in dataset.file:
+      numrows += 1
       jrow=json.loads(row)
       #print(row)
       print(jrow['@id'],jrow['properties']['title'])
-  messages.add_message(request, messages.INFO, 'ready to insert lpf...hold your horses')  
+  print(numrows)
+  messages.add_message(request, messages.INFO, 'inserting '+str(numrows)+' row(s) of lpf...hold your horses')  
   return redirect('/dashboard')
   #return render(request,'datasets/dashboard.html')
 # insert LP-csv file to database
