@@ -31,8 +31,11 @@
       class="float-right mr-2">{% fontawesome_icon 'table' color='#336699' %}</a>
       {% endif %}
       {% if status == "format_ok" %}
-        <a href="{% url 'datasets:ds_insert' object.id %}" title="Insert to db" rel="tooltip"
-        class="small float-right mr-2">{% fontawesome_icon 'database' color='#336699' %}</a>
+        <a href=
+          {% if object.format == "delimited" %} "{% url 'datasets:ds_insert_csv' pk=object.id %}"
+          {% elif object.format == "lpf" %} "{% url 'datasets:ds_insert_lpf' pk=object.id %}"{% endif %}
+          title="Insert to db" rel="tooltip"
+          class="small float-right mr-2">{% fontawesome_icon 'database' color='#336699' %}</a>
       {% endif %}
       <span class="hidden">{{ form.name }}</span>
     </h4>

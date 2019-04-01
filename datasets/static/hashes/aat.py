@@ -1,4 +1,5 @@
 types={
+300008804: {"term": "peninsula", "parent": 300266060, "term_full": "peninsulas"},
 300008346: {"term": "Settlements and Landscapes", "parent": "", "term_full": "Settlements and Landscapes"},
 300008347: {"term": "inhabited place", "parent": 300008346, "term_full": "inhabited places"},
 300008389: {"term": "city", "parent": 300008347, "term_full": "cities"},
