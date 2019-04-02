@@ -307,16 +307,16 @@ def ds_list(request, label):
 # insert lpf into database
 def ds_insert_lpf(request, pk):
   import os,codecs,json
-  dataset = get_object_or_404(Dataset, id=pk)
-  numrows = 0
-  infile = dataset.file.open(mode="r")
+  ds = get_object_or_404(Dataset, id=pk)
+  [countrows,countlinked]= [0,0]
+  infile = ds.file.open(mode="r")
   objs = {"PlaceNames":[], "PlaceTypes":[], "PlaceGeoms":[], "PlaceWhens":[],
           "PlaceLinks":[], "PlaceRelated":[], "PlaceDescriptions":[],
             "PlaceDepictions":[]}
-  with dataset.file:
-    dataset.file.open('rU')
-    for row in dataset.file:
-      numrows += 1
+  with ds.file:
+    ds.file.open('rU')
+    for row in ds.file:
+      countrows += 1
       jrow=json.loads(row)
       print(jrow['@id'],jrow['properties']['title'])
       # TODO: get src_id into LP format
@@ -325,45 +325,85 @@ def ds_insert_lpf(request, pk):
       # Place: src_id, title, ccodes, dataset
       newpl = Place(
         src_id=jrow['@id'][-8:], #TODO: add src_id to properties in LP format
-        dataset=dataset.label,
+        dataset=ds,
         title=jrow['properties']['title'],
         ccodes=jrow['properties']['ccodes']
       )
       newpl.save() 
       
       countrows += 1
-      # PlaceName: place_id, src_id, toponym, json, task_id
+      # PlaceName: place_id,src_id,toponym,task_id,json:{toponym, lang,citation,when{}}
       for n in jrow['names']:
-        objs['PlaceNames'].append(PlaceName())    
+        objs['PlaceNames'].append(PlaceName(
+          place_id=newpl,src_id=newpl.src_id,toponym=jrow['properties']['title'],json=jrow['names'],task_id='initial'
+        ))
         
-      for n in jrow['types']:
-        objs['PlaceTypes'].append(PlaceType())    
+      # PlaceType: place_id,src_id,task_id,json:{identifier,label,src_label}
+      if 'types' in jrow.keys():
+        for t in jrow['types']:
+          objs['PlaceTypes'].append(PlaceType(
+            place_id=newpl,src_id=newpl.src_id,json=jrow['types']))    
         
-      for n in jrow['whens']:
-        objs['PlaceWhens'].append(PlaceWhen())    
+      # PlaceWhen: place_id,src_id,task_id,minmax,json:{timespans[],periods[],label,duration}
+      if 'whens' in jrow.keys():
+        for w in jrow['whens']:
+          objs['PlaceWhens'].append(PlaceWhen(
+            place_id=newpl,src_id=newpl.src_id,json=w))    
         
-      for n in jrow['geometry']['geometries']:
-        objs['PlaceGeoms'].append(PlaceGeom())    
+      # PlaceGeom: place_id,src_id,task_id,json:{type,coordinates[],when{},geo_wkt,src}
+      if 'geoms' in jrow.keys():
+        for g in jrow['geometry']['geometries']:
+          objs['PlaceGeoms'].append(PlaceGeom(
+            place_id=newpl,src_id=newpl.src_id,json=g))    
         
-      for n in jrow['links']:
-        objs['PlaceLinks'].append(PlaceLink())    
+      # PlaceLink: place_id,src_id,task_id,json:{type,identifier}
+      if 'links' in jrow.keys():
+        for l in jrow['links']:
+          if len(jrow['links'])>0: countlinked +=1
+          objs['PlaceLinks'].append(PlaceLink(
+            place_id=newpl,src_id=newpl.src_id,json=l,task_id='initial'))    
         
-      for n in jrow['related']:
-        objs['PlaceRelated'].append(PlaceRelated())    
+      # PlaceRelated: place_id,src_id,task_id,json{relationType,relationTo,label,when{}}
+      if 'relations' in jrow.keys():
+        for r in jrow['relations']:
+          objs['PlaceRelated'].append(PlaceRelated(
+            place_id=newpl,src_id=newpl.src_id,json=r))    
         
-      for n in jrow['descriptions']:
-        objs['PlaceDescriptions'].append(PlaceDescription())    
+      # PlaceDescription: place_id,src_id,task_id,json:{@id,value,lang}
+      if 'descriptions' in jrow.keys():
+        for des in jrow['descriptions']:
+          objs['PlaceDescriptions'].append(PlaceDescription(
+            place_id=newpl,src_id=newpl.src_id,json=des))    
         
-      for n in jrow['depictions']:
-        objs['PlaceDepictions'].append(PlaceDepiction())    
+      # PlaceDepiction: place_id,src_id,task_id,json{@id,title,license}
+      if 'depictions' in jrow.keys():
+        for dep in jrow['depictions']:
+          objs['PlaceDepictions'].append(PlaceDepiction(
+            place_id=newpl,src_id=newpl.src_id,json=dep))    
         
+      PlaceName.objects.bulk_create(objs['PlaceNames'])
+      PlaceType.objects.bulk_create(objs['PlaceTypes'])
+      PlaceWhen.objects.bulk_create(objs['PlaceWhens'])
+      PlaceGeom.objects.bulk_create(objs['PlaceGeoms'])
+      PlaceLink.objects.bulk_create(objs['PlaceLinks'])
+      PlaceRelated.objects.bulk_create(objs['PlaceRelated'])
+      PlaceDescription.objects.bulk_create(objs['PlaceDescriptions'])
+      PlaceDepiction.objects.bulk_create(objs['PlaceDepictions'])
+    
+      # write some summary attributes
+      ds.numrows = countrows
+      ds.numlinked = countlinked
+      ds.total_links = len(objs['PlaceLinks'])
+      ds.status = 'in_database'
+      ds.save()
       
-
-
-  print(numrows)
-  messages.add_message(request, messages.INFO, 'inserting '+str(numrows)+' row(s) of lpf...hold your horses')  
+    print('record:', ds.__dict__)
+    ds.file.close()   
+    
+  print(str(countrows)+' processed')
+  messages.add_message(request, messages.INFO, 'inserted lpf for '+str(countrows)+' places')  
   return redirect('/dashboard')
-  #return render(request,'datasets/dashboard.html')
+  
 # insert LP-csv file to database
 # TODO: require, handle sources
 def ds_insert_csv(request, pk):
@@ -447,7 +487,7 @@ def ds_insert_csv(request, pk):
     # build associated objects and add to arrays
 
     # PlaceName()
-    objs['PlaceName'].append(PlaceName(place_id=newpl,
+    objs['PlaceName'].append(PlaceName(place_id=newpl,src_id = src_id,
           toponym = name,
           # TODO get citation label through name_src FK; here?
           json={"toponym": name, "citation": {"id":name_src,"label":""}}
@@ -456,7 +496,7 @@ def ds_insert_csv(request, pk):
     # variants if any
     if len(variants) > 0:
       for v in variants:
-        objs['PlaceName'].append(PlaceName(place_id=newpl,
+        objs['PlaceName'].append(PlaceName(place_id=newpl,src_id = src_id,
           toponym = v,
           json={"toponym": v, "citation": {"id":name_src,"label":""}}
         ))
@@ -466,7 +506,7 @@ def ds_insert_csv(request, pk):
       print('aat_types',aat_types)
       for t in aat_types:
         objs['PlaceType'].append(
-          PlaceType(place_id=newpl,
+          PlaceType(place_id=newpl,src_id = src_id,
             json={"identifier":"aat:"+t, "src_label":src_type, 
                           "label":aat_lookup(int(t))}
         ))
@@ -474,12 +514,12 @@ def ds_insert_csv(request, pk):
     # PlaceGeom()
     # TODO: test geometry type or force geojson
     if 'lon' in header and (coords[0] != 0 and coords[1] != 0):
-      objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
+      objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,src_id = src_id,
         json={"type": "Point", "coordinates": coords,
                     "geowkt": 'POINT('+str(coords[0])+' '+str(coords[1])+')'}
       ))
     elif 'geowkt' in header:
-      objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,
+      objs['PlaceGeom'].append(PlaceGeom(place_id=newpl,src_id = src_id,
         json=parse_wkt(r[header.index('geowkt')])
       ))            
 
@@ -488,7 +528,7 @@ def ds_insert_csv(request, pk):
       countlinked += 1
       for m in close_matches:
         countlinks += 1
-        objs['PlaceLink'].append(PlaceLink(place_id=newpl,
+        objs['PlaceLink'].append(PlaceLink(place_id=newpl,src_id = src_id,
           json={"type":"closeMatch", "identifier":m}
         ))
 
@@ -497,13 +537,13 @@ def ds_insert_csv(request, pk):
       countlinked += 1
       for m in exact_matches:
         countlinks += 1
-        objs['PlaceLink'].append(PlaceLink(place_id=newpl,
+        objs['PlaceLink'].append(PlaceLink(place_id=newpl,src_id = src_id,
           json={"type":"exactMatch", "identifier":m}
         ))
 
     # PlaceRelated()
     if 'parent' in header and parent !='':
-      objs['PlaceRelated'].append(PlaceRelated(place_id=newpl,
+      objs['PlaceRelated'].append(PlaceRelated(place_id=newpl,src_id = src_id,
         json={"relation_type": "gvp:broaderPartitive",
               "relation_to": "",
               "label": parent}
@@ -512,7 +552,7 @@ def ds_insert_csv(request, pk):
     # PlaceWhen()
     # timespans[{start{}, end{}}], periods[{name,id}], label, duration
     if 'min' in header:
-      objs['PlaceWhen'].append(PlaceWhen(place_id=newpl,
+      objs['PlaceWhen'].append(PlaceWhen(place_id=newpl,src_id = src_id,
         json={
                 "timespans": [{"start":{"earliest":minmax[0]}, "end":{"latest":minmax[1]}}]
               }
@@ -637,9 +677,9 @@ class DatasetCreateView(CreateView):
         obj = form.save(commit=False)
         obj.status = 'format_ok'
         obj.format = result['format']
-        obj.delimiter = result['delimiter']
+        obj.delimiter = result['delimiter'] if "delimiter" in result.keys() else ""
         obj.numrows = result['count']
-        obj.header = result['columns']
+        obj.header = result['columns'] if "columns" in result.keys() else []
         obj.save()
       else:
         context['status'] = 'format_error'

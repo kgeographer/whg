@@ -6,32 +6,33 @@ from jsonschema import validate, Draft7Validator, draft7_format_checker
 
 def validate_lpf(infile, username):
   print('tasks.read_lpf() username', username)
-  schema = json.loads(codecs.open('datasets/hashes/lpf-schema-jsonl.json', 'r', 'utf8').read())
-  fout = codecs.open('result.txt', 'w', 'utf8')
-  print(schema)
-  result = {"errors_lpf":[]}
-  rownum = 0
+  schema = json.loads(codecs.open('datasets/static/lpf-schema-jsonl.json', 'r', 'utf8').read())
+  fout = codecs.open('upload-result.txt', 'w', 'utf8')
+  print('schema:',type(schema),schema )
+  result = {"errors":[],"format":"lpf"}
+  [rownum,count_ok] = [0,0]
   
-  with open(infile) as lpf:
-    for row in infile:
-      rownum +=1
-      print(json.loads(row).keys())
-      try:
-        validate(
-          instance=json.loads(row),
-          schema=schema,
-          format_checker=draft7_format_checker
-        )
-        count_ok +=1
-      except:
-        #err[1]._contents()
-        print('some kinda error?')
-        err = sys.exc_info()
-        path = ' > '.join([p for p in err[1].schema_path][:-1])
-        result["errors_lpf"].append({"row":rownum,"path":path,'error':err[1].args[0]})
+  #with open(infile) as lpf:
+  for row in infile:
+    rownum +=1
+    print(json.loads(row).keys())
+    try:
+      validate(
+        instance=json.loads(row),
+        schema=schema,
+        format_checker=draft7_format_checker
+      )
+      count_ok +=1
+    except:
+      #err[1]._contents()
+      err = sys.exc_info()
+      print('some kinda error',err)
+      #path = ' > '.join([p for p in err[1].schema_path][:-1])
+      #result["errors_lpf"].append({"row":rownum,"path":path,'error':err[1].args[0]})
+      result["errors"].append({"row":rownum,'error':err[1].args[0]})
 
-  fout.write(json.dumps(result["type_errors"]))
-  result['count'] = rowcount
+  fout.write(json.dumps(result["errors"]))
+  result['count'] = rownum
   return result
 
 def validate_csv(infile, username):
