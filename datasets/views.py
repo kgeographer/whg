@@ -83,8 +83,6 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
   print('review() request:', request)
   ds = get_object_or_404(Dataset, id=pk)
   task = get_object_or_404(TaskResult, task_id=tid)
-  # whg: 5ea5f2ef-0ff2-4b9c-a73e-fb1a941b844a
-  # tgn: 936ef358-5735-49a6-b346-48bbac84f673
   # TODO: also filter by reviewed, per authority
 
   # filter place records by passnum for those with unreviewed hits on this task
@@ -131,63 +129,66 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
   # Hit model fields = ['task_id','authority','dataset','place_id',
   #     'query_pass','src_id','authrecord_id','json','geom' ]
   HitFormset = modelformset_factory(
-    Hit, fields = ('id','authrecord_id','json','query_pass','score'), form=HitModelForm, extra=0)
+    Hit, 
+    fields = ('id','authority','authrecord_id','query_pass','score','json'), 
+    form=HitModelForm, extra=0)
   formset = HitFormset(request.POST or None, queryset=raw_hits)
   context['formset'] = formset
   print('context:',context)
   # print('formset',formset)
   method = request.method
   if method == 'GET':
-    print('a GET')
-    return render(request, 'datasets/review.html', context=context)
+    print('a GET, just rendering next')
   else:
-    print('a ',method)
-    # print('formset data:',formset.data)
-    if formset.is_valid():
-      hits = formset.cleaned_data
-      print('formset is valid, cleaned_data:',hits)
-      for x in range(len(hits)):
-        hit = hits[x]['id']
-        if hits[x]['match'] != 'none':
-          link = PlaceLink.objects.create(
-            place_id = place,
-                      task_id = tid,
-                        # dataset = ds,
-                        json = {
+    try:
+      if formset.is_valid():
+        hits = formset.cleaned_data
+        print('formset is valid, cleaned_data:',hits)
+        for x in range(len(hits)):
+          hit = hits[x]['id']
+          if hits[x]['match'] != 'none':
+            # create link 
+            link = PlaceLink.objects.create(
+              place_id = place,
+              task_id = tid,
+              # dataset = ds,
+              json = {
                 "type":hits[x]['match'],
-                        "identifier":link_uri(task.task_name, hits[x]['authrecord_id'])
-                            },
-              review_note =  hits[x]['review_note'],
-          )
-          # update <ds>.numlinked, <ds>.total_links
-          ds.numlinked = ds.numlinked +1
-          ds.total_links = ds.total_links +1
-          ds.save()
-          # TODO: augment fields for match 
-          # task.task_name = [align_tgn|align_dbp|align_gn|align_wd]
-          # ignore TGN geometry for non-point physical geography datasets
-          #hits[x]['json']['geom'] = True if ds in ('ne_rivers','ne_mountains','wri_lakes') else False
-          #hits[x]['json']['geom'] = True if task.task_kwargs['aug_geom'] == 'on' else False
-          augmenter(placeid, task.task_name, tid, hits[x]['json'])
-
-
-          # TODO: flag record as reviewed
-          print('place_id',placeid,
-                'authrecord_id',hits[x]['authrecord_id'],
-                          'hit.id',hit.id, type(hit.id))
-        # flag hit record as reviewed
-        matchee = get_object_or_404(Hit, id=hit.id)
-        matchee.reviewed = True
-        matchee.save()
-      return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)))
+                "identifier":link_uri(task.task_name, hits[x]['authrecord_id'])
+              },
+              #review_note =  hits[x]['review_note'],
+            )
+            # update <ds>.numlinked, <ds>.total_links
+            ds.numlinked = ds.numlinked +1
+            ds.total_links = ds.total_links +1
+            ds.save()
+            
+            
+            # TODO: augment fields for match if not whg
+            #augment only for [tgn,dbp,gn,wd]
+            if hits[x]['authority'] != 'whg':
+              augmenter(placeid, task.task_name, tid, hits[x]['json'])
+  
+  
+            # TODO: flag record as reviewed
+            print('place_id',placeid,
+                  'authrecord_id',hits[x]['authrecord_id'],
+                            'hit.id',hit.id, type(hit.id))
+          # flag hit record as reviewed
+          matchee = get_object_or_404(Hit, id=hit.id)
+          matchee.reviewed = True
+          matchee.save()
+        return redirect('/datasets/'+str(pk)+'/review/'+tid+'/'+passnum+'?page='+str(int(page)))
       # return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)+1))
-    else:
-      print('formset is NOT valid')
-      print('formset data:',formset.data)
-      print('errors:',formset.errors)
-      # ipdb.set_trace()
-      # return redirect('datasets/dashboard.html', permanent=True)
-  # pprint(locals())
+      else:
+        print('formset is NOT valid')
+        print('formset data:',formset.data)
+        print('errors:',formset.errors)
+        # ipdb.set_trace()
+        # return redirect('datasets/dashboard.html', permanent=True)
+    except:
+      sys.exit(sys.exc_info())
+      
   return render(request, 'datasets/review.html', context=context)
 
 

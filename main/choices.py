@@ -27,13 +27,15 @@ AUTHORITIES = [
     ('gn','Geonames'),
     ('wd','Wikidata'),
     ('spine','WHG Spine'),
+    ('whg','WHG'),
 ]
 
 AUTHORITY_BASEURI = {
     'align_tgn':'http://vocab.getty.edu/page/tgn/',
     'align_dbp':'http://dbpedia.org/page/',
     'align_gn':'http://www.geonames.org/',
-    'align_wd':'https://www.wikidata.org/wiki/'
+    'align_wd':'https://www.wikidata.org/wiki/',
+    'align_whg':'whg:'
 }
 
 MATCHTYPES = {
