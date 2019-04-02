@@ -10,11 +10,11 @@ def validate_lpf(infile, username):
   fout = codecs.open('upload-result.txt', 'w', 'utf8')
   print('schema:',type(schema),schema )
   result = {"errors":[],"format":"lpf"}
-  [rownum,count_ok] = [0,0]
+  [countrows,count_ok] = [0,0]
   
   #with open(infile) as lpf:
   for row in infile:
-    rownum +=1
+    countrows +=1
     print(json.loads(row).keys())
     try:
       validate(
@@ -28,11 +28,11 @@ def validate_lpf(infile, username):
       err = sys.exc_info()
       print('some kinda error',err)
       #path = ' > '.join([p for p in err[1].schema_path][:-1])
-      #result["errors_lpf"].append({"row":rownum,"path":path,'error':err[1].args[0]})
-      result["errors"].append({"row":rownum,'error':err[1].args[0]})
+      #result["errors_lpf"].append({"row":countrows,"path":path,'error':err[1].args[0]})
+      result["errors"].append({"row":countrows,'error':err[1].args[0]})
 
   fout.write(json.dumps(result["errors"]))
-  result['count'] = rownum
+  result['count'] = countrows
   return result
 
 def validate_csv(infile, username):

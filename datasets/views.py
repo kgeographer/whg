@@ -310,12 +310,15 @@ def ds_insert_lpf(request, pk):
   ds = get_object_or_404(Dataset, id=pk)
   [countrows,countlinked]= [0,0]
   infile = ds.file.open(mode="r")
-  objs = {"PlaceNames":[], "PlaceTypes":[], "PlaceGeoms":[], "PlaceWhens":[],
-          "PlaceLinks":[], "PlaceRelated":[], "PlaceDescriptions":[],
-            "PlaceDepictions":[]}
+  #objs = {"PlaceNames":[], "PlaceTypes":[], "PlaceGeoms":[], "PlaceWhens":[],
+          #"PlaceLinks":[], "PlaceRelated":[], "PlaceDescriptions":[],
+            #"PlaceDepictions":[]}
   with ds.file:
     ds.file.open('rU')
     for row in ds.file:
+      objs = {"PlaceNames":[], "PlaceTypes":[], "PlaceGeoms":[], "PlaceWhens":[],
+              "PlaceLinks":[], "PlaceRelated":[], "PlaceDescriptions":[],
+                "PlaceDepictions":[]}      
       countrows += 1
       jrow=json.loads(row)
       print(jrow['@id'],jrow['properties']['title'])
@@ -331,7 +334,6 @@ def ds_insert_lpf(request, pk):
       )
       newpl.save() 
       
-      countrows += 1
       # PlaceName: place_id,src_id,toponym,task_id,json:{toponym, lang,citation,when{}}
       for n in jrow['names']:
         objs['PlaceNames'].append(PlaceName(
@@ -381,6 +383,7 @@ def ds_insert_lpf(request, pk):
           objs['PlaceDepictions'].append(PlaceDepiction(
             place_id=newpl,src_id=newpl.src_id,json=dep))    
         
+      print("objs['PlaceNames']",objs['PlaceNames'])
       PlaceName.objects.bulk_create(objs['PlaceNames'])
       PlaceType.objects.bulk_create(objs['PlaceTypes'])
       PlaceWhen.objects.bulk_create(objs['PlaceWhens'])
@@ -568,6 +571,7 @@ def ds_insert_csv(request, pk):
     # print('new place:', newpl)
 
   # bulk_create(Class, batchsize=n) for each
+  print("objs['PlaceName']",objs['PlaceName'])  
   PlaceName.objects.bulk_create(objs['PlaceName'])
   PlaceType.objects.bulk_create(objs['PlaceType'])
   PlaceGeom.objects.bulk_create(objs['PlaceGeom'])
@@ -677,7 +681,7 @@ class DatasetCreateView(CreateView):
         obj = form.save(commit=False)
         obj.status = 'format_ok'
         obj.format = result['format']
-        obj.delimiter = result['delimiter'] if "delimiter" in result.keys() else ""
+        obj.delimiter = result['delimiter'] if "delimiter" in result.keys() else "n/a"
         obj.numrows = result['count']
         obj.header = result['columns'] if "columns" in result.keys() else []
         obj.save()
