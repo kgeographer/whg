@@ -116,13 +116,12 @@
                   <span class="ml-2">
                   {% if form.json.value|get:"geoms" != Null %}
                     <!--{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}-->
-                    <!--{ form.flag_geom }} flag-->
                     <a class="geolink" id="{{ form.authrecord_id.value }}" 
                       href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">
                       {% fontawesome_icon 'globe' color='#000099' %}</a>
                   {% endif %}
                   </span>
-                  <span class="inline">{{ form.match }}</span>
+                  <span class="inline">{{ form.match }}</span><span class="float-right mr-2">{{ form.flag }} flag</span>
                   <!--<span class="noteicon">{# fontawesome_icon 'comment' color='#666666' %}</span>-->
                 </div>
                 <!--<div class="notefield">{ form.review_note}}</div>-->
@@ -302,9 +301,9 @@
       if (auth == 'tgn'){
         return "#ff7800"}
       else if (auth == 'whg'){
-        return "red"}
+        return "orange"}
       else {
-        return "#ff7800"}
+        return "red"}
     }
 
     if (geom['features'].length > 0) {

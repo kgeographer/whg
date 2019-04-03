@@ -22,22 +22,23 @@
   <hr/>
   <div class="row">
     <div id="recon_form" class="col-md-6">
-      <p class="font-weight-bold">Authority name source</p>
       <div class="row">
         <div class="col-sm-6">
         <input type="hidden" name="ds" value="{{ ds.id }}">
         {% if user.is_superuser %}
-        <div class="form-check">
+        <div class="form-check text-danger">
           <label class="form-check-label" for="auth1">
-            <input type="radio" class="form-check-input" id="auth1"
-              name="recon" value="whg" checked>WHG Spine (whg)
+            <input type="radio" disabled class="form-check-input" id="auth1"
+              name="recon" value="whg">WHG Spine (whg)
           </label>
         </div>
+        <hr/>
         {% endif %}
+        <p class="font-weight-bold">Authority name source</p>
         <div class="form-check">
           <label class="form-check-label" for="auth2">
             <input type="radio" class="form-check-input" id="auth2"
-              name="recon" value="tgn">Getty TGN (tgn)
+              name="recon" value="tgn" checked>Getty TGN (tgn)
           </label>
         </div>
         <div class="form-check">

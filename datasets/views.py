@@ -23,7 +23,7 @@ from datasets.utils import *
 
 def link_uri(auth,id):
   baseuri = AUTHORITY_BASEURI[auth]
-  uri = baseuri + id
+  uri = baseuri + str(id)
   return uri
 
 # create place_name, place_geom, place_description records as req.
@@ -130,12 +130,12 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
   #     'query_pass','src_id','authrecord_id','json','geom' ]
   HitFormset = modelformset_factory(
     Hit, 
-    fields = ('id','authority','authrecord_id','query_pass','score','json'), 
+    fields = ('id','authority','authrecord_id','query_pass','score','json','flag'), 
     form=HitModelForm, extra=0)
   formset = HitFormset(request.POST or None, queryset=raw_hits)
   context['formset'] = formset
-  print('context:',context)
-  # print('formset',formset)
+  #print('context:',context)
+  #print('formset data:',formset.data)
   method = request.method
   if method == 'GET':
     print('a GET, just rendering next')
@@ -143,7 +143,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
     try:
       if formset.is_valid():
         hits = formset.cleaned_data
-        print('formset is valid, cleaned_data:',hits)
+        print('formset keys',formset.data.keys())
         for x in range(len(hits)):
           hit = hits[x]['id']
           if hits[x]['match'] != 'none':
@@ -154,7 +154,10 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
               # dataset = ds,
               json = {
                 "type":hits[x]['match'],
-                "identifier":link_uri(task.task_name, hits[x]['authrecord_id'])
+                "identifier":link_uri(
+                  task.task_name, hits[x]['authrecord_id'] if hits[x]['authority'] != 'whg' \
+                    else hits[x]['json']['place_id']
+                )
               },
               #review_note =  hits[x]['review_note'],
             )
@@ -164,17 +167,29 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
             ds.save()
             
             
-            # TODO: augment fields for match if not whg
-            #augment only for [tgn,dbp,gn,wd]
+            # TODO:
+            # augment only for [tgn,dbp,gn,wd]
             if hits[x]['authority'] != 'whg':
               augmenter(placeid, task.task_name, tid, hits[x]['json'])
+            else:
+              # if hit is close or exact, index as child
+              if hits[x]['match'] in ['exact_match','close_match']:
+                print('index '+str(placeid)+' as child of '+str(hits[x]['json']['place_id']))
+              elif hits[x]['match'] == 'related':
+                print('declared related - do what?')
   
-  
-            # TODO: flag record as reviewed
             print('place_id',placeid,
                   'authrecord_id',hits[x]['authrecord_id'],
-                            'hit.id',hit.id, type(hit.id))
-          # flag hit record as reviewed
+                  'hit.id',hit.id, type(hit.id))
+            
+          elif hits[x]['match'] == 'none':
+            # make it a new parent unless it's been flagged
+            print('index '+str(placeid)+' as a new parent')
+            if 'form-0-flag' in formset.data.keys():
+              print('flag is on, write to a file')
+          
+          # TODO: 
+          # set reviewed=True
           matchee = get_object_or_404(Hit, id=hit.id)
           matchee.reviewed = True
           matchee.save()
@@ -182,7 +197,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
       # return redirect('/datasets/'+str(pk)+'/review/'+tid+'?page='+str(int(page)+1))
       else:
         print('formset is NOT valid')
-        print('formset data:',formset.data)
+        #print('formset data:',formset.data)
         print('errors:',formset.errors)
         # ipdb.set_trace()
         # return redirect('datasets/dashboard.html', permanent=True)

@@ -514,27 +514,11 @@ def es_lookup_whg(qobj, *args, **kwargs):
       hit['pass'] = 'pass1'
       result_obj['hits'].append(hit)
   elif len(hits1) == 0:
-  # if this is black, index place as a parent immediately
+    # no shared links; for black, index place as a parent immediately
+    # for any other dataset, continue to passes 2 & 3
     if ds == 'black':
       result_obj['hit_count'] = hit_count
       return result_obj
-      #whg_id +=1
-      #print('just upped whg_id by 1',whg_id)
-      #parent_obj = makeDoc(place,'none')
-      #parent_obj['relation']={"name":"parent"}
-      #parent_obj['whg_id']=whg_id
-      ## add its own names to the suggest field
-      #for n in parent_obj['names']:
-        #parent_obj['suggest']['input'].append(n['toponym']) 
-      ##index it
-      #try:
-        #res = es.index(index=idx, doc_type='place', id=whg_id, body=json.dumps(parent_obj))
-        ##res = es.index(index=idx, doc_type='place', body=json.dumps(parent_obj))
-        #count_seeds +=1
-        #print(res)
-      #except:
-        #print('failed indexing '+str(place.id), parent_obj)
-        #err_black-whg.write(str({"pid":place.id, "title":place.title})+'\n')
   # /\/\/\/\/\/
   # pass2: must[name, type]; should[parent]; filter[geom, bounds]
   # /\/\/\/\/\/
@@ -646,16 +630,15 @@ def align_whg(pk, *args, **kwargs):
       # make everything a simple polygon hull for spatial filter purposes
       qobj['geom'] = hully(g_list)
 
-    
-    
     #
     ## run pass1-pass3 ES queries
     result_obj = es_lookup_whg(qobj, bounds=bounds, dataset=ds.label, place=place)
 
     if result_obj['hit_count'] == 0:
       count_nohit +=1
-      # if 'black', create parent record immediately
-      # TODO: same for others?
+      # no hits, create parent record immediately
+      # for now, only if 'black'
+      # TODO
       if ds.label == 'black':
         whg_id+=1
         place=get_object_or_404(Place,id=result_obj['place_id'])
@@ -677,6 +660,7 @@ def align_whg(pk, *args, **kwargs):
         print('created parent:',result_obj['place_id'],result_obj['title'])
       #nohits.append(result_obj['missed'])
     else:
+      # create hit record for review process
       count_hit +=1
       count_errors = 0
       total_hits += result_obj['hit_count']

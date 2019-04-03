@@ -195,7 +195,7 @@ input[type="text"] {
 .match_radio li {display:inline; margin-right:4px;}
 /*.match_radio ul {list-style-type: none; float: right;}*/
 .match_radio ul {list-style-type: none; padding-left:3px;}
-.matchbar {  background-color: #f7d9a1;}
+.matchbar {  background-color: #f8b109;}
 .notefield {  height:100;  display: none;}
 .noteicon {margin-left: 4px;}
 .noteicon:hover {cursor: pointer;}

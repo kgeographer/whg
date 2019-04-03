@@ -7,17 +7,18 @@ from .models import Dataset, Hit
 MATCHTYPES = [
   ('exact_match','exactMatch'),
   ('close_match','closeMatch'),
-    ('related','related'),
-    ('none','no match'),]
+  ('related','related'),
+  ('none','no match'),]
 
 class HitModelForm(forms.ModelForm):
   match = forms.CharField(
     initial='none',
     widget=forms.RadioSelect(choices=MATCHTYPES))
+  flag = forms.BooleanField(initial=False, required=False)
   
   class Meta:
     model = Hit
-    fields = ['id','authority','authrecord_id','query_pass','score','json' ]
+    fields = ['id','authority','authrecord_id','query_pass','score','json','flag' ]
     hidden_fields = ['id','authority','authrecord_id','query_pass','score','json' ]
     widgets = {
       'id': forms.HiddenInput(),
