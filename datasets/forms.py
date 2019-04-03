@@ -14,11 +14,11 @@ class HitModelForm(forms.ModelForm):
   match = forms.CharField(
     initial='none',
     widget=forms.RadioSelect(choices=MATCHTYPES))
-  flag = forms.BooleanField(initial=False, required=False)
+  #flag = forms.BooleanField(initial=False, required=False)
   
   class Meta:
     model = Hit
-    fields = ['id','authority','authrecord_id','query_pass','score','json','flag' ]
+    fields = ['id','authority','authrecord_id','query_pass','score','json' ]
     hidden_fields = ['id','authority','authrecord_id','query_pass','score','json' ]
     widgets = {
       'id': forms.HiddenInput(),

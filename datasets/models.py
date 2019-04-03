@@ -86,7 +86,7 @@ class Hit(models.Model):
     src_id = models.CharField(max_length=50)
     score = models.FloatField()
     reviewed = models.BooleanField(default=False)
-    #flag = models.BooleanField(default=False)
+    flag = models.BooleanField(default=False)
     
 
     # authority record identifier (could be uri)

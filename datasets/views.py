@@ -130,12 +130,12 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
   #     'query_pass','src_id','authrecord_id','json','geom' ]
   HitFormset = modelformset_factory(
     Hit, 
-    fields = ('id','authority','authrecord_id','query_pass','score','json','flag'), 
+    fields = ('id','authority','authrecord_id','query_pass','score','json'), 
     form=HitModelForm, extra=0)
   formset = HitFormset(request.POST or None, queryset=raw_hits)
   context['formset'] = formset
   #print('context:',context)
-  #print('formset data:',formset.data)
+  print('formset data:',formset.data)
   method = request.method
   if method == 'GET':
     print('a GET, just rendering next')
@@ -166,8 +166,7 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
             ds.total_links = ds.total_links +1
             ds.save()
             
-            
-            # TODO:
+            # 
             # augment only for [tgn,dbp,gn,wd]
             if hits[x]['authority'] != 'whg':
               augmenter(placeid, task.task_name, tid, hits[x]['json'])
@@ -185,8 +184,8 @@ def review(request, pk, tid, passnum): # dataset pk, celery recon task_id
           elif hits[x]['match'] == 'none':
             # make it a new parent unless it's been flagged
             print('index '+str(placeid)+' as a new parent')
-            if 'form-0-flag' in formset.data.keys():
-              print('flag is on, write to a file')
+            #if 'form-0-flag' in formset.data.keys():
+              #print('flag is on, write to a file')
           
           # TODO: 
           # set reviewed=True
