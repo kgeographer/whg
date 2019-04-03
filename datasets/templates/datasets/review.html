@@ -13,7 +13,7 @@
 {% block content %}
 <div class="container">
   <!-- incoming: ds, hit_list -->
-  <h4 class="mb-3 mt-3">Reconciliation Review 
+  <h4 class="mb-2 mt-3">Reconciliation Review 
     <span class="small">( <a href="{% url 'datasets:dataset-detail' id=ds_id %}"> 
       {{ ds_label }}</a> -> {{ authority }} ) 
       <select id="select_pass" name="pass" class="custom-select-sm mr-2" style="width:auto;">
@@ -111,12 +111,12 @@
               {% for hidden in form.hidden_fields %}
                 {{ hidden }}
               {% endfor %}
-              <div class="pl-2 pr-2 mb-2 matchbar">
+              <div class="pl-2 pr-2 mb-0 matchbar">
                 <div class="custom-control custom-radio match_radio">
                   <span class="ml-2">
                   {% if form.json.value|get:"geoms" != Null %}
                     <!--{ form.json.value|get:"location"|safe|json_script:form.authrecord_id.value }}-->
-                    <a class="geolink" id="{{ form.authrecord_id.value }}" 
+                    <a class="geolink" id="{{ form.json.value|get:"place_id" }}" 
                       href="javascript:{ zoomTo('tgn:'+{{ form.authrecord_id.value }}) }">
                       {% fontawesome_icon 'globe' color='#000099' %}</a>
                   {% endif %}
@@ -128,7 +128,7 @@
                 <!--<div class="notefield">{ form.review_note}}</div>-->
               </div>
               {{ form.non_field_errors }}
-              <div class="auth-match bg-light pl-2">
+              <div class="auth-match bg-light pl-2 mt-0 mb-2">
                 <!-- pull geometries to js -->
                 {% for g in form.json.value|get:"geoms" %}
                   {{ g|safe|json_script:g.id}}
@@ -193,7 +193,7 @@
   {% endif %}
 </div> <!-- .container -->
 <script type="text/javascript">
-    console.log('ds',"{{ ds_label }}")
+    var ds = "{{ ds_label }}"+':'
     $(function(){
       // set pass dropdown as next set with any reviewed=False rows
       $( "#select_pass" ).val("{{ passnum }}")
@@ -226,16 +226,18 @@
       mbstyle_url = 'https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={token}';
       
     var awmc = L.tileLayer(mbtiles_url, {id:'isawnyu.map-knmctlkh', token:token_awmc, attribution:attrib_awmc}),
-      grayscale = L.tileLayer(mbstyle_url, {id:'kgeographer/cjstfpenh6o1e1fldz95w8m6p', token:token_kg, attribution:attrib_mb}),
+      spine = L.tileLayer(mbstyle_url, {id:'kgeographer/cjstfpenh6o1e1fldz95w8m6p', token:token_kg, attribution:attrib_mb}),
       satellite  = L.tileLayer(mbtiles_url, {id:'mapbox.satellite', token:token_mb, attribution:attrib_mb});
+      osm  = L.tileLayer(mbtiles_url, {id:'mapbox.light', token:token_mb, attribution:attrib_mb});
 
     var baseLayers = {
       "AWMC Terrain": awmc,
-      "Spine Data": grayscale,
+      "OSM": osm,
+      "Spine Data": spine,
       "Satellite": satellite
     };
     L.control.layers(baseLayers).addTo(mappy);
-    baseLayers['AWMC Terrain'].addTo(mappy)
+    baseLayers['OSM'].addTo(mappy)
   }, false);
 
   $( "#select_pass" ).change(function() {
@@ -254,14 +256,17 @@
   })
 
   $( ".geolink" ).hover(function() {
-      let id = 'tgn:'+$(this)[0].id.toString()
+      <!--let id = ds+$(this)[0].id.toString()-->
+      let id = $(this)[0].id
+      console.log('id:',id)
       feat = idToFeature[id]
       feat.setStyle(
         {radius: 10, fillColor: 'red'}
       )
     },
     function() {
-      let id = 'tgn:'+$(this)[0].id.toString()
+      <!--let id = ds+$(this)[0].id.toString()-->
+      let id = $(this)[0].id
       feat = idToFeature[id]
       feat.setStyle(
         {radius: 8, fillColor: '#ff7800'}
@@ -312,8 +317,8 @@
       idToFeature = {} // for feature lookup
       features = L.geoJSON(geom, {
         pointToLayer: function (feature, latlng) {
-          console.log(feature.properties.ds+':'+feature.properties.id, "{{ authority }}")
-          matchid = feature.properties.ds+':'+feature.properties.id
+          <!--matchid = feature.properties.ds+':'+feature.properties.id-->
+          matchid = feature.properties.id
           marker = L.circleMarker(latlng,
             {
               radius: 8, fillOpacity: 0.6, opacity: 1, weight: 1,
@@ -328,7 +333,7 @@
         }
       }).addTo(map);
 
-      mappy.fitBounds(features.getBounds())
+      mappy.setView(features.getBounds().getCenter(),6)
     } else {
       console.log('no geometries, no feature')
     }
