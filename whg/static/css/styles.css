@@ -279,6 +279,12 @@ span.edit-row {
 /**
   element IDs
 **/
+.create-comment {
+  padding: 0 2px;
+  background-color: white;
+  height: 20px;
+  margin-bottom: 4px;
+}
 #review_list {
   height:calc(100vh - 180px);
   overflow:scroll;

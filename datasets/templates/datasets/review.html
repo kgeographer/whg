@@ -8,7 +8,8 @@
 {% block extra_head %}
   {% leaflet_js %}
   {% leaflet_css %}
-    <script src="{% static 'js/aliases.js' %}"></script>
+  <script src="{% static 'js/aliases.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'assets/css/bootstrap.css' %}">
 {% endblock %}
 {% block content %}
 <div class="container">
@@ -59,7 +60,14 @@
           <div id="place_record" class="mb-2">
             <div>
               <input type="hidden" name="place_id" value="{{ record.id }}" />
-              <span><h4 class="text-danger">{{ record.title }} </h4></span>
+              <span>
+                <h4 class="text-danger">{{ record.title }}
+                  <span class="float-right create-comment">
+                  <button type="button" class="create-comment btn">
+                  {% fontawesome_icon 'edit' color='#336699' %}</button>
+                  </span>
+                </h4>
+              </span>
               <span class="float-right">
                 <button type="submit" class="btn btn-secondary float-right">Save</button>
               </span>
@@ -123,7 +131,11 @@
                   </span>
                   <span class="inline">{{ form.match }}</span>
                   <!--<span class="float-right mr-2">{ form.flag }} flag</span>-->
-                  <!--<span class="noteicon">{# fontawesome_icon 'comment' color='#666666' %}</span>-->
+                  <!--<span class="float-right mr-2 create-comment">-->
+                  <span class="float-right mr-2">
+                  <!--<a href="#">{# fontawesome_icon 'edit' color='#336699' %}</a></span>-->
+                  <button type="button" class="create-comment btn btn-sm" data-id="{{ form.authrecord_id.value }}">
+                  {% fontawesome_icon 'edit' color='#336699' %}</button></span>
                 </div>
                 <!--<div class="notefield">{ form.review_note}}</div>-->
               </div>
@@ -191,6 +203,12 @@
     </form>
   {% endfor %} <!-- record in records -->
   {% endif %}
+  <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+    </div>
+  </div>
+</div>
 </div> <!-- .container -->
 <script type="text/javascript">
     var ds = "{{ ds_label }}"+':'
@@ -210,7 +228,24 @@
         window.location.href = base_urls[auth]+id
         console.log(str, auth,id)
       })
+
+      <!--$(".create-comment").each(function () {-->
+        <!--$(this).modalForm({formURL: $(this).data('id')});-->
+      <!--});-->
+
+      $(".create-comment").modalForm({
+        <!--formURL: $(this).data('id')-->
+        formURL: "{% url 'create_comment' %}"
+      });
+        <!--,modalId:,-->
+        <!--,modalContent:,-->
+        <!--,modalForm:,-->
+        <!--,errorClass:,-->
+        <!--,submitBtn:-->
     })
+    $(".update-book").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
     // expose leaflet map for events, call it 'mappy'
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map
@@ -339,4 +374,5 @@
     }
   } // end map_init
 </script>
+<script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
 {% endblock %}
