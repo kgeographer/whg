@@ -228,14 +228,13 @@
         window.location.href = base_urls[auth]+id
         console.log(str, auth,id)
       })
-
-      <!--$(".create-comment").each(function () {-->
-        <!--$(this).modalForm({formURL: $(this).data('id')});-->
-      <!--});-->
-
+      console.log('{{ task_id }}','{{ passnum }}')
+      selfurl='datasets/ds_id'+'{{ task_id }}','{{ passnum }}'
       $(".create-comment").modalForm({
-        <!--formURL: $(this).data('id')-->
-        formURL: "{% url 'create_comment' %}"
+        // http://localhost:8000/datasets/1/review/a102377e-4645-4c2d-a932-b530994da2ba/pass1
+        // '<int:pk>/review/<str:tid>/<str:passnum>'
+        <!--formURL: "{# url 'comment-create' #}?next={# url 'datasets:dataset-detail' id=ds_id #}"-->
+        formURL: "{% url 'comment-create' %}?next={% url 'datasets:review' pk=ds_id tid=task_id passnum=passnum %}"
       });
         <!--,modalId:,-->
         <!--,modalContent:,-->
@@ -243,9 +242,7 @@
         <!--,errorClass:,-->
         <!--,submitBtn:-->
     })
-    $(".update-book").each(function () {
-      $(this).modalForm({formURL: $(this).data('id')});
-    });
+        
     // expose leaflet map for events, call it 'mappy'
   window.addEventListener('map:init', function (e) {
     window.mappy = e.detail.map

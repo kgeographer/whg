@@ -1,5 +1,12 @@
 # datasets model field value choices
 
+COMMENT_TAGS = [
+    ('bad_link','Incorrect match/link'),
+    ('bad_type','Incorrect place type'),
+    ('typo','Typo'),
+    ('other','Other'),
+]
+
 FORMATS = [
     ('delimited', 'Delimited'),
     ('lpf', 'Linked Places (GeoJSON-LDT)'),
