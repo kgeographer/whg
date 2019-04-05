@@ -34,7 +34,8 @@ urlpatterns = [
     url(r'^about/$', TemplateView.as_view(template_name="main/about.html"), name="about"),
     url(r'^credits/$', TemplateView.as_view(template_name="main/credits.html"), name="credits"),
     
-    path('comment/', views.CommentCreateView.as_view(), name='comment-create'),
+    path('comment/<int:rec_id>', views.CommentCreateView.as_view(), name='comment-create'),
+    #path('comment/', views.CommentCreateView.as_view(), name='comment-create'),
 
     # backend stuff
     path('api/', include('api.urls')),

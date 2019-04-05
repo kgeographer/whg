@@ -1,9 +1,10 @@
 # main.views
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from .forms import CommentModalForm
 from main.models import Comment
+from places.models import Place
 from bootstrap_modal_forms.generic import BSModalCreateView
 
 class CommentCreateView(BSModalCreateView):
@@ -12,10 +13,18 @@ class CommentCreateView(BSModalCreateView):
     success_message = 'Success: Comment was created.'
     success_url = reverse_lazy('')
     
-    def form_valid(self, form):
+    def form_valid(self, form, **kwargs):
+        print('form_valid() kwargs',self.kwargs)
         #Add logged-in user as autor of comment THIS IS THE KEY TO THE SOLUTION
         form.instance.user = self.request.user
+        place=get_object_or_404(Place,id=self.kwargs['rec_id'])
+        form.instance.place_id = place
         return super(CommentCreateView, self).form_valid(form)
+        
+    def get_context_data(self, *args, **kwargs):
+        context = super(CommentCreateView, self).get_context_data(*args, **kwargs)
+        context['place_id']=self.kwargs['rec_id']
+        return context
         
     # ** ADDED for referrer redirect
     def get_form_kwargs(self, **kwargs):
