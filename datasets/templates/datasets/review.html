@@ -234,7 +234,8 @@
         console.log('record:',recid)
       }).modalForm({
         // 'next' feeds into success_url in view
-        formURL: "{% url 'comment-create' rec_id=80001 %}?next={% url 'datasets:review' pk=ds_id tid=task_id passnum=passnum %}"
+        <!--formURL: "{# url 'comment-create' rec_id=80001 #}?next={# url 'datasets:review' pk=ds_id tid=task_id passnum=passnum #}"-->
+        formURL: "{% url 'comment-create' %}?next={% url 'datasets:review' pk=ds_id tid=task_id passnum=passnum %}"
       });
         <!--,modalId:,-->
         <!--,modalContent:,-->

@@ -7,15 +7,16 @@ from bootstrap_modal_forms.forms import BSModalForm
 
 class CommentModalForm(BSModalForm):
     
-    #whg_id = forms.CharField(widget=forms.TextInput, label='WHG record id')    
+    place_id = forms.CharField(widget=forms.TextInput, label='WHG record id')    
     class Meta:
         model = Comment
         # fields: user, place_id, tag, note, created
-        fields = ['tag', 'note']
+        fields = ['tag', 'note','place_id']
         hidden_fields = ['created']
-        exclude = ['user','place_id']
+        #exclude = ['user','place_id']
+        exclude = ['user']
         widgets = {
-            #'whg_id': forms.TextInput(),
+            'place_id': forms.TextInput(),
             'tag': forms.RadioSelect(choices=COMMENT_TAGS),
             'note': forms.Textarea(attrs={
                 'rows':2,'cols': 30,'class':'textarea',

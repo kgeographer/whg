@@ -129,11 +129,6 @@
       console.log($(this).text())
       console.log(base_urls)
     })
-    <!--$(".fetch-context").click(function(event){-->
-      <!--event.preventDefault();-->
-      <!--fetchContext(boundsPolygon(mappy.getBounds()))-->
-      <!--<!--console.log(boundsPolygon(mappy.getBounds()))-->-->
-    <!--})-->
     $('input#fetch-context').prop('checked',false)
     $('input#fetch-context').click(function(){
       if($(this).is(':checked')) {
