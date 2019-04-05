@@ -102,12 +102,14 @@
                 <a href="{% url 'datasets:review' pk=object.id tid=t.task_id passnum='pass3' %}">
                <i>review</i></a>{% endif %}</li>
           </ul>
+          {% if user.is_superuser %}
           <p class="small">
              <a class="confirm-del-matches" href="{% url 'datasets:task-delete' tid=t.task_id scope='matches'%}">
               Clear matches</a>&nbsp;|&nbsp;
              <a class="confirm-del-all" href="{% url 'datasets:task-delete' tid=t.task_id scope='task' %}">
                Delete task & hits, clear matches {% fontawesome_icon 'trash' color='#336699' %}</a>
-          <!-- <p><b>{{ t.result.total_hits }}</b> hits for {{ t.result.got_hits }} of {{ t.result.count }} records. Elapsed: {{ t.result.elapsed }}</p> -->
+          </p>
+          {% endif %}
         </div>
         {% endfor %}
       </div>

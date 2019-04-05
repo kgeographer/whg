@@ -36,7 +36,7 @@ class PlacePortalView(DetailView):
         # get child records from index
         q = {"query": {"parent_id": {"type": "child","id": id_ }}}
         es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-        children = es.search(index='whg_flat', doc_type='place', body=q)['hits']
+        children = es.search(index='whg', doc_type='place', body=q)['hits']
         #print('kids, type',type(children),children)
         print("id",id_)
         # build context['payload'] (parent and children if any)
