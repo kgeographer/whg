@@ -16,7 +16,6 @@ class CommentCreateView(BSModalCreateView):
     def form_valid(self, form, **kwargs):
         print('form_valid() kwargs',self.kwargs)
         print('form_valid() form',form.cleaned_data)
-        #Add logged-in user as autor of comment THIS IS THE KEY TO THE SOLUTION
         form.instance.user = self.request.user
         #place=get_object_or_404(Place,id=self.kwargs['place_id'])
         #place=get_object_or_404(Place,id=form.place_id)
