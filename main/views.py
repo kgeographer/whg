@@ -17,15 +17,15 @@ class CommentCreateView(BSModalCreateView):
         print('form_valid() kwargs',self.kwargs)
         print('form_valid() form',form.cleaned_data)
         form.instance.user = self.request.user
-        #place=get_object_or_404(Place,id=self.kwargs['place_id'])
+        place=get_object_or_404(Place,id=self.kwargs['rec_id'])
         #place=get_object_or_404(Place,id=form.place_id)
-        #form.instance.place_id = place
+        form.instance.place_id = place
         return super(CommentCreateView, self).form_valid(form)
         
-    #def get_context_data(self, *args, **kwargs):
-        #context = super(CommentCreateView, self).get_context_data(*args, **kwargs)
-        #context['place_id']=self.kwargs['rec_id']
-        #return context
+    def get_context_data(self, *args, **kwargs):
+        context = super(CommentCreateView, self).get_context_data(*args, **kwargs)
+        context['place_id']=self.kwargs['rec_id']
+        return context
         
     # ** ADDED for referrer redirect
     def get_form_kwargs(self, **kwargs):

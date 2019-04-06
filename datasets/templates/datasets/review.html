@@ -45,11 +45,6 @@
     </span>
   </div>
   {% for record in records %} <!-- there is only one; if last, do nothing -->
-    <!--{# if records.has_next %}-->
-    <!--<form id="form_related" method="POST" action="" >-->
-      <!--{# else %}-->
-    <!--<form id="form_related" method="POST" action="" >-->
-    <!--{# endif %}-->
     <form id="form_related" method="POST" action="" >
     {% csrf_token %}
     {{ formset.management_form }}
@@ -130,14 +125,11 @@
                   {% endif %}
                   </span>
                   <span class="inline">{{ form.match }}</span>
-                  <!--<span class="float-right mr-2">{ form.flag }} flag</span>-->
-                  <!--<span class="float-right mr-2 create-comment">-->
                   <span class="float-right mr-2">
                   <button type="button" data-id="{{ form.json.value|get:"place_id" }}" 
                     class="create-comment btn btn-sm">
                   {% fontawesome_icon 'edit' color='#336699' %}</button></span>
                 </div>
-                <!--<div class="notefield">{ form.review_note}}</div>-->
               </div>
               {{ form.non_field_errors }}
               <div class="auth-match bg-light pl-2 mt-0 mb-2">
@@ -229,19 +221,14 @@
         console.log(str, auth,id)
       })
 
-      $(".create-comment").on('click',function(){
-        var recid = $(this).data('id')        
-        console.log('record:',recid)
-      }).modalForm({
-        // 'next' feeds into success_url in view
-        <!--formURL: "{# url 'comment-create' rec_id=80001 #}?next={# url 'datasets:review' pk=ds_id tid=task_id passnum=passnum #}"-->
-        formURL: "{% url 'comment-create' %}?next={% url 'datasets:review' pk=ds_id tid=task_id passnum=passnum %}"
-      });
-        <!--,modalId:,-->
-        <!--,modalContent:,-->
-        <!--,modalForm:,-->
-        <!--,errorClass:,-->
-        <!--,submitBtn:-->
+      
+      $(".create-comment").each(function () {
+        var recpk = $(this).data('id');
+        uribase="/comment/"+recpk
+        next='?next='+"{% url 'datasets:review' pk=ds_id tid=task_id passnum=passnum %}"
+        console.log('formURL',uribase+next)
+        $(this).modalForm({formURL: uribase+next});
+      });      
     })
         
     // expose leaflet map for events, call it 'mappy'
@@ -281,7 +268,6 @@
 
   $('.noteicon').on('click', function(){
     $(this).parents(".matchbar").find(".notefield").toggle()
-    // console.log('clicked',$(this).parents(".matchbar").find(".notefield"))
   })
 
   $('.noteicon').hover(function(){
@@ -289,16 +275,14 @@
   })
 
   $( ".geolink" ).hover(function() {
-      <!--let id = ds+$(this)[0].id.toString()-->
       let id = $(this)[0].id
       console.log('id:',id)
       feat = idToFeature[id]
       feat.setStyle(
-        {radius: 10, fillColor: 'red'}
+        {radius: 10, fillColor: 'yellow'}
       )
     },
     function() {
-      <!--let id = ds+$(this)[0].id.toString()-->
       let id = $(this)[0].id
       feat = idToFeature[id]
       feat.setStyle(
