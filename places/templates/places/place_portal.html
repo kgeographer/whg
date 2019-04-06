@@ -9,6 +9,7 @@
 {% block extra_head %}
   {% leaflet_js %}
   {% leaflet_css %}
+    <script src="{% static 'js/aliases.js' %}"></script>
     <script src="{% static 'js/leaflet.ajax.min.js' %}"></script>
 {% endblock %}
 {% block content %}
@@ -124,10 +125,14 @@
 <script type="text/javascript">
   $(function() {
     $("[rel='tooltip']").tooltip();
-    $(".remote-link").click(function(event) {
-      event.preventDefault();
-      console.log($(this).text())
-      console.log(base_urls)
+    $(".remote-link").on('click', function(event){
+      event.preventDefault()
+      str=$(this).text()
+      var re = /(dbp|gn|tgn):(.*?)$/;
+      auth=str.match(re)[1]
+      id=str.match(re)[2]
+      window.location.href = base_urls[auth]+id
+      console.log(str, auth,id)
     })
     $('input#fetch-context').prop('checked',false)
     $('input#fetch-context').click(function(){
