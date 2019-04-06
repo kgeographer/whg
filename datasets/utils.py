@@ -5,10 +5,10 @@ from datasets.static.hashes import aat, parents
 from jsonschema import validate, Draft7Validator, draft7_format_checker
 
 def validate_lpf(infile, username):
-  print('tasks.read_lpf() username', username)
+  #print('tasks.read_lpf() username', username)
   schema = json.loads(codecs.open('datasets/static/lpf-schema-jsonl.json', 'r', 'utf8').read())
   fout = codecs.open('upload-result.txt', 'w', 'utf8')
-  print('schema:',type(schema),schema )
+  #print('schema:',type(schema),schema )
   result = {"errors":[],"format":"lpf"}
   [countrows,count_ok] = [0,0]
   

@@ -15,7 +15,10 @@
 <!-- incoming: ds, place_list -->
 <div class="container">
   <h4 class="mt-3">{{ ds.name }} 
-    <span class="small text-muted">[#{{ ds.label }}]</span>
+    <span class="small text-muted">[#{{ ds.label }}]
+      <a href="{% url 'datasets:dataset-detail' ds.id %}" title="Dataset details" rel="tooltip"
+        class="">{% fontawesome_icon 'cog' color='#336699' %}</a>
+    </span>
     <span class="half float-right">
     {% if filter != 'nogeom' %}
       <a href="{% url 'datasets:drf_table' label=ds.label f='nogeom' %}" 
@@ -207,6 +210,7 @@
     if (data.geoms.length > 0){
       geom = {"type":"FeatureCollecton","features":[]}
       for (g in data.geoms){
+        console.log('g',g)
         data.geoms[g]['properties'] = {"id": data.id, "dataset": data.dataset}
         geom.features.push(data.geoms[g])
       }

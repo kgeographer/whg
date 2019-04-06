@@ -248,8 +248,8 @@ def ds_recon(request, pk):
             owner=ds.owner.id,
         bounds=bounds
           #aug_names=aug_names,
-            #aug_notes=aug_notes,
-            #aug_geom=aug_geom
+          #aug_notes=aug_notes,
+          #aug_geom=aug_geom
     )
 
     context['task_id'] = result.id
@@ -336,7 +336,7 @@ def ds_insert_lpf(request, pk):
                 "PlaceDepictions":[]}      
       countrows += 1
       jrow=json.loads(row)
-      print(jrow['@id'],jrow['properties']['title'])
+      print(jrow['@id'],jrow['properties']['title'],jrow.keys())
       # TODO: get src_id into LP format
 
       # start Place record & save to get id
@@ -351,6 +351,7 @@ def ds_insert_lpf(request, pk):
       
       # PlaceName: place_id,src_id,toponym,task_id,json:{toponym, lang,citation,when{}}
       for n in jrow['names']:
+        #print('from jrow[names]:',n)
         objs['PlaceNames'].append(PlaceName(
           place_id=newpl,src_id=newpl.src_id,toponym=jrow['properties']['title'],json=jrow['names'],task_id='initial'
         ))
@@ -368,8 +369,9 @@ def ds_insert_lpf(request, pk):
             place_id=newpl,src_id=newpl.src_id,json=w))    
         
       # PlaceGeom: place_id,src_id,task_id,json:{type,coordinates[],when{},geo_wkt,src}
-      if 'geoms' in jrow.keys():
+      if 'geometry' in jrow.keys():
         for g in jrow['geometry']['geometries']:
+          print('from jrow[geometry]:',g)
           objs['PlaceGeoms'].append(PlaceGeom(
             place_id=newpl,src_id=newpl.src_id,json=g))    
         

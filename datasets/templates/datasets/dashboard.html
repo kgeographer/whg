@@ -77,8 +77,6 @@
             <tbody>
               {% for a in area_list %}
                 <tr class="place-row">
-                  <!-- <td><span class="edit-row" style="cursor:pointer;">
-                    {# fontawesome_icon 'edit' color='#336699' #}</span</td> -->
                   <td>{{ a.id }}</td>
                   <td><a href="{% url 'areas:area-update' a.id %}">{{ a.title }}</a></td>
                   <td>{{ a.type }}</td>
