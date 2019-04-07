@@ -87,7 +87,7 @@ class PlaceTypeSerializer(serializers.ModelSerializer):
     # json: identifier, label, source_label, when{}
     identifier = serializers.ReadOnlyField(source='json.identifier')
     label = serializers.ReadOnlyField(source='json.label')
-    source_label = serializers.ReadOnlyField(source='json.src_label')
+    source_label = serializers.ReadOnlyField(source='json.sourceLabel')
     when = serializers.ReadOnlyField(source='json.when')
 
     class Meta:

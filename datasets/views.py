@@ -351,16 +351,24 @@ def ds_insert_lpf(request, pk):
       
       # PlaceName: place_id,src_id,toponym,task_id,json:{toponym, lang,citation,when{}}
       for n in jrow['names']:
-        #print('from jrow[names]:',n)
+        print('from jrow[names]:',n)
         objs['PlaceNames'].append(PlaceName(
-          place_id=newpl,src_id=newpl.src_id,toponym=jrow['properties']['title'],json=jrow['names'],task_id='initial'
+          place_id=newpl,
+          src_id=newpl.src_id,
+          toponym=n['toponym'],
+          json=n,
+          task_id='initial'
         ))
         
       # PlaceType: place_id,src_id,task_id,json:{identifier,label,src_label}
       if 'types' in jrow.keys():
         for t in jrow['types']:
+          #print('from jrow[types]:',t)
           objs['PlaceTypes'].append(PlaceType(
-            place_id=newpl,src_id=newpl.src_id,json=jrow['types']))    
+            place_id=newpl,
+            src_id=newpl.src_id,
+            json=t
+          ))    
         
       # PlaceWhen: place_id,src_id,task_id,minmax,json:{timespans[],periods[],label,duration}
       if 'whens' in jrow.keys():
@@ -371,7 +379,7 @@ def ds_insert_lpf(request, pk):
       # PlaceGeom: place_id,src_id,task_id,json:{type,coordinates[],when{},geo_wkt,src}
       if 'geometry' in jrow.keys():
         for g in jrow['geometry']['geometries']:
-          print('from jrow[geometry]:',g)
+          #print('from jrow[geometry]:',g)
           objs['PlaceGeoms'].append(PlaceGeom(
             place_id=newpl,src_id=newpl.src_id,json=g))    
         

@@ -159,22 +159,25 @@
      }
     idToFeature = {}  // for feature lookup
     features = L.geoJSON(geom, {
-    // TODO: for some reason linestrings are parsed and rendered here
-     pointToLayer: function (feature, latlng) {
-       matchid = feature.properties.dataset+':'+feature.properties.id
-       marker = L.circleMarker(latlng,
-         {
-           radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
-           color: "#000", fillColor: fill(feature.properties.dataset)
-         }
-       ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
-    
-       idToFeature[matchid] = marker
-       return marker
-     }
+    // TODO: for some reason non-points are parsed and rendered here
+      style: {fillOpacity: 0.1, opacity: 1, weight: 1,
+             color: "#000", fillColor:"#f6a2b3"
+           },
+      pointToLayer: function (feature, latlng) {
+         matchid = feature.properties.dataset+':'+feature.properties.id
+         marker = L.circleMarker(latlng,
+           {
+             radius: 8, fillOpacity: 0.8, opacity: 1, weight: 1,
+             color: "#000", fillColor: fill(feature.properties.dataset)
+           }
+         ).bindPopup(feature.properties.dataset+':'+feature.properties.id);
+      
+         idToFeature[matchid] = marker
+         return marker
+       }
     }).addTo(mappy);
     
-    if (geom['features'].length > 1) {
+    if (geom['features'].length > 1 && geom['features'][0].type == 'Point') {
       mappy.fitBounds(features.getBounds().pad(1))
     } else {
       feat0 = geom['features'][0]
@@ -198,19 +201,19 @@
     }
 
     // TYPES
-    html+='</p><p><b>Types</b>: ' + data.types[0].source_label +' [<i class="small">'
+    html+='</p><p><b>Types</b>: '
     typeids = ''
     for (t in data.types) {
-      typeids+=data.types[t].label+'('+data.types[t].identifier +'); '
+      typeids+=data.types[t].source_label +': (<i>'+data.types[t].label+'/'+data.types[t].identifier +'); '
     }
-    html += typeids.replace(/(; $)/g, "") +'</i>]</p>'
+    html += typeids.replace(/(; $)/g, "") +'</p>'
 
 
     // GEOMS
     if (data.geoms.length > 0){
       geom = {"type":"FeatureCollecton","features":[]}
       for (g in data.geoms){
-        console.log('g',g)
+        <!--console.log('g',data.geoms[g])-->
         data.geoms[g]['properties'] = {"id": data.id, "dataset": data.dataset}
         geom.features.push(data.geoms[g])
       }
