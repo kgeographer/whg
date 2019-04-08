@@ -103,12 +103,17 @@ def traceGeoSearch(idx,doctype,q):
   #except:
     #print(sys.exc_info()[0])
   hits = res['hits']['hits']
-  geoms=[]
+  #geoms=[]
+  collection={"type":"FeatureCollection","features":[]}
   for h in hits:
     if len(h['_source']['geoms'])>0:
-      geoms.append(h['_source']['geoms'][0]['location'])
-  print(str(len(geoms))+' geoms',geoms)  
-  return geoms
+      collection['features'].append(
+        {"type":"Feature",
+         "geometry":h['_source']['geoms'][0]['location'],
+         "properties":{"title":h['_source']['title'],"whg_id":h['_source']['whg_id']}}
+      )
+  print(str(len(collection['features']))+' features')  
+  return collection
 
 class FeatureContextView(View):
   """ Returns places in a bounding box """

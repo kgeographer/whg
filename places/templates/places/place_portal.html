@@ -110,7 +110,7 @@
                   <li><b>{{ t.body.relation }}</b> ({%for i in t.target.type %}{{i}}, {% endfor %})
                     ; <a href="{{t.target.id}}" target="_blank">{{ t.target.title }}</a>
                     {% if t.body.when %}
-                    ; {% for ts in t.body.when %}{{ ts.start }}{%if ts.end != ts.start%}-{{ ts.end }}{%endif%}{% endfor %}
+                    ; <i>when</i>: {% for ts in t.body.when %}{{ ts.start }}{%if ts.end != ts.start%}-{{ ts.end }}{%endif%}{% endfor %}
                     {% endif %}
                     <a href="" data-id={{t.trace_id}} class="trace-geo ml-1">{% fontawesome_icon 'globe' color='#336699' %}</a>
                   </li>
@@ -165,38 +165,27 @@
   
   function fetchTraceGeom(trace_id) {
     console.log('fetchTraceGeom():',trace_id)
-    trace={"type":"FeatureCollection","features":[]}
     $.get("/search/trace",{idx: 'traces01', search: trace_id, doc_type: 'trace'},
       function(data){
         console.log(data.length,'mappable geoms in this trace')
-        <!--for(i in data['hits']){-->
-          <!--geoms=data['hits'][i]['geoms']-->
-          <!--for(j in geoms) {-->
-            <!--context["features"].push(-->
-              <!--{ "type":"Feature","properties":{"id":geoms[j]['ds']+':'+geoms[j]['id']},-->
-                <!--"geometry":geoms[j]-->
-              <!--}-->
-            <!--)-->
-          <!--}-->
-        <!--}-->
-        <!--// TODO: fix panes z-index-->
-        <!--mappy.createPane('contextPane');-->
-        <!--mappy.getPane('contextPane').style.zIndex = 100;-->
-        <!--nearby = L.geoJSON(context, {-->
-          <!--pane: 'contextPane',-->
-          <!--pointToLayer: function (feature, latlng) {-->
-            <!--identifier = feature.geometry.ds+':'+feature.geometry.id-->
-            <!--marker = L.circleMarker(latlng,-->
-              <!--{-->
-                <!--radius: 5, fillOpacity: 0.6, opacity: 1, weight: 1,-->
-                <!--color: "#fff", fillColor: fill(feature.geometry.ds)-->
-              <!--}-->
-            <!--).bindPopup(identifier);-->
-         
-            <!--idToFeature[feature.properties.id] = marker-->
-            <!--return marker-->
-          <!--}-->
-        <!--}).addTo(mappy);-->
+        mappy.createPane('tracePane');
+        mappy.getPane('tracePane').style.zIndex = 200;
+        nearby = L.geoJSON(data, {
+          pane: 'tracePane',
+          pointToLayer: function (feature, latlng) {
+            identifier = feature.properties.whg_id
+            <!--console.log(feature,identifier)-->
+            marker = L.circleMarker(latlng,
+              {
+                radius: 5, fillOpacity: 0.6, opacity: 1, weight: 1,
+                color: "#fff", fillColor: "red"
+              }
+            ).bindPopup('whg:'+identifier+'<br/><b>'+
+              '<a href="/places/'+identifier+'/portal">'+feature.properties.title+"</b></a>");
+            idToFeature[identifier] = marker
+            return marker
+          }
+        }).addTo(mappy);
     });
   }
     
