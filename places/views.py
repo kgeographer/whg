@@ -72,8 +72,9 @@ class PlacePortalView(DetailView):
     trace_hits = es.search(index='traces01', doc_type='trace', body=qt)['hits']['hits']
     # TODO: parse, process
     for h in trace_hits:
-      print(h)
+      #print(h)
       context['traces'].append({
+        'trace_id':h['_id'],
         'target':h['_source']['target'],
         'body':next((x for x in h['_source']['body'] if x['whg_id'] == id_), None)})
     

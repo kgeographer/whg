@@ -95,18 +95,25 @@
             <div id="place_map" class="col-content small">
                 <p class="mb-0 allcap-heading">GEOGRAPHY
                     <span class="float-right">
-                      context <input id="fetch-context" type="checkbox"/> | zoom 
-                    <a href="javascript:getClose()">
-                      {% fontawesome_icon 'search-plus' color='#336699' %}</a>
+                      nearby places <input id="fetch-context" type="checkbox"/> 
+                      <!--| zoom <a href="javascript:getClose()">-->
+                      <!--{% fontawesome_icon 'search-plus' color='#336699' %}</a>-->
                 </p>
                 <div id="map">{% leaflet_map "map" callback="map_init" %}</div>
             </div>
             <div id="place_traces" class="col-content small mt-1">
+            <!--{'target': {'id': 'http://www.worldcat.org/oclc/833253277', 'type': ['Journey', 'Text'], 'title': 'Xuanzang : a Buddhist pilgrim on the Silk Road'}, 'body': {'id': 'http://whgazetteer.org/api/places/12376709', 'when': [{'end': '0630', 'start': '0630'}], 'title': 'Aksu', 'whg_id': 12376709, 'relation': 'waypoint'}}-->
               <p class="mb-0 allcap-heading">TRACES</p>
               {% if traces|length > 0 %}
                 <ul>
                 {% for t in traces %}
-                  <li>{{ t }}</li>
+                  <li><b>{{ t.body.relation }}</b> ({%for i in t.target.type %}{{i}}, {% endfor %})
+                    ; <a href="{{t.target.id}}" target="_blank">{{ t.target.title }}</a>
+                    {% if t.body.when %}
+                    ; {% for ts in t.body.when %}{{ ts.start }}{%if ts.end != ts.start%}-{{ ts.end }}{%endif%}{% endfor %}
+                    {% endif %}
+                    <a href="" data-id={{t.trace_id}} class="trace-geo ml-1">{% fontawesome_icon 'globe' color='#336699' %}</a>
+                  </li>
                 {% endfor %}
                 </ul>
               {% else %}
@@ -149,7 +156,50 @@
         nearby.removeFrom(mappy)
       }
     })
+    $(".trace-geo").click(function(e){
+      e.preventDefault()
+      fetchTraceGeom($(this).data('id'))
+      <!--console.log('get trace geom for:',$(this).data('id'))-->
+    })
   })
+  
+  function fetchTraceGeom(trace_id) {
+    console.log('fetchTraceGeom():',trace_id)
+    trace={"type":"FeatureCollection","features":[]}
+    $.get("/search/trace",{idx: 'traces01', search: trace_id, doc_type: 'trace'},
+      function(data){
+        console.log(data['hits'].length,'hits for context query')
+        <!--for(i in data['hits']){-->
+          <!--geoms=data['hits'][i]['geoms']-->
+          <!--for(j in geoms) {-->
+            <!--context["features"].push(-->
+              <!--{ "type":"Feature","properties":{"id":geoms[j]['ds']+':'+geoms[j]['id']},-->
+                <!--"geometry":geoms[j]-->
+              <!--}-->
+            <!--)-->
+          <!--}-->
+        <!--}-->
+        <!--// TODO: fix panes z-index-->
+        <!--mappy.createPane('contextPane');-->
+        <!--mappy.getPane('contextPane').style.zIndex = 100;-->
+        <!--nearby = L.geoJSON(context, {-->
+          <!--pane: 'contextPane',-->
+          <!--pointToLayer: function (feature, latlng) {-->
+            <!--identifier = feature.geometry.ds+':'+feature.geometry.id-->
+            <!--marker = L.circleMarker(latlng,-->
+              <!--{-->
+                <!--radius: 5, fillOpacity: 0.6, opacity: 1, weight: 1,-->
+                <!--color: "#fff", fillColor: fill(feature.geometry.ds)-->
+              <!--}-->
+            <!--).bindPopup(identifier);-->
+         
+            <!--idToFeature[feature.properties.id] = marker-->
+            <!--return marker-->
+          <!--}-->
+        <!--}).addTo(mappy);-->
+    });
+  }
+    
   // for ES query
   function fetchContext(bbox){
     <!--console.log('bbox:',bbox);-->
@@ -223,6 +273,8 @@
     var awmc = L.tileLayer(mbtiles_url, {id:'isawnyu.map-knmctlkh', token:token_awmc, attribution:attrib_awmc}),
       grayscale = L.tileLayer(mbstyle_url, {id:'kgeographer/cjstfpenh6o1e1fldz95w8m6p', token:token_kg, attribution:attrib_mb}),
       satellite  = L.tileLayer(mbtiles_url, {id:'mapbox.satellite', token:token_mb, attribution:attrib_mb});
+      osm  = L.tileLayer(mbtiles_url, {id:'mapbox.light', token:token_mb, attribution:attrib_mb});
+
 
     var watershedStyle = {
       "fillColor": "#993333",
@@ -286,6 +338,7 @@
 
     var baseLayers = {
       "AWMC Terrain": awmc,
+      "OSM": osm,
       "Spine Data": grayscale,
       "Satellite": satellite
     };

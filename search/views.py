@@ -89,8 +89,10 @@ def contextSearch(idx,doctype,q):
   if len(hits) > 0:
     for hit in hits:
       count_hits +=1
-      # TODO: parse hit into feature
-      result_obj["hits"].append(normalize(hit["_source"],'whg')) 
+      if idx=="whg":
+        result_obj["hits"].append(normalize(hit["_source"],'whg'))
+      else:
+        result_obj["hits"].append(hit["_source"]['body'])
   result_obj["count"] = count_hits
   return result_obj
 
@@ -100,11 +102,11 @@ class FeatureContextView(View):
   def get(request):
     print('FeatureContextView GET:',request.GET)
     """
-        args in request.GET:
-            [string] idx: index to be queried
-            [string] search: geometry to intersect
-            [string] doc_type: 'place' in this case
-        """
+    args in request.GET:
+        [string] idx: index to be queried
+        [string] search: geometry to intersect
+        [string] doc_type: 'place' in this case
+    """
     idx = request.GET.get('idx')
     bbox = request.GET.get('search')
     doctype = request.GET.get('doc_type')
@@ -123,8 +125,26 @@ class FeatureContextView(View):
       }    
     }}
     features = contextSearch(idx, doctype, q_context_all)
-    #htmlFeatures = [ featureItem(s) for f in features]
     return JsonResponse(features, safe=False)
+
+class TraceGeomView(View):
+  """ Returns places in a trace body """
+  @staticmethod
+  def get(request):
+    print('TraceGeomView GET:',request.GET)
+    """
+    args in request.GET:
+        [string] idx: index to be queried
+        [string] search: whg_id
+        [string] doc_type: 'tracw' in this case
+    """
+    idx = request.GET.get('idx')
+    trace_id = request.GET.get('search')
+    doctype = request.GET.get('doc_type')
+    q_trace = {"query": {"bool": {"must": [{"match":{"_id": trace_id}}]}}}
+    bodies = contextSearch(idx, doctype, q_trace)
+    print('bodies from TraceGeomView()',bodies)
+    return JsonResponse(bodies, safe=False)
 
 
 def home(request):
