@@ -103,12 +103,19 @@
             </div>
             <div id="place_traces" class="col-content small mt-1">
               <p class="mb-0 allcap-heading">TRACES</p>
-              <!-- auto-generate this-->
-              <ul>
-                <li>{ some event trace }</li>
-                <li>{ some person trace }</li>
-                <li>{ some document trace }</li>
-              </ul>
+              {% if traces|length > 0 %}
+                <ul>
+                {% for t in traces %}
+                  <li>{{ t }}</li>
+                {% endfor %}
+                </ul>
+              {% else %}
+                <ul>
+                  <li>{ some event trace }</li>
+                  <li>{ some person trace }</li>
+                  <li>{ some work trace }</li>
+                </ul>
+              {% endif %}
             </div>
           </div> <!-- place_home_r -->
         </div> <!-- row -->          
