@@ -168,7 +168,7 @@
     trace={"type":"FeatureCollection","features":[]}
     $.get("/search/trace",{idx: 'traces01', search: trace_id, doc_type: 'trace'},
       function(data){
-        console.log(data['hits'].length,'hits for context query')
+        console.log(data.length,'mappable geoms in this trace')
         <!--for(i in data['hits']){-->
           <!--geoms=data['hits'][i]['geoms']-->
           <!--for(j in geoms) {-->

@@ -2,7 +2,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
-import simplejson as json
+import simplejson as json, sys
 from areas.models import Area
 from datasets.tasks import normalize
 
@@ -86,6 +86,7 @@ def contextSearch(idx,doctype,q):
   result_obj = {"hits":[]}
   res = es.search(index=idx, doc_type=doctype, body=q, size=300)
   hits = res['hits']['hits']
+  # TODO: refactor this bit
   if len(hits) > 0:
     for hit in hits:
       count_hits +=1
@@ -95,6 +96,19 @@ def contextSearch(idx,doctype,q):
         result_obj["hits"].append(hit["_source"]['body'])
   result_obj["count"] = count_hits
   return result_obj
+def traceGeoSearch(idx,doctype,q):
+  es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+  #try:
+  res = es.search(index='whg', doc_type='place', body=q, size=300)
+  #except:
+    #print(sys.exc_info()[0])
+  hits = res['hits']['hits']
+  geoms=[]
+  for h in hits:
+    if len(h['_source']['geoms'])>0:
+      geoms.append(h['_source']['geoms'][0]['location'])
+  print(str(len(geoms))+' geoms',geoms)  
+  return geoms
 
 class FeatureContextView(View):
   """ Returns places in a bounding box """
@@ -142,10 +156,11 @@ class TraceGeomView(View):
     trace_id = request.GET.get('search')
     doctype = request.GET.get('doc_type')
     q_trace = {"query": {"bool": {"must": [{"match":{"_id": trace_id}}]}}}
-    bodies = contextSearch(idx, doctype, q_trace)
-    print('bodies from TraceGeomView()',bodies)
-    return JsonResponse(bodies, safe=False)
-
+    bodies = contextSearch(idx, doctype, q_trace)['hits'][0]
+    bodyids = [b['whg_id'] for b in bodies if b['whg_id']]
+    q_geom={"query": {"bool": {"must": [{"terms":{"_id": bodyids}}]}}}
+    geoms = traceGeoSearch(idx,doctype,q_geom)
+    return JsonResponse(geoms, safe=False)      
 
 def home(request):
   return render(request, 'search/home.html')
