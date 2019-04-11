@@ -26,18 +26,18 @@ def index_traces(trdata):
 def init():
   global es, idx, rows
   idx = 'traces01'
-
+  file = 'traces_examples_whg.json'
   import os, codecs, time, datetime, json,sys
-  os.chdir('/Users/karlg/Documents/Repos/_whgdata')
+  os.chdir('/Users/karlg/Documents/Repos/linked-traces-format/')
 
   from elasticsearch import Elasticsearch
   es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
   # read from file 
-  infile = codecs.open('pyin/traces_xuanzang.json', 'r', 'utf8')
+  infile = codecs.open(file, 'r', 'utf8')
   trdata = json.loads(infile.read())
 
-  mappings = codecs.open('data/elastic/mappings/mappings_traces.json', 'r', 'utf8').read()
+  mappings = codecs.open('mappings_traces_whg.json', 'r', 'utf8').read()
 
   # zap existing if exists, re-create
   try:

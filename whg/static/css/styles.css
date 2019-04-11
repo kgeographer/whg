@@ -93,6 +93,7 @@ input[type="text"] {
 /**
   place portal
 **/
+.trace-img {height: 250px;}
 #place_home_l tr, th {
   line-height: .2rem;
 }

@@ -45,7 +45,7 @@ class PlacePortalView(DetailView):
 
     # database records for parent + children into 'payload'
     qs=Place.objects.filter(id__in=ids)
-    #print("ids, qs",ids,qs)
+    #print("id_,ids, qs",id_,ids,qs)
     for place in qs:        
       ds = get_object_or_404(Dataset,id=place.dataset.id)
       record = {
@@ -72,11 +72,13 @@ class PlacePortalView(DetailView):
     trace_hits = es.search(index='traces01', doc_type='trace', body=qt)['hits']['hits']
     # TODO: parse, process
     for h in trace_hits:
-      #print(h)
+      #print('trace hit h',h)
       context['traces'].append({
         'trace_id':h['_id'],
         'target':h['_source']['target'],
-        'body':next((x for x in h['_source']['body'] if x['whg_id'] == id_), None)})
+        'body':next((x for x in h['_source']['body'] if x['whg_id'] == id_), None),
+        'bodycount':len(h['_source']['body'])
+      })
     
     print('context payload',str(context['payload']))
     print('context traces',str(context['traces']))

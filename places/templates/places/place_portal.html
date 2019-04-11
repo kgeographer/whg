@@ -107,13 +107,25 @@
               {% if traces|length > 0 %}
                 <ul>
                 {% for t in traces %}
-                  <li><b>{{ t.body.relation }}</b> ({%for i in t.target.type %}{{i}}, {% endfor %})
+                  <li><b>{{ t.body.relation }}</b> {{ t.target.type }}
                     ; <a href="{{t.target.id}}" target="_blank">{{ t.target.title }}</a>
-                    {% if t.body.when %}
-                    ; <i>when</i>: {% for ts in t.body.when %}{{ ts.start }}{%if ts.end != ts.start%}-{{ ts.end }}{%endif%}{% endfor %}
+                    {% if t.body.when %}; <i>when</i>: 
+                      {% for ts in t.body.when %}
+                        {% if ts.earliest %}
+                          c.{{ ts.earliest }}{%if ts.latest != ts.earliest %} - c.{{ ts.latest }}{%endif%}
+                        {% else %}
+                          {{ ts.start }}{%if ts.end != ts.start %}-{{ ts.end }}{%endif%}
+                        {% endif %}
+                      {% endfor %}
                     {% endif %}
-                    <a href="" data-id={{t.trace_id}} class="trace-geo ml-1">{% fontawesome_icon 'globe' color='#336699' %}</a>
+                    {% if t.bodycount > 1 %}
+                    <a href="" data-ctr={{ forloop.counter0 }} data-id={{t.trace_id}} class="trace-geo ml-1">{% fontawesome_icon 'globe' color='#336699' %}</a>
+                    {% endif %}
+                    {% if t.target.depiction %}
+                    <a data-toggle="tooltip" title="<img class='trace-img' src='{{ t.target.depiction }}'/>" class="ml-1">{% fontawesome_icon 'image' color='#336699' %}</a>                      
+                    {% endif %}
                   </li>
+                  <!--{ t }}-->
                 {% endfor %}
                 </ul>
               {% else %}
@@ -138,7 +150,13 @@
 
 <script type="text/javascript">
   $(function() {
+    var trace_count = 0
     $("[rel='tooltip']").tooltip();
+    $('a[data-toggle="tooltip"]').tooltip({
+      animated: 'fade',
+      placement: 'bottom',
+      html: true
+    });
     $(".remote-link").on('click', function(event){
       event.preventDefault()
       str=$(this).text()
@@ -158,16 +176,27 @@
     })
     $(".trace-geo").click(function(e){
       e.preventDefault()
-      fetchTraceGeom($(this).data('id'))
-      <!--console.log('get trace geom for:',$(this).data('id'))-->
+      fetchTraceGeom($(this).data('id'),$(this).data('ctr'))
+      <!--console.log('get trace geom for:',$(this).data('id'),$(this).data('ctr'))-->
     })
   })
-  
-  function fetchTraceGeom(trace_id) {
+  function filly(counter) {
+    if (counter == 0)
+      return "blue"
+    else if (counter == 1)
+      return "orange"
+    else if (counter == 2)
+      return "purple"
+    else if (counter == 3)
+      return "greenyellow"
+    else 
+      return "yellow"
+  }
+  function fetchTraceGeom(trace_id,counter) {
     console.log('fetchTraceGeom():',trace_id)
     $.get("/search/trace",{idx: 'traces01', search: trace_id, doc_type: 'trace'},
       function(data){
-        console.log(data.length,'mappable geoms in this trace')
+        console.log(data.features.length,'mappable geoms in this trace')
         mappy.createPane('tracePane');
         mappy.getPane('tracePane').style.zIndex = 200;
         nearby = L.geoJSON(data, {
@@ -177,8 +206,8 @@
             <!--console.log(feature,identifier)-->
             marker = L.circleMarker(latlng,
               {
-                radius: 5, fillOpacity: 0.6, opacity: 1, weight: 1,
-                color: "#fff", fillColor: "red"
+                radius: 5, fillOpacity: 0.8, opacity: 1, weight: 1,
+                color: "#fff", fillColor: filly(counter)
               }
             ).bindPopup('whg:'+identifier+'<br/><b>'+
               '<a href="/places/'+identifier+'/portal">'+feature.properties.title+"</b></a>");
