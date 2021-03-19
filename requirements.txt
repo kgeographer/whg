@@ -25,7 +25,7 @@ django-mathfilters==0.4.0
 django-templated-mail==1.1.1
 django-timezone-field==3.0
 django-webpack-loader==0.6.0
-djangorestframework==3.8.2
+djangorestframework==3.11.2
 djangorestframework-datatables==0.4.1
 djoser==1.2.1
 elasticsearch==6.3.1
