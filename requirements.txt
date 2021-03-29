@@ -58,7 +58,7 @@ psutil==3.4.2
 psycopg2==2.7.5
 psycopg2-binary==2.7.5
 ptyprocess==0.6.0
-Pygments==2.3.1
+Pygments==2.7.4
 pyrsistent==0.14.11
 python-crontab==2.3.5
 python-dateutil==2.7.3
